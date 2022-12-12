@@ -399,12 +399,12 @@ readRDS("results/mod3_excess.RDS") %>%
             by="cause") %>% 
   ggplot() +
   geom_hline(yintercept=0,colour="grey50") +
-  geom_col(aes(x=cause_name,y=est),fill="green",colour="black",size=.3,width=.8,alpha=.5) +
+  geom_col(aes(x=cause_name,y=est),fill="black",colour="black",size=.3,width=.8,alpha=.5) +
   geom_errorbar(aes(x=cause_name,y=est,ymin=lwb,ymax=upb),
                 colour="black",width=.3,size=.3,alpha=.8) +
   facet_wrap(age_class~.,scales="free",ncol=2) +
   scale_fill_discrete(guide="none") +
-  labs(x="Cause",y="Relative excess mortality") +
+  labs(x="Cause",y="Absolute excess mortality") +
   theme_bw() +
   theme(axis.text.x=element_text(angle=45,hjust = 1))
 ```
@@ -420,12 +420,117 @@ readRDS("results/mod3_excess.RDS") %>%
             by="cause") %>% 
   ggplot() +
   geom_hline(yintercept=0,colour="black",size=1) +
-  geom_col(aes(x=cause_name,y=est),fill="green",colour="black",size=.3,width=.8,alpha=.5) +
+  geom_col(aes(x=cause_name,y=est),fill="black",colour="black",size=.3,width=.8,alpha=.5) +
   geom_errorbar(aes(x=cause_name,y=est,ymin=lwb,ymax=upb),
                 colour="black",width=.3,size=.3,alpha=.8) +
   facet_wrap(age_class~.,scales="free",ncol=2) +
   scale_y_continuous(labels=scales::percent) +
   scale_fill_discrete(guide="none") +
+  labs(x="Cause",y="Relative excess mortality") +
+  theme_bw()+
+  theme(axis.text.x=element_text(angle=45,hjust = 1))
+```
+
+## Excess mortality by cause and phase
+
+
+| Phase | Weeks  | Dates  |
+| :-------: | :---: | :---: |
+| 1 | 1-23 | 01.01.2020-07.06.2020 |
+| 2 | 24-39 | 08.06.2020-27.09.2020 |
+| 3 | 40-52 | 28.09.2020-31.12.2020 |
+
+### Absolute excess mortality (with COVID)
+
+```{r,  fig.width=8,fig.height=8,echo = FALSE}
+deaths_pand_pred_sample = readRDS("results/deaths_pand_pred_sample.RDS")
+d = deaths_pand_pred_sample %>% 
+  dplyr::mutate(phase= 1 + as.numeric(week>isoweek("2020-06-07")) + as.numeric(week>isoweek("2020-09-27"))) %>% 
+  group_by(phase,cause,age_class,iter) %>%
+  dplyr::summarise(values=sum(values),
+                   n = sum(n),.groups="drop_last") %>% 
+  dplyr::summarise(deaths= mean(n),#take the mean for the reported deaths but it is same across all iterations
+                   est=deaths-mean(values),
+                   lwb = deaths-quantile(values,probs=0.025),
+                   upb = deaths-quantile(values,probs=0.975), .groups="drop") 
+
+d %>% dplyr::mutate(var="overall_excess") %>%
+  dplyr::select(phase,age_class,est,lwb,upb,var,cause) %>% 
+  rbind(data_all %>% 
+          filter(year==2020,cause=="covid") %>%
+          dplyr::mutate(phase= 1 + as.numeric(week>isoweek("2020-06-07")) + as.numeric(week>isoweek("2020-09-27"))) %>% 
+          group_by(phase,age_class) %>% 
+          dplyr::summarise(n=sum(n),.groups="drop") %>%
+          dplyr::select(phase,age_class=age_class,est=n) %>% 
+          dplyr::mutate(lwb=NA,upb=NA,var="overall_excess",cause="covid")) %>% 
+  left_join(data.frame(cause =c(causes,"covid"),
+                       cause_name = c("Cardiovascular\ndisease","Dementia","Diabetes","Accident","Cancer","Infectious\ndisease","Other","Respiratory\ndisease","COVID")),
+            by="cause") %>%
+  dplyr::mutate(phase=factor(phase)) %>% 
+  ggplot(aes(fill=phase)) +
+  geom_hline(yintercept=0,colour="black",size=1) +
+  geom_col(aes(x=cause_name,y=est),position=position_dodge(width = 0.7),colour="black",size=.3,width=.7,alpha=.5) +
+  geom_errorbar(aes(x=cause_name,y=est,ymin=lwb,ymax=upb),position=position_dodge(width = 0.7),
+                colour="black",width=.3,size=.3,alpha=.8)+
+  facet_grid(age_class~.,scales="free") +
+  labs(x="Cause",y="Absolute excess mortality") +
+  theme_bw() +
+  theme(axis.text.x=element_text(angle=45,hjust = 1))
+```
+
+### Absolute excess mortality (without COVID)
+
+The deaths due to COVID-19 are removed for a better readability.
+
+```{r,  fig.width=8,fig.height=8,echo = FALSE}
+d %>% dplyr::mutate(var="overall_excess") %>%
+  dplyr::select(phase,age_class,est,lwb,upb,var,cause) %>% 
+  left_join(data.frame(cause =c(causes,"covid"),
+                       cause_name = c("Cardiovascular\ndisease","Dementia","Diabetes","Accident","Cancer","Infectious\ndisease","Other","Respiratory\ndisease","COVID")),
+            by="cause") %>%
+  dplyr::mutate(phase=factor(phase)) %>% 
+  ggplot(aes(fill=phase)) +
+  geom_hline(yintercept=0,colour="black",size=1) +
+  geom_col(aes(x=cause_name,y=est),position=position_dodge(width = 0.7),colour="black",size=.3,width=.7,alpha=.5) +
+  geom_errorbar(aes(x=cause_name,y=est,ymin=lwb,ymax=upb),position=position_dodge(width = 0.7),
+                colour="black",width=.3,size=.3,alpha=.8)+
+  facet_grid(age_class~.,scales="free") +
+  labs(x="Cause",y="Absolute excess mortality") +
+  theme_bw() +
+  theme(axis.text.x=element_text(angle=45,hjust = 1))
+```
+
+### Relative excess mortality
+
+Results are only shown for the categories where both the observed and the expected mortality is greater than 0.
+
+```{r,  fig.width=8,fig.height=8,echo = FALSE}
+d = deaths_pand_pred_sample %>% 
+  dplyr::mutate(phase= 1 + as.numeric(week>isoweek("2020-06-07")) + as.numeric(week>isoweek("2020-09-27"))) %>% 
+  group_by(phase,cause,age_class,iter) %>%
+  dplyr::summarise(values=sum(values),
+                   n = sum(n),.groups="drop_last") %>% 
+  dplyr::summarise(deaths= mean(n),#take the mean for the reported deaths but it is same across all iterations
+                   est= mean((deaths-values)/values),
+                   lwb = quantile((deaths-values)/values,probs=0.025,na.rm=TRUE),
+                   upb = quantile((deaths-values)/values,probs=0.975,na.rm=TRUE), .groups="drop") 
+
+d %>% 
+  dplyr::mutate(est=ifelse(is.infinite(est),NA,est), #nan if no observed deaths, Inf if there is one iteration with 0 expected deaths
+                est=ifelse(is.nan(est),NA,est),
+                lwb=ifelse(is.na(est),NA,lwb),
+                upb=ifelse(is.na(est),NA,upb)) %>% 
+  left_join(data.frame(cause =c(causes,"covid"),
+                       cause_name = c("Cardiovascular\ndisease","Dementia","Diabetes","Accident","Cancer","Infectious\ndisease","Other","Respiratory\ndisease","COVID")),
+            by="cause") %>%
+  dplyr::mutate(phase=factor(phase)) %>% 
+  ggplot(aes(fill=phase)) +
+  geom_hline(yintercept=0,colour="black",size=1) +
+  geom_col(aes(x=cause_name,y=est),position=position_dodge(width = 0.7),colour="black",size=.3,width=.7,alpha=.5) +
+  geom_errorbar(aes(x=cause_name,y=est,ymin=lwb,ymax=upb),position=position_dodge(width = 0.7),
+                colour="black",width=.3,size=.3,alpha=.8) +
+  facet_grid(age_class~.,scales="free") +
+  scale_y_continuous(labels=scales::percent) +
   labs(x="Cause",y="Relative excess mortality") +
   theme_bw()+
   theme(axis.text.x=element_text(angle=45,hjust = 1))

@@ -44,13 +44,6 @@ if(FALSE){
 deaths_pand_pred_sample = readRDS("results/deaths_pand_pred_sample.RDS")
 deaths_pred_sample = readRDS("results/deaths_pred_sample.RDS")
 
-d1 %>% 
-  ggplot() +
-  geom_line(aes(x=year,y=est),col="black") +
-  geom_ribbon(aes(x=year,ymin=lwb,ymax=upb),fill="black",alpha=0.2) +
-  geom_point(aes(x=year,y=deaths),col="red",alpha=0.5,size=2) +
-  facet_wrap(.~cause,scales="free") +
-  theme_bw()
 
 d2=deaths_pred_sample %>% 
   group_by(year,week,iter) %>%
@@ -63,7 +56,6 @@ d2=deaths_pred_sample %>%
   dplyr::mutate(date=ISOweek2date(paste0(year,"-W",ifelse(week<10,paste0("0",week),week),"-1")))
 
 d2
-
 
 #aggregate deaths by year, week and age_class (i.e. over sex)
 d=deaths_pand_pred_sample %>% 
@@ -106,7 +98,7 @@ data_all %>%
 ########################################################################################################
 #Expected deaths pandemic
 #by age
-d1.pand.year=deaths_pand_pred_sample %>% 
+d1.pand.year = deaths_pand_pred_sample %>% 
   select(year,week,age_class,cause,sex,n,n.tot,iter,values) %>%
         group_by(age_class,iter) %>%
         dplyr::summarise(values=sum(values),
@@ -237,6 +229,14 @@ d.year.age.cause = deaths_pred_sample %>%
 save(d1.year,d2.year,d1.week,d2.week,d.year.age.cause,file="savepoint/aggregated_deaths.RData")
 
 ########################################################################################################
+load("savepoint/aggregated_deaths.RData")
+
+
+
+deaths_pand_pred_sample
+
+
+
 
 #plot by year, all
 d2.year %>% 
