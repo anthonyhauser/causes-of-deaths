@@ -1,6 +1,11 @@
 run_stan_mod3_by_age_cause = function(data_all, age_classes, causes,run.model=TRUE){
   
   mod3_cmdstan <- cmdstan_model("stan/mod3_GP_year_season.stan")
+  x=1:500
+  x_mean = mean(x)
+  x_sd = sd(x)
+  xn = (x-mean(x))/x_sd
+  
   
   data_pred_fit=list()
   data_pred_pand=list()
