@@ -108,7 +108,8 @@ When looking at the total number of deaths, we observe little difference between
 
 ```{r, fig.width=8,fig.height=8,  echo = FALSE}
 #Deaths in cause of deaths data
-deaths_year_age1 = data_all %>% 
+deaths_year_age1 = d2 %>% 
+  filter(cause2=="total",year>=2011) %>% 
   dplyr::mutate(age_class=factor(age_class),
                 year=as.numeric(year)) %>% 
   group_by(year,age_class) %>% 
@@ -127,7 +128,7 @@ deaths_year_age2 <- read.csv("../excess_mortality_ch/data/ch_deaths_2000_2021.cs
     dplyr::summarise(n=sum(Obs_value),.groups="drop") %>% 
   arrange(year,age_class)
 
-#Deaths download in FSO website (same as deaths_year_age2)
+#Deaths download in FSO website (after checking, this is same as deaths_year_age2)
 #https://www.bfs.admin.ch/bfs/fr/home/statistiques/population/naissances-deces.assetdetail.22324726.html
 deaths_year_age3 <- read.csv("data/ch_deaths_2000_2022.csv", sep = ";", header = TRUE) %>%
     dplyr::mutate(year=as.numeric(substr(TIME_PERIOD,1,4))) %>%  #lubridate::isoyear(ISOweek::ISOweek2date(paste0(TIME_PERIOD,"-1"))
@@ -160,7 +161,7 @@ rbind(d,
                   
 ```
 
-In 2020, the estimated total number of deaths was lower in the dataset reporting the cause of deaths by more than 1,000 people.
+In 2020, the estimated total number of deaths was lower in the dataset reporting the cause of deaths by a bit more than 1,000 people.
 
 ```{r,  echo = FALSE}
 d=left_join(deaths_year_age1,
@@ -179,9 +180,8 @@ rbind(d,data.frame(age_class="Total",n.x=sum(d[,"n.x"]),n.y=sum(d[,"n.y"]))) %>%
 We then compare these two mortality datasets to a third one: the mortality reported through the estimates of excess mortality by FSO (available [here](https://www.bfs.admin.ch/bfs/fr/home/statistiques/sante/etat-sante/mortalite-causes-deces.assetdetail.23730504.html)).
 As this latter dataset only reports mortality by two age groups (0-64, >65), we can only compare the total number of deaths estimated in these three datasets over time.
 
-Surprisingly, the number of deaths reported in the excess mortality dataset (green) seems to be consistently lower than the mortality reported by the FSO (red).
-The mortality by cause of deaths is also different from these two datasets, showing less variability over the years.
-
+The number of deaths reported in the excess mortality dataset (green) seems to be very slightly but consistently lower than the mortality reported by the FSO (red).
+The mortality by cause of deaths is also slightly different from these two datasets, showing less variability over the years.
 
 ```{r,  fig.width=8,fig.height=6,echo = FALSE}
 deaths_year4 <- read.csv(file="data/deaths_2010_2022.csv",check.names = F,sep=";",fileEncoding = "Latin1") %>%

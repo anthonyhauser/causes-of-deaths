@@ -47,6 +47,13 @@ run_stan_mod3_by_age_cause = function(data_all, age_classes, causes,run.model=TR
       xn = (x-mean(x))/x_sd
       N_x = length(x)
       
+      #lengthscale for long-term trend
+      l=rlnorm(100000,0.5,0.5)
+      hist(l)
+      mean(l)
+      quantile(l,probs=c(0.025,0.5,0.975))
+      tuning_parameter_cond_EQ(l,xn,x_sd)
+      
       data_list = list(
         N=N,
         N_x = N_x,
@@ -72,8 +79,8 @@ run_stan_mod3_by_age_cause = function(data_all, age_classes, causes,run.model=TR
         
         p_intercept = c(-10,2),
         p_alpha_year = c(0,0.1),
-        p_lambda_year = c(0, 0.4),
-        p_lambda_week = c(0,0.4),
+        p_lambda_year = c(0.5, 0.5),#c(0,0.4)
+        p_lambda_week = c(1,0.4),
         p_alpha_week = c(0,0.1),
         
         inference=1

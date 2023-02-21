@@ -23,7 +23,7 @@ death_data_cleaning = function(data_bfs_excmort,return.raw.data=FALSE){
   }
   
   #Categorize the cause of deaths
-  d2 = d %>% filter(year!=5008,week!=53) %>% 
+  d2 = d %>% filter(year!=5008) %>% 
     dplyr::mutate(cause2 = recode(cause,
                                   `01. Total` = "total",
                                   `02. Infektiöse Krankheiten`="tot.infect.dis",                              
@@ -60,6 +60,9 @@ death_data_cleaning = function(data_bfs_excmort,return.raw.data=FALSE){
   
   if(return.raw.data){return(d2)}
   
+  #remove week 53
+  d2 = d2 %>% filter(week!=53)
+    
   if(FALSE){
     d2 %>% filter(year==2020,sex=="M") %>% 
       group_by(cause2) %>% 

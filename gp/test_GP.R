@@ -63,7 +63,7 @@ data_list = list(
 )
 
 #prior predictive check
-mod1 <- stan_model("stan/mod_GP_year.stan")
+mod1 <- stan_model("stan/mod3_GP_year.stan")
 fit1_prior = sampling(mod1, data_list,iter=1000,chains=4,cores=4,
                      control=list(adapt_delta=0.99))
 
@@ -119,7 +119,7 @@ data_list = within(data_list,{
 initfun <- function() { list(lambda_week=rlnorm(1,data_list$p_lambda_week[1],data_list$p_lambda_week[2]),
                              lambda_year=rlnorm(1,data_list$p_lambda_year[1],data_list$p_lambda_year[2])) }
 
-mod2_cmdstan <- cmdstan_model("stan/mod_GP_year_season.stan")
+mod2_cmdstan <- cmdstan_model("stan/mod3_GP_year_season.stan")
 fit2 <- mod2_cmdstan$sample(
   init=initfun,
   adapt_delta=0.99,
