@@ -16,7 +16,7 @@ functions {
   
   vector diagSPD_periodic(real alpha, real lambda, int M) {
     real a = 1/lambda^2;
-    int one_to_M[M];
+    array[M] int one_to_M;
     for (m in 1:M) one_to_M[m] = m;
     vector[M] q = sqrt(alpha^2 * 2 / exp(a) * to_vector(modified_bessel_first_kind(one_to_M, a)));
     return append_row(q,q);
@@ -79,7 +79,7 @@ transformed data {
   
     
   // compute basis functions for f
-  real period_year = (365.25/7)/x_sd; #number of weeks divided by sd
+  real period_year = (365.25/7)/x_sd; //number of weeks divided by sd
   matrix[N_x,2*J_week] PHI_week = PHI_periodic(N_x, J_week, 2*pi()/period_year, xn);
   matrix[N_x,M_year] PHI_year = PHI_EQ(N_x, M_year, L_year, xn);
   
