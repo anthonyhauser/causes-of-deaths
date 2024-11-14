@@ -1,46 +1,38 @@
 #! /bin/bash
-#SBATCH --mail-user=<anthony.hauser@iplesp.upmc.fr>
+#SBATCH --mail-user=<anthony.hauser@unisante.ch>
 #SBATCH --mail-type=END,FAIL
-#SBATCH --time=48:00:00
-#SBATCH --mem-per-cpu=6G
-#SBATCH --array=1-24
+#SBATCH --time=24:00:00
+#SBATCH --mem-per-cpu=2G
+#SBATCH --array=1-1
 #SBATCH -c 10
 #SBATCH --partition=normal
 #SBATCH --output="outfiles/slurm-%A_%a.out"
-#SBATCH --exclude=compute-2-0
 
-
-# # --nodelist=compute-1-1
-# # -w "compute-1-1"
-# # --nodelist="compute-1-1"
-# # --partition=normal
-# # --error="outfiles/slurm-%A_%a.err"
-# # --cpus-per-task=4
 
 # Create paths, job number and date of job
-PROJECT="contact_matrix/cluster"
+PROJECT="causes-of-deaths/cluster"
 JOB1="${SLURM_ARRAY_JOB_ID}"
 JOB2=${SLURM_ARRAY_TASK_ID}
 Rfile="run_mod_ind"
+date="20241114"
 
 # Sweeping parameters_mod_ind.txt
 N=${SLURM_ARRAY_TASK_ID}
 echo "$N"
 
-ra=`head -n ${N} parameters_mod_ind.txt | tail -n 1 | cut -d' ' -f1`
-rb=`head -n ${N} parameters_mod_ind.txt | tail -n 1 | cut -d' ' -f2`
-rc=`head -n ${N} parameters_mod_ind.txt | tail -n 1 | cut -d' ' -f3`
-rd=`head -n ${N} parameters_mod_ind.txt | tail -n 1 | cut -d' ' -f4`
-re=`head -n ${N} parameters_mod_ind.txt | tail -n 1 | cut -d' ' -f5`
-rf=`head -n ${N} parameters_mod_ind.txt | tail -n 1 | cut -d' ' -f6`
-rg=`head -n ${N} parameters_mod_ind.txt | tail -n 1 | cut -d' ' -f7`
-rh=`head -n ${N} parameters_mod_ind.txt | tail -n 1 | cut -d' ' -f8`
-date="20240620"
+ra=`head -n ${N} parameters_mod.txt | tail -n 1 | cut -d' ' -f1`
+rb=`head -n ${N} parameters_mod.txt | tail -n 1 | cut -d' ' -f2`
+rc=`head -n ${N} parameters_mod.txt | tail -n 1 | cut -d' ' -f3`
+rd=`head -n ${N} parameters_mod.txt | tail -n 1 | cut -d' ' -f4`
+re=`head -n ${N} parameters_mod.txt | tail -n 1 | cut -d' ' -f5`
+rf=`head -n ${N} parameters_mod.txt | tail -n 1 | cut -d' ' -f6`
+rg=`head -n ${N} parameters_mod.txt | tail -n 1 | cut -d' ' -f7`
+rh=`head -n ${N} parameters_mod.txt | tail -n 1 | cut -d' ' -f8`
 
 # Paths to temporary file and out file
-SCR="/home/hauser/${PROJECT}/temp-$Rfile-$date-$ra-$rb-$rc-$rd-$re-$rf-$rg-$rh"
+SCR="/users/ahauser6/${PROJECT}/temp-$Rfile-$date-$ra-$rb-$rc-$rd-$re-$rf-$rg-$rh"
 echo "SCR: $SCR"
-OUT="/home/hauser/${PROJECT}/outfiles/$Rfile-date-$ra-$rb-$rc-$rd-$re-$rf-$rg-$rh.Rout"
+OUT="/users/ahauser6/${PROJECT}/outfiles/$Rfile-date-$ra-$rb-$rc-$rd-$re-$rf-$rg-$rh.Rout"
 echo "OUT: $OUT"
 
 # Display
@@ -53,7 +45,7 @@ cp -p "$Rfile.R" $SCR/.
 cd $SCR
 
 # Load module 
-module load R/4.3.2-openblas
+:module load r/4.3.2
 
 echo "---------------------------------"
 
