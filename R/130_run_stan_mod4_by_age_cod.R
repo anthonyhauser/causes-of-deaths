@@ -201,14 +201,14 @@ run_stan_mod4_by_age_cod = function(cod_agg_pop_df, age_class, cause, run.model=
   print(t4-t0)
   
   #save
-  saveRDS(stan_diag, file=paste0("results/",save.date,"/mod4_stan_diag_",name_cod_age,".RDS"))
-  saveRDS(reg_effect, file=paste0("results/",save.date,"/mod4_reg_effect_",name_cod_age,".RDS"))
-  saveRDS(data_pred_week, file=paste0("results/",save.date,"/mod4_data_pred_week_",name_cod_age,".RDS"))
-  saveRDS(data_pred_phase, file=paste0("results/",save.date,"/mod4_data_pred_phase_",name_cod_age,".RDS"))
-  saveRDS(data_pred_year, file=paste0("results/",save.date,"/mod4_data_pred_year_",name_cod_age,".RDS"))
+  saveRDS(stan_diag, file=paste0(code_root_path,"results/",save.date,"/mod4_stan_diag_",name_cod_age,".RDS"))
+  saveRDS(reg_effect, file=paste0(code_root_path,"results/",save.date,"/mod4_reg_effect_",name_cod_age,".RDS"))
+  saveRDS(data_pred_week, file=paste0(code_root_path,"results/",save.date,"/mod4_data_pred_week_",name_cod_age,".RDS"))
+  saveRDS(data_pred_phase, file=paste0(code_root_path,"results/",save.date,"/mod4_data_pred_phase_",name_cod_age,".RDS"))
+  saveRDS(data_pred_year, file=paste0(code_root_path,"results/",save.date,"/mod4_data_pred_year_",name_cod_age,".RDS"))
   
-  saveRDS(year_GP, file=paste0("results/",save.date,"/mod4_year_GP_",name_cod_age,".RDS"))
-  saveRDS(week_GP, file=paste0("results/",save.date,"/mod4_week_GP_",name_cod_age,".RDS"))
+  saveRDS(year_GP, file=paste0(code_root_path,"results/",save.date,"/mod4_year_GP_",name_cod_age,".RDS"))
+  saveRDS(week_GP, file=paste0(code_root_path,"results/",save.date,"/mod4_week_GP_",name_cod_age,".RDS"))
   
   print(data_pred_phase)
   

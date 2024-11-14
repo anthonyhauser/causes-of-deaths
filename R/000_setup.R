@@ -5,18 +5,18 @@
 library(pacman)
 pacman::p_load(ISOweek, lubridate, data.table, tidyfast, tidyr, dplyr)
 
+#cmdstanr
+library(cmdstanr)
+cmdstan_path()
+
 if(!grepl("ahauser6",getwd())){
+  set_cmdstan_path("C:/TEMP/.cmdstan/cmdstan-2.35.0")
   library(tidyverse)
   library(flextable)
   library(officer)
   library(readxl)
   library(scales)
 }
-
-#cmdstanr
-library(cmdstanr)
-set_cmdstan_path("C:/TEMP/.cmdstan/cmdstan-2.35.0")
-cmdstan_path()
 
 if(FALSE){#check cmdstan
   file <- file.path(cmdstan_path(), "examples", "bernoulli", "bernoulli.stan")
@@ -50,7 +50,8 @@ cod_df = data.frame(cod_full=c("Cardiovascular Diseases","External Causes","Infe
           cod_1word = c("cardiovascular","external","infectious","mental","cancer","nocause","respiratory","suicide"))
 
 #load R files
-code_root_path=getwd()
+wd = getwd()
+code_root_path = paste0(strsplit(wd, split="/cluster")[[1]][1],"/")
 path_functions = list.files(pattern="[.]R$", path=paste0(code_root_path,"/R/"), full.names=TRUE)
 path_functions = path_functions[!grepl("000",path_functions)]
 print(path_functions)
@@ -59,12 +60,4 @@ sapply(path_functions, source)
 controls=list(load.encrypted.data=FALSE)
 
 
-days_to_datetime_2020 <- function(days) {
-  # Start date is January 1, 2020
-  start_date <- as.POSIXct("2020-01-01 00:00:00", tz = "UTC")
-  
-  # Add the number of days as seconds to the start date
-  result_datetime <- start_date + days * 24 * 60 * 60
-  
-  return(result_datetime)
-}
+

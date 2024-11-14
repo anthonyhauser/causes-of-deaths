@@ -24,3 +24,13 @@ get_covariables_stan = function(data, variables, ref_levels){
   }
   return(X_variables)
 }
+
+days_to_datetime_2020 <- function(days) {
+  # Start date is January 1, 2020
+  start_date <- as.POSIXct("2020-01-01 00:00:00", tz = "UTC")
+  
+  # Add the number of days as seconds to the start date
+  result_datetime <- start_date + days * 24 * 60 * 60
+  
+  return(result_datetime)
+}
