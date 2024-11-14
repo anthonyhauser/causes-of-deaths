@@ -71,10 +71,7 @@ This is cmdstanr version 0.8.1
 + } else {
 +   cat("Folder already exists:", folder_path, "\n")
 + }
-Folder created: /users/ahauser6/causes-of-deaths//results/20241114 
-Warning message:
-In dir.create(folder_path) :
-  cannot create dir '/users/ahauser6/causes-of-deaths//results/20241114', reason 'No such file or directory'
+Folder already exists: /users/ahauser6/causes-of-deaths//results/20241114 
 > 
 > #load data
 > cod_agg_pop_df = readRDS(paste0(code_root_path,"/savepoint/cod_agg_pop_df.RDS"))
@@ -89,7 +86,22 @@ In dir.create(folder_path) :
 +                                                  age_class=age_classes[args[1]], cause=causes[args[2]],
 +                                                  run.model=TRUE, save.date=save.date)
 + }
-Error in initialize(...) : 
-  Assertion on 'stan_file' failed: File does not exist: 'stan/mod4_GP_year_season.stan'.
-Calls: run_stan_mod4_by_age_cod ... initialize -> assert_file_exists -> <Anonymous> -> mstop
+Error in `mutate()`:
+i In argument: `covid_phase = map2_dbl(...)`.
+Caused by error in `map2_dbl()`:
+! could not find function "map2_dbl"
+Backtrace:
+     x
+  1. +-global run_stan_mod4_by_age_cod(...)
+  2. | \-... %>% ...
+  3. +-dplyr::mutate(...)
+  4. +-dplyr:::mutate.data.frame(...)
+  5. | \-dplyr:::mutate_cols(.data, dplyr_quosures(...), by)
+  6. |   +-base::withCallingHandlers(...)
+  7. |   \-dplyr:::mutate_col(dots[[i]], data, mask, new_columns)
+  8. |     \-mask$eval_all_mutate(quo)
+  9. |       \-dplyr (local) eval()
+ 10. \-base::.handleSimpleError(...)
+ 11.   \-dplyr (local) h(simpleError(msg, call))
+ 12.     \-rlang::abort(message, class = error_class, parent = parent, call = error_call)
 Execution halted
