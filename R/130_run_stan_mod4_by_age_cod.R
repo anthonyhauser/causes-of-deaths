@@ -9,7 +9,7 @@ run_stan_mod4_by_age_cod = function(cod_agg_pop_df, age_class, cause, run.model=
     return(NULL)
   }
   
-  mod4_cmdstan <- cmdstan_model("stan/mod4_GP_year_season.stan")
+  mod4_cmdstan <- cmdstan_model(paste0(code_root_path,"stan/mod4_GP_year_season.stan"))
  
   ###########################################################################
   #data
