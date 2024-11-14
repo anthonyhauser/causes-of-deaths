@@ -1,14 +1,17 @@
-library(tidyverse)
-library(rstan)
-library(ISOweek)
-library(lubridate)
-library(flextable)
-library(officer)
-library(readxl)
-library(data.table)
-library(tidyfast)
+# library(ISOweek)
+# library(lubridate)
+# library(data.table)
+# library(tidyfast)
+library(pacman)
+pacman::p_load(ISOweek, lubridate, data.table, tidyfast, tidyr, dplyr)
 
-library(scales)
+if(!grepl("ahauser6",getwd())){
+  library(tidyverse)
+  library(flextable)
+  library(officer)
+  library(readxl)
+  library(scales)
+}
 
 #cmdstanr
 library(cmdstanr)

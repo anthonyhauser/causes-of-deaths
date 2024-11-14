@@ -5,7 +5,6 @@
 #SBATCH --mem-per-cpu=2G
 #SBATCH --array=1-1
 #SBATCH -c 10
-#SBATCH --partition=normal
 #SBATCH --output="outfiles/slurm-%A_%a.out"
 
 
@@ -13,7 +12,7 @@
 PROJECT="causes-of-deaths/cluster"
 JOB1="${SLURM_ARRAY_JOB_ID}"
 JOB2=${SLURM_ARRAY_TASK_ID}
-Rfile="run_mod_ind"
+Rfile="run_mod4"
 date="20241114"
 
 # Sweeping parameters_mod_ind.txt
@@ -32,7 +31,7 @@ rh=`head -n ${N} parameters_mod.txt | tail -n 1 | cut -d' ' -f8`
 # Paths to temporary file and out file
 SCR="/users/ahauser6/${PROJECT}/temp-$Rfile-$date-$ra-$rb-$rc-$rd-$re-$rf-$rg-$rh"
 echo "SCR: $SCR"
-OUT="/users/ahauser6/${PROJECT}/outfiles/$Rfile-date-$ra-$rb-$rc-$rd-$re-$rf-$rg-$rh.Rout"
+OUT="/users/ahauser6/${PROJECT}/outfiles/$Rfile-$date-$ra-$rb-$rc-$rd-$re-$rf-$rg-$rh.Rout"
 echo "OUT: $OUT"
 
 # Display
@@ -45,7 +44,9 @@ cp -p "$Rfile.R" $SCR/.
 cd $SCR
 
 # Load module 
-:module load r/4.3.2
+module purge
+dcsrsoft use 20240303
+module load r-light
 
 echo "---------------------------------"
 

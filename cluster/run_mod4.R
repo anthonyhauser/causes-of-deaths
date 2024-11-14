@@ -12,9 +12,9 @@
 #Setting up paths
 is.sim.cluster=TRUE
 wd = getwd()
-code_root_path = paste0(strsplit(wd, split="/cluster")[[1]][1],"/")
-print(code_root_path)
-source(paste0(code_root_path,"R/000_setup.R"))
+project_path = paste0(strsplit(wd, split="/cluster")[[1]][1],"/")
+print(project_path)
+source(paste0(project_path,"R/000_setup.R"))
 
 args_all=(commandArgs(TRUE)) #args_all=c(rep(1,8),"20241114")
 args=as.numeric(unlist(args_all[1:8]))#args[9] should be simulation date
@@ -25,7 +25,7 @@ print(args)
 print(save.date)
 
 # Check if the folder exists, and create it if it doesn't
-folder_path <- paste0(code_root_path,"/results/", save.date)
+folder_path <- paste0(project_path,"/results/", save.date)
 if (!dir.exists(folder_path)) {
   dir.create(folder_path)
   cat("Folder created:", folder_path, "\n")
@@ -34,7 +34,7 @@ if (!dir.exists(folder_path)) {
 }
 
 #load data
-cod_agg_pop_df = readRDS(paste0(code_root_path,"/savepoint/cod_agg_pop_df.RDS"))
+cod_agg_pop_df = readRDS(paste0(project_path,"/savepoint/cod_agg_pop_df.RDS"))
 #causes = cod_agg_pop_df$cod_group %>% unique() %>% setdiff(.,"COVID-19")
 causes = c("Cardiovascular Diseases","External Causes","Infectious and Parasitic Diseases",
            "Mental and Neurological Disorders",

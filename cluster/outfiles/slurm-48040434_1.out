@@ -1,0 +1,13 @@
+1
+SCR: /users/ahauser6/causes-of-deaths/cluster/temp-run_mod_ind-20241114-1-1-1-1-1-1-1-1
+OUT: /users/ahauser6/causes-of-deaths/cluster/outfiles/run_mod_ind-date-1-1-1-1-1-1-1-1.Rout
+Job array item 1: ra=1, rb=1, rc=1, rd=1, re=1, rf=1, rg=1, rh=1
+---------------------------------
+cp: cannot stat 'run_mod_ind.R': No such file or directory
+/var/spool/slurm/d/job48040434/slurm_script: line 47: :module: command not found
+---------------------------------
+/var/spool/slurm/d/job48040434/slurm_script: line 53: R: command not found
+---------------------------------
+cp: cannot stat 'run_mod_ind.Rout': No such file or directory
+rm: cannot remove 'run_mod_ind.Rout': No such file or directory
+Job is done.
