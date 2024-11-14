@@ -1,4 +1,6 @@
-run_stan_mod4_by_age_cod = function(cod_agg_pop_df, age_class, cause, run.model=TRUE,save.date){
+run_stan_mod4_by_age_cod = function(cod_agg_pop_df, age_class, cause, run.model=TRUE,
+                                    reg_var = c("sex"),reg_var_ref=c("M"),
+                                    save.date){
   #name to save
   name_cod_age=paste0(cod_df %>% filter(cod_full==cause) %>% pull(cod_1word),"_",age_class)
   if(file.exists(paste0("results/",save.date,"/mod4_stan_diag_",name_cod_age,".RDS"))){
@@ -26,9 +28,9 @@ run_stan_mod4_by_age_cod = function(cod_agg_pop_df, age_class, cause, run.model=
   
   data_fit = data %>% filter(cal_year<2020)
   data_pand = data %>% filter(cal_year>=2020)
-  X_reg_all = get_covariables_stan(data, c("sex"),c("M"))
-  X_reg = get_covariables_stan(data_fit, c("sex"),c("M"))
-  X_reg_pand = get_covariables_stan(data_pand, c("sex"),c("M"))
+  X_reg_all = get_covariables_stan(data, reg_var,reg_var_ref)
+  X_reg = get_covariables_stan(data_fit, reg_var,reg_var_ref)
+  X_reg_pand = get_covariables_stan(data_pand, reg_var,reg_var_ref)
   
   N = dim(data_fit)[1]
   N_pand = dim(data_pand)[1]
@@ -165,6 +167,11 @@ run_stan_mod4_by_age_cod = function(cod_agg_pop_df, age_class, cause, run.model=
   t3=Sys.time()
 
   ###########################################################################
+  #sex
+  reg_effect = fit4$summary(variables = c("beta_reg"), "mean",~quantile(.x, probs = c(0.025, 0.975))) %>% 
+    dplyr::mutate(var = colnames(X_reg_all)) %>% 
+    tidyr::separate(col = var, into = c("var", "ref", "level"), sep = "\\.")
+  
   #GP
   #periodic
   week_GP = fit4$summary(variables = c("f_week"), "mean",~quantile(.x, probs = c(0.025, 0.975))) %>% 
@@ -195,6 +202,7 @@ run_stan_mod4_by_age_cod = function(cod_agg_pop_df, age_class, cause, run.model=
   
   #save
   saveRDS(stan_diag, file=paste0("results/",save.date,"/mod4_stan_diag_",name_cod_age,".RDS"))
+  saveRDS(reg_effect, file=paste0("results/",save.date,"/mod4_reg_effect_",name_cod_age,".RDS"))
   saveRDS(data_pred_week, file=paste0("results/",save.date,"/mod4_data_pred_week_",name_cod_age,".RDS"))
   saveRDS(data_pred_phase, file=paste0("results/",save.date,"/mod4_data_pred_phase_",name_cod_age,".RDS"))
   saveRDS(data_pred_year, file=paste0("results/",save.date,"/mod4_data_pred_year_",name_cod_age,".RDS"))
