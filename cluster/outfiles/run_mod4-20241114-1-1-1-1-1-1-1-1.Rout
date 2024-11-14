@@ -30,16 +30,27 @@ Type 'q()' to quit R.
 > is.sim.cluster=TRUE
 > wd = getwd()
 > code_root_path = paste0(strsplit(wd, split="/cluster")[[1]][1],"/")
-> print(code_root_path)
-[1] "/users/ahauser6/causes-of-deaths/"
 > source(paste0(code_root_path,"R/000_setup.R"))
 This is cmdstanr version 0.8.1
 - CmdStanR documentation and vignettes: mc-stan.org/cmdstanr
 - CmdStan path: /users/ahauser6/.cmdstan/cmdstan-2.35.0
 - CmdStan version: 2.35.0
-character(0)
-Warning message:
-Path not set. Can't find directory: C:/TEMP/.cmdstan/cmdstan-2.35.0 
+ [1] "/users/ahauser6/causes-of-deaths//R//001_data_cleaning.R"                 
+ [2] "/users/ahauser6/causes-of-deaths//R//002_load_pop.R"                      
+ [3] "/users/ahauser6/causes-of-deaths//R//010_tuning_parameter_cond_EQ.R"      
+ [4] "/users/ahauser6/causes-of-deaths//R//011_tuning_parameter_cond_periodic.R"
+ [5] "/users/ahauser6/causes-of-deaths//R//020_aggregate_fit_deaths.R"          
+ [6] "/users/ahauser6/causes-of-deaths//R//021_aggregate_pand_deaths.R"         
+ [7] "/users/ahauser6/causes-of-deaths//R//030_run_stan_mod3_by_age_cause.R"    
+ [8] "/users/ahauser6/causes-of-deaths//R//101_get_icd10.R"                     
+ [9] "/users/ahauser6/causes-of-deaths//R//102_combine_cod_icd10.R"             
+[10] "/users/ahauser6/causes-of-deaths//R//103_aggregate_cod.R"                 
+[11] "/users/ahauser6/causes-of-deaths//R//104_load_attribute_pop.R"            
+[12] "/users/ahauser6/causes-of-deaths//R//130_run_stan_mod4_by_age_cod.R"      
+[13] "/users/ahauser6/causes-of-deaths//R//140_aggregate_pand_stan.R"           
+[14] "/users/ahauser6/causes-of-deaths//R//141_aggregate_fit_stan.R"            
+[15] "/users/ahauser6/causes-of-deaths//R//150_load_results.R"                  
+[16] "/users/ahauser6/causes-of-deaths//R//generic_functions.R"                 
 > 
 > args_all=(commandArgs(TRUE)) #args_all=c(rep(1,8),"20241114")
 > args=as.numeric(unlist(args_all[1:8]))#args[9] should be simulation date
@@ -60,16 +71,25 @@ Path not set. Can't find directory: C:/TEMP/.cmdstan/cmdstan-2.35.0
 + } else {
 +   cat("Folder already exists:", folder_path, "\n")
 + }
-Folder created: /users/ahauser6/causes-of-deaths/cluster/temp-run_mod4-20241114-1-1-1-1-1-1-1-1/results/20241114 
+Folder created: /users/ahauser6/causes-of-deaths//results/20241114 
 Warning message:
 In dir.create(folder_path) :
-  cannot create dir '/users/ahauser6/causes-of-deaths/cluster/temp-run_mod4-20241114-1-1-1-1-1-1-1-1/results/20241114', reason 'No such file or directory'
+  cannot create dir '/users/ahauser6/causes-of-deaths//results/20241114', reason 'No such file or directory'
 > 
 > #load data
 > cod_agg_pop_df = readRDS(paste0(code_root_path,"/savepoint/cod_agg_pop_df.RDS"))
-Error in gzfile(file, "rb") : cannot open the connection
-Calls: readRDS -> gzfile
-In addition: Warning message:
-In gzfile(file, "rb") :
-  cannot open compressed file '/users/ahauser6/causes-of-deaths/cluster/temp-run_mod4-20241114-1-1-1-1-1-1-1-1/savepoint/cod_agg_pop_df.RDS', probable reason 'No such file or directory'
+> #causes = cod_agg_pop_df$cod_group %>% unique() %>% setdiff(.,"COVID-19")
+> causes = c("Cardiovascular Diseases","External Causes","Infectious and Parasitic Diseases",
++            "Mental and Neurological Disorders",
++            "Neoplasms (Cancers)","No Specific Causes", "Respiratory Diseases", "Suicide")
+> age_classes = cod_agg_pop_df$age_class %>% unique()
+> 
+> for(i in 1:3){#do it 3 times so that 1 might be successful (as soon as 1 is successful, it does not run the model again)
++   mod4_data_pred_pand = run_stan_mod4_by_age_cod(cod_agg_pop_df,
++                                                  age_class=age_classes[args[1]], cause=causes[args[2]],
++                                                  run.model=TRUE, save.date=save.date)
++ }
+Error in initialize(...) : 
+  Assertion on 'stan_file' failed: File does not exist: 'stan/mod4_GP_year_season.stan'.
+Calls: run_stan_mod4_by_age_cod ... initialize -> assert_file_exists -> <Anonymous> -> mstop
 Execution halted
