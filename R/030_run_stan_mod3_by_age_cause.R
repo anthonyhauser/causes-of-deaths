@@ -80,11 +80,19 @@ run_stan_mod3_by_age_cause = function(data_all, age_classes, causes,run.model=TR
         p_intercept = c(-10,2),
         p_alpha_year = c(0,0.1),
         p_lambda_year = c(0.5, 0.5),#c(0,0.4)
-        p_lambda_week = c(1,0.4),
+        p_lambda_week = c(1,0.4),#c(0.8,0.4),
         p_alpha_week = c(0,0.1),
         
         inference=1
       )
+      
+      data.frame(x=rlnorm(100000,meanlog=data_list$p_lambda_week[1],sdlog=data_list$p_lambda_week[2])) %>% 
+        dplyr::mutate(mean=mean(x),median=median(x)) %>% 
+        ggplot(aes(x=x)) +
+        geom_histogram()+
+        geom_vline(aes(xintercept=mean),col="orange")+
+        geom_vline(aes(xintercept=median),col="red")+
+        xlim(c(0,20))
       
       #init function
       initfun <- function() { list(lambda_week=rlnorm(1,data_list$p_lambda_week[1],data_list$p_lambda_week[2]),
@@ -100,8 +108,8 @@ run_stan_mod3_by_age_cause = function(data_all, age_classes, causes,run.model=TR
           data = data_list,
           chains = 4, 
           parallel_chains = 4,
-          show_messages = FALSE,
-          refresh = 10000, # print update every 500 iters
+          show_messages = TRUE,#FALSE,
+          refresh = 100, # print update every 500 iters
         )
         
         #Save the chains

@@ -1,0 +1,583 @@
+---
+title: "Causes of deaths"
+date: "`r format(Sys.time(), 'Report generated on Date: %Y-%m-%d Time: %H:%M')`"
+output:
+  html_document:
+    number_sections: true
+    toc: true
+    toc_float:
+      collapsed: true
+      smooth_scroll: true
+---
+
+      
+```{r, include=FALSE}
+source("R/000_setup.R")
+
+knitr::opts_chunk$set(echo = FALSE, warning =FALSE, message=FALSE)
+
+#Data cause of deaths
+data_bfs_excmort = readRDS("data/data_bfs_excmort.RDS")
+death_data = death_data_cleaning(data_bfs_excmort)
+pop = load_pop(death_data)
+data_all = readRDS("data/d.RDS")
+causes = data_all$cause %>% unique() %>% setdiff(.,"covid")
+age_classes = data_all$age_class %>% unique()
+
+#Data summary of deaths 2020, INLA model
+summ = readRDS("../excess_mortality_ch/results/excess_mortality_age_2020_mod4.RDS")
+
+
+load("savepoint/aggregated_deaths.RData")
+load("savepoint/aggregated_deaths_pand.RData")
+
+```
+
+# Aim
+
+We aim at exploring the different mortality causes by age in 2020 in Switzerland.
+
+# Data
+
+## Causes of deaths
+
+We received the number of deaths by week from 1995 to 2020, by age group and sex, overall and stratified by cause.
+32 different causes are mentioned:
+
+```{r,  echo = FALSE}
+#data_bfs_excmort$ENDG_U_CD_GES_T %>% unique() %>% sort()
+```
+
+
+```{r,  echo = FALSE}
+d2 = death_data_cleaning(data_bfs_excmort,return.raw.data=TRUE) 
+
+d2 %>% filter(year==2020) %>% 
+  group_by(cause,cause2) %>% 
+  dplyr::summarise(n=sum(n,na.rm=TRUE),.groups="drop") %>% 
+  select(cause,n) %>% 
+  flextable() %>% delete_part(.,part="header") %>% 
+  add_header(cause2="Aggregated categories", cause = "Original categories", n="Number of deaths in 2020", top=TRUE) %>% 
+  hline_top(part="all",border=fp_border(color="black",width = 1.5)) %>% 
+  width(.,width=6,unit="cm")
+```
+
+
+Note that some causes are included in other causes. For instance suicide ("31. Suizid") is included in the number of total accident ("30. Unfälle insgesamt").
+
+We analyse the following causes:
+
+```{r,  echo = FALSE}
+d2 %>% filter(year==2020) %>% 
+  group_by(cause,cause2) %>% 
+  dplyr::summarise(n=sum(n,na.rm=TRUE),.groups="drop") %>% 
+  select(cause2,cause,n) %>% 
+  filter(cause2 %in% causes) %>% 
+  flextable() %>% delete_part(.,part="header") %>% 
+  add_header(cause2="Aggregated categories", cause = "Original categories", n="Number of deaths in 2020", top=TRUE) %>% 
+  hline_top(part="all",border=fp_border(color="black",width = 1.5)) %>% 
+  width(.,width=8,unit="cm")
+```
+
+In addition we also analyse the remaining deaths (i.e. deaths not from the seven selected causes), which is obtained by removing the deaths from the main causes to the total number of deaths (called "tot.other").
+
+## Reported deaths
+
+### By cause and age, over calendar year
+
+```{r,  echo = FALSE}
+#Reported deaths
+data_all %>% 
+  filter(cause!="covid") %>% 
+  group_by(year,age_class,cause) %>% 
+  dplyr::summarise(n=sum(n),.groups="drop") %>% 
+  ggplot() +
+  geom_col(aes(x=year,y=n),fill="green",colour="black",size=.3,width=.8,alpha=.5) +
+  facet_grid(age_class~cause,scales="free") +
+  scale_x_continuous(name="Year",breaks=c(2011,2015,2020)) +
+  theme_bw()
+
+```
+
+### Comparison with mortality reported by FSO
+
+We compare the total number of deaths by age group and by year (internally) reported in this dataset to the total number of deaths reported on the [FSO website](https://www.bfs.admin.ch/bfs/fr/home/statistiques/population/naissances-deces.assetdetail.22324726.html).
+
+We observe some discrepancy. The number of deaths by cause is consistently higher for people aged <80 an lower for 80+ over the year.
+When looking at the total number of deaths, we observe little difference between the two datasets.
+
+```{r, fig.width=8,fig.height=8,  echo = FALSE}
+#Deaths in cause of deaths data
+deaths_year_age1 = d2 %>% 
+  filter(cause2=="total",year>=2011) %>% 
+  dplyr::mutate(age_class=factor(age_class),
+                year=as.numeric(year)) %>% 
+  group_by(year,age_class) %>% 
+  dplyr::summarise(n=sum(n),.groups="drop")
+
+#Deaths used in INLA model
+#https://www.bfs.admin.ch/bfs/fr/home/statistiques/sante/etat-sante/mortalite-causes-deces.assetdetail.23605343.html
+deaths_year_age2 <- read.csv("../excess_mortality_ch/data/ch_deaths_2000_2021.csv", sep = ";", header = TRUE) %>%
+    dplyr::mutate(year=as.numeric(substr(TIME_PERIOD,1,4))) %>%  #lubridate::isoyear(ISOweek::ISOweek2date(paste0(TIME_PERIOD,"-1"))
+    filter(year>=2011,year<=2020,GEO=="CH",AGE!="_T",SEX=="T") %>% 
+    dplyr::mutate(age_class = factor(as.numeric(AGE %in% c("Y40T44", "Y45T49", "Y50T54", "Y55T59")) +
+                                     as.numeric(AGE %in% c("Y60T64", "Y65T69"))*2 +
+                                     as.numeric(AGE %in% c("Y70T74", "Y75T79"))*3 +
+                                     as.numeric(AGE %in% c("Y80T84", "Y85T89", "Y_GE90"))*4,                   levels=c(0,1,2,3,4),labels=c("0-39","40-59","60-69","70-79","80+"))) %>% 
+    group_by(year,age_class) %>% 
+    dplyr::summarise(n=sum(Obs_value),.groups="drop") %>% 
+  arrange(year,age_class)
+
+#Deaths download in FSO website (after checking, this is same as deaths_year_age2)
+#https://www.bfs.admin.ch/bfs/fr/home/statistiques/population/naissances-deces.assetdetail.22324726.html
+deaths_year_age3 <- read.csv("data/ch_deaths_2000_2022.csv", sep = ";", header = TRUE) %>%
+    dplyr::mutate(year=as.numeric(substr(TIME_PERIOD,1,4))) %>%  #lubridate::isoyear(ISOweek::ISOweek2date(paste0(TIME_PERIOD,"-1"))
+    filter(year>=2011,year<=2020,GEO=="CH",AGE!="_T",SEX=="T") %>% 
+    dplyr::mutate(age_class = factor(as.numeric(AGE %in% c("Y40T44", "Y45T49", "Y50T54", "Y55T59")) +
+                                     as.numeric(AGE %in% c("Y60T64", "Y65T69"))*2 +
+                                     as.numeric(AGE %in% c("Y70T74", "Y75T79"))*3 +
+                                     as.numeric(AGE %in% c("Y80T84", "Y85T89", "Y_GE90"))*4,                   levels=c(0,1,2,3,4),labels=c("0-39","40-59","60-69","70-79","80+"))) %>% 
+    group_by(year,age_class) %>% 
+    dplyr::summarise(n=sum(Obs_value),.groups="drop") %>% 
+  arrange(year,age_class)
+
+                  
+d = rbind(deaths_year_age1 %>% 
+        dplyr::mutate(data="Internal (FSO), cause of deaths"),
+      deaths_year_age2 %>% 
+        dplyr::mutate(data="FSO, mortality by age"))
+
+rbind(d,
+      d %>% group_by(year,data) %>% 
+        dplyr::summarise(n=sum(n),.groups="drop") %>% 
+        dplyr::mutate(age_class="Total")) %>% 
+  ggplot() +
+  geom_point(aes(x=year,y=n,col=data)) +
+  geom_line(aes(x=year,y=n,col=data)) +
+  facet_grid(age_class~.,scales="free") +
+  scale_x_continuous(name="Year",breaks=c(2011,2015,2020)) +
+  #annotate("text",x=2020,y=0,label="") +
+  theme_bw()
+                  
+```
+
+In 2020, the estimated total number of deaths was lower in the dataset reporting the cause of deaths by a bit more than 1,000 people.
+
+```{r,  echo = FALSE}
+d=left_join(deaths_year_age1,
+  deaths_year_age2,by=c("year","age_class"))  %>%
+  filter(year==2020) %>% select(-year)
+
+rbind(d,data.frame(age_class="Total",n.x=sum(d[,"n.x"]),n.y=sum(d[,"n.y"]))) %>% 
+  flextable() %>% delete_part(.,part="header") %>% 
+  add_header(age_class="Age", n.x = "Internal (FSO), cause of deaths", n.y = "FSO, mortality by age", top=TRUE) %>% 
+  hline_top(part="all",border=fp_border(color="black",width = 1.5)) %>% 
+  width(.,width=4,unit="cm")
+```
+
+### Comparison with data from excess mortality
+
+We then compare these two mortality datasets to a third one: the mortality reported through the estimates of excess mortality by FSO (available [here](https://www.bfs.admin.ch/bfs/fr/home/statistiques/sante/etat-sante/mortalite-causes-deces.assetdetail.23730504.html)).
+As this latter dataset only reports mortality by two age groups (0-64, >65), we can only compare the total number of deaths estimated in these three datasets over time.
+
+The number of deaths reported in the excess mortality dataset (green) seems to be very slightly but consistently lower than the mortality reported by the FSO (red).
+The mortality by cause of deaths is also slightly different from these two datasets, showing less variability over the years.
+
+```{r,  fig.width=8,fig.height=6,echo = FALSE}
+deaths_year4 <- read.csv(file="data/deaths_2010_2022.csv",check.names = F,sep=";",fileEncoding = "Latin1") %>%
+  as_tibble() %>% 
+  select(year=`Année`,week=Semaine,age=Age,deaths=NoDec_EP) %>% 
+  dplyr::mutate(age=gsub(" ","",age),
+                deaths=as.numeric(gsub(" ","",deaths)),
+                deaths=replace_na(deaths,0)) %>% 
+  filter(year>=2011,year<=2020) %>% 
+  group_by(year) %>% 
+  dplyr::summarise(n=sum(deaths),.groups="drop") %>% 
+  arrange(year)
+
+
+rbind(deaths_year_age1 %>% 
+        dplyr::mutate(data="Cause of deaths (internal)"),
+      deaths_year_age2 %>% 
+        dplyr::mutate(data="Mortality by age")) %>% 
+  group_by(year,data) %>% 
+  dplyr::summarise(n=sum(n),.groups="drop") %>% 
+  rbind(deaths_year4 %>% mutate(data="Mortality reported in excess mortality")) %>% 
+  ggplot() +
+  geom_point(aes(x=year,y=n,col=data),size=1.2) +
+  geom_line(aes(x=year,y=n,col=data),size=0.8) +
+  scale_x_continuous(name="Year",breaks=c(2011,2015,2020)) +
+  theme_bw() +
+  theme(legend.position = "bottom") 
+  #annotate("text",x=
+```
+
+## Population
+
+To predict the mortality risk by age group, we need to adjust for the population size.
+We retrieve the population for each age group on the 1st of January of each year from FSO website and interpolate it to obtain the weekly population.
+
+```{r,  fig.width=8,fig.height=8,echo = FALSE}
+
+data.plot = pop %>% 
+  dplyr::mutate(date=ISOweek2date(paste0(year,"-W",ifelse(week<10,paste0("0",week),week),"-1"))) %>% 
+  group_by(date,age_class,week,year) %>% 
+  dplyr::summarise(n=sum(n),.groups="drop")
+ggplot() +
+  geom_point(data=data.plot %>% filter(week==1),aes(x=date,y=n)) +
+  geom_line(data=data.plot,aes(x=date,y=n)) +
+  facet_grid(age_class~.,scales="free") +
+  #annotate("text",x=2020,y=0,label="") +
+  theme_bw()
+```
+
+
+# Analysis
+
+## Fitting mortality 2010-2019
+
+For each cause and each age group, we use the weekly mortality data in 2010-2019 to predict the weekly mortality in 2020.
+We assumed that the number of deaths $y_{i}(t)$ due to a given cause in given age group at time $t$ for sex $i$ followed a Poisson distribution:
+$$y_{i}(t)\sim Poisson(\mu_{i}(t))$$
+
+We model the changes of mortality risk over time using two Gaussian Processes (GPs).
+We use an offset for the total population $N$ in the given age group:
+
+$$\log\mu_{ijk} = \alpha + \beta_{F}\mathbb{1}_{i=F} + f(t) + g(t) + \log(N)$$
+where $\alpha$ is the intercept,$\beta_F$ is the effect of being a female on the mortality and $N$ is the population.
+The GP $f$ models the long-term trend in mortality over time while the GP $g$ represents the change in mortality over the weeks of the year.
+We assume an exponential quadratic Kernel for $f$ and a periodic Kernel for $g$.
+
+## Excess mortality
+
+The model provides estimates of the weekly expected mortality by cause and age class in 2020.
+We obtain the excess mortality by subtracting the expected mortality to the reported number of deaths.
+
+# Results
+
+## Fit 2010-2019
+
+We only show fit for 70-79 and 80+, the two groups who gather most of the deaths.
+The red dots represent the weekly number of deaths, the black lines the estimated mean number of deaths and the gray areas the 95% credibility intervals.
+
+### 70-79
+
+```{r,  fig.width=8,fig.height=8,echo = FALSE}
+readRDS("results/mod3_data_pred_fit.RDS") %>% 
+  filter(age_class=="70-79") %>% 
+  ggplot() +
+  geom_line(aes(x=date,y=est),col="black") +
+  geom_ribbon(aes(x=date,ymin=lwb,ymax=upb),fill="black",alpha=0.15) +
+  geom_point(aes(x=date,y=n),col="red",alpha=0.5,size=0.8) +
+  facet_grid(cause~age_class,scales="free") +
+  theme_bw()
+```
+
+### 80+
+
+```{r,  fig.width=8,fig.height=8,echo = FALSE}
+readRDS("results/mod3_data_pred_fit.RDS") %>% 
+  filter(age_class=="80+") %>% 
+  ggplot() +
+  geom_line(aes(x=date,y=est),col="black") +
+  geom_ribbon(aes(x=date,ymin=lwb,ymax=upb),fill="black",alpha=0.15) +
+  geom_point(aes(x=date,y=n),col="red",alpha=0.5,size=0.8) +
+  facet_grid(cause~age_class,scales="free") +
+  theme_bw()
+```
+
+## Expected mortality
+
+### Comparison with FSO
+
+```{r,  fig.width=8,fig.height=4,echo = FALSE}
+
+```
+
+
+### by week in 2020, by age and causee
+
+```{r,  fig.width=8,fig.height=8,echo = FALSE}
+readRDS("results/mod3_data_pred_pand.RDS") %>%  
+  ggplot() +
+  geom_line(aes(x=date,y=est),col="black") +
+  geom_ribbon(aes(x=date,ymin=lwb,ymax=upb),fill="black",alpha=0.15) +
+  geom_point(aes(x=date,y=n),col="red",alpha=0.5,size=0.8) +
+  scale_x_date(name="Year",breaks=ymd("2020-01-01","2020-12-31"),labels=c("1 Jan","31 Dec")) +
+  facet_grid(age_class~cause,scales="free") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))
+```
+
+### by year
+
+```{r,  fig.width=8,fig.height=4,echo = FALSE}
+d2.year %>% 
+  rbind(d2.pand.year %>% mutate(year=2020) %>% select(-n.covid)) %>% 
+  ggplot() +
+  geom_line(aes(x=year,y=est),col="black") +
+  geom_ribbon(aes(x=year,ymin=lwb,ymax=upb),fill="black",alpha=0.2) +
+  geom_point(aes(x=year,y=deaths),col="red",alpha=0.5,size=2) +
+  scale_x_continuous(name="Year",breaks=c(2011,2015,2020),labels=c(2011,2015,2020)) +
+  theme_bw()
+```
+
+### by year and age
+
+```{r,  fig.width=8,fig.height=8,echo = FALSE}
+d1.year %>% 
+  rbind(d1.pand.year %>% dplyr::mutate(year=2020) %>% select(-n.covid)) %>% 
+  ggplot() +
+  geom_line(aes(x=year,y=est),col="black") +
+  geom_ribbon(aes(x=year,ymin=lwb,ymax=upb),fill="black",alpha=0.2) +
+  geom_point(aes(x=year,y=deaths),col="red",alpha=0.5,size=2) +
+  theme_bw() +
+  scale_x_continuous(name="Year",breaks=c(2011,2015,2020),labels=c(2011,2015,2020)) +
+  facet_wrap(.~age_class,scales="free")
+```
+
+### by year, age and cause
+
+```{r,  fig.width=8,fig.height=8,echo = FALSE}
+d.year.age.cause %>% 
+  rbind(d.pand.year.age.cause %>% dplyr::mutate(year=2020)) %>% 
+  ggplot() +
+  geom_line(aes(x=year,y=est),col="black") +
+  geom_ribbon(aes(x=year,ymin=lwb,ymax=upb),fill="black",alpha=0.2) +
+  geom_point(aes(x=year,y=deaths),col="red",alpha=0.2,size=2) +
+  scale_x_continuous(name="Year",breaks=c(2011,2015,2020),labels=c(2011,2015,2020)) +
+  facet_grid(age_class~cause,scales="free") +
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))
+```
+
+
+### Comparison with other models
+
+The model analysing mortality by cause of deaths predicts a higher number of deaths compared to the spatiotemporal model ("INLA model")
+
+```{r,  fig.width=8,fig.height=8,echo = FALSE}
+cbind(d1.pand.year,
+      summ %>% dplyr::select(exp_deaths_med,exp_deaths_lob,exp_deaths_upb,labo_deaths)) %>% 
+  dplyr::select(age_class,deaths,n.covid,labo_deaths,est,lwb,upb,exp_deaths_med,exp_deaths_lob,exp_deaths_upb) %>% 
+  flextable() %>% delete_part(.,part="header") %>% 
+  colformat_double(.,digits = 0) %>% 
+  add_header(age_class="Age",deaths="Reported deaths (from cause of deaths data)",n.covid="Deaths reported with Covid as cause",labo_deaths="Laboratory Covid deaths",
+             est="Expected mortality (from cause of deaths data)",lwb= "Expected mortality (from cause of deaths data)",upb="Expected mortality (from cause of deaths data)",
+             exp_deaths_med="Expected deaths from INLA model",exp_deaths_upb="Expected deaths from INLA model",exp_deaths_lob="Expected deaths from INLA model", top=TRUE) %>% 
+  add_header(age_class="",deaths="",n.covid="",labo_deaths="",
+             est="median",lwb= "lower bound",upb="upper bound",
+             exp_deaths_med="median",exp_deaths_upb="lower bound",exp_deaths_lob="upper bound", top=FALSE) %>% 
+  hline_top(part="all",border=fp_border(color="black",width = 1.5)) %>% 
+  width(.,width=6,unit="cm") %>% 
+  merge_h(part="header")
+  
+```
+
+
+## Excess mortality in 2020
+
+```{r,  fig.width=8,fig.height=8,echo = FALSE}
+
+```
+
+## Excess mortality by cause
+
+### Absolute
+
+```{r,  fig.width=8,fig.height=8,echo = FALSE}
+readRDS("results/mod3_excess.RDS") %>% 
+  filter(var=="overall_excess") %>% 
+  rbind(data_all %>% 
+         filter(year==2020,cause=="covid") %>% 
+         group_by(age_class) %>% 
+         dplyr::summarise(n=sum(n),.groups="drop") %>%
+         dplyr::select(age_class=age_class,est=n) %>% 
+         dplyr::mutate(lwb=NA,upb=NA,var="overall_excess",cause="covid")) %>% 
+  left_join(data.frame(cause =c(causes,"covid"),
+                       cause_name = c("Cardiovascular\ndisease","Dementia","Diabetes","Accident","Cancer","Infectious\ndisease","Other","Respiratory\ndisease","COVID")),
+            by="cause") %>% 
+  ggplot() +
+  geom_hline(yintercept=0,colour="grey50") +
+  geom_col(aes(x=cause_name,y=est),fill="black",colour="black",size=.3,width=.8,alpha=.5) +
+  geom_errorbar(aes(x=cause_name,y=est,ymin=lwb,ymax=upb),
+                colour="black",width=.3,size=.3,alpha=.8) +
+  facet_wrap(age_class~.,scales="free",ncol=2) +
+  scale_fill_discrete(guide="none") +
+  labs(x="Cause",y="Absolute excess mortality") +
+  theme_bw() +
+  theme(axis.text.x=element_text(angle=45,hjust = 1))
+```
+
+### Relative
+
+```{r,  fig.width=8,fig.height=8,echo = FALSE}
+readRDS("results/mod3_excess.RDS") %>% 
+  filter(var=="overall_rel_excess") %>% 
+  dplyr::mutate(est=ifelse(is.infinite(est),NA,est)) %>% 
+  left_join(data.frame(cause =c(causes,"covid"),
+                       cause_name = c("Cardiovascular\ndisease","Dementia","Diabetes","Accident","Cancer","Infectious\ndisease","Other","Respiratory\ndisease","COVID")),
+            by="cause") %>% 
+  ggplot() +
+  geom_hline(yintercept=0,colour="black",size=1) +
+  geom_col(aes(x=cause_name,y=est),fill="black",colour="black",size=.3,width=.8,alpha=.5) +
+  geom_errorbar(aes(x=cause_name,y=est,ymin=lwb,ymax=upb),
+                colour="black",width=.3,size=.3,alpha=.8) +
+  facet_wrap(age_class~.,scales="free",ncol=2) +
+  scale_y_continuous(labels=scales::percent) +
+  scale_fill_discrete(guide="none") +
+  labs(x="Cause",y="Relative excess mortality") +
+  theme_bw()+
+  theme(axis.text.x=element_text(angle=45,hjust = 1))
+```
+
+## Excess mortality by cause and phase
+
+
+| Phase | Weeks  | Dates  |
+| :-------: | :---: | :---: |
+| 1 | 1-23 | 01.01.2020-07.06.2020 |
+| 2 | 24-39 | 08.06.2020-27.09.2020 |
+| 3 | 40-52 | 28.09.2020-31.12.2020 |
+
+### Absolute excess mortality (with COVID)
+
+```{r,  fig.width=8,fig.height=8,echo = FALSE}
+deaths_pand_pred_sample = readRDS("results/deaths_pand_pred_sample.RDS")
+d = deaths_pand_pred_sample %>% 
+  dplyr::mutate(phase= 1 + as.numeric(week>isoweek("2020-06-07")) + as.numeric(week>isoweek("2020-09-27"))) %>% 
+  group_by(phase,cause,age_class,iter) %>%
+  dplyr::summarise(values=sum(values),
+                   n = sum(n),.groups="drop_last") %>% 
+  dplyr::summarise(deaths= mean(n),#take the mean for the reported deaths but it is same across all iterations
+                   est=deaths-mean(values),
+                   lwb = deaths-quantile(values,probs=0.025),
+                   upb = deaths-quantile(values,probs=0.975), .groups="drop") 
+
+d %>% dplyr::mutate(var="overall_excess") %>%
+  dplyr::select(phase,age_class,est,lwb,upb,var,cause) %>% 
+  rbind(data_all %>% 
+          filter(year==2020,cause=="covid") %>%
+          dplyr::mutate(phase= 1 + as.numeric(week>isoweek("2020-06-07")) + as.numeric(week>isoweek("2020-09-27"))) %>% 
+          group_by(phase,age_class) %>% 
+          dplyr::summarise(n=sum(n),.groups="drop") %>%
+          dplyr::select(phase,age_class=age_class,est=n) %>% 
+          dplyr::mutate(lwb=NA,upb=NA,var="overall_excess",cause="covid")) %>% 
+  left_join(data.frame(cause =c(causes,"covid"),
+                       cause_name = c("Cardiovascular\ndisease","Dementia","Diabetes","Accident","Cancer","Infectious\ndisease","Other","Respiratory\ndisease","COVID")),
+            by="cause") %>%
+  dplyr::mutate(phase=factor(phase)) %>% 
+  ggplot(aes(fill=phase)) +
+  geom_hline(yintercept=0,colour="black",size=1) +
+  geom_col(aes(x=cause_name,y=est),position=position_dodge(width = 0.7),colour="black",size=.3,width=.7,alpha=.5) +
+  geom_errorbar(aes(x=cause_name,y=est,ymin=lwb,ymax=upb),position=position_dodge(width = 0.7),
+                colour="black",width=.3,size=.3,alpha=.8)+
+  facet_grid(age_class~.,scales="free") +
+  labs(x="Cause",y="Absolute excess mortality") +
+  theme_bw() +
+  theme(axis.text.x=element_text(angle=45,hjust = 1))
+```
+
+### Absolute excess mortality (without COVID)
+
+The deaths due to COVID-19 are removed for a better readability.
+
+```{r,  fig.width=8,fig.height=8,echo = FALSE}
+d %>% dplyr::mutate(var="overall_excess") %>%
+  dplyr::select(phase,age_class,est,lwb,upb,var,cause) %>% 
+  left_join(data.frame(cause =c(causes,"covid"),
+                       cause_name = c("Cardiovascular\ndisease","Dementia","Diabetes","Accident","Cancer","Infectious\ndisease","Other","Respiratory\ndisease","COVID")),
+            by="cause") %>%
+  dplyr::mutate(phase=factor(phase)) %>% 
+  ggplot(aes(fill=phase)) +
+  geom_hline(yintercept=0,colour="black",size=1) +
+  geom_col(aes(x=cause_name,y=est),position=position_dodge(width = 0.7),colour="black",size=.3,width=.7,alpha=.5) +
+  geom_errorbar(aes(x=cause_name,y=est,ymin=lwb,ymax=upb),position=position_dodge(width = 0.7),
+                colour="black",width=.3,size=.3,alpha=.8)+
+  facet_grid(age_class~.,scales="free") +
+  labs(x="Cause",y="Absolute excess mortality") +
+  theme_bw() +
+  theme(axis.text.x=element_text(angle=45,hjust = 1))
+```
+
+### Relative excess mortality
+
+Results are only shown for the categories where both the observed and the expected mortality is greater than 0.
+
+```{r,  fig.width=8,fig.height=8,echo = FALSE}
+d = deaths_pand_pred_sample %>% 
+  dplyr::mutate(phase= 1 + as.numeric(week>isoweek("2020-06-07")) + as.numeric(week>isoweek("2020-09-27"))) %>% 
+  group_by(phase,cause,age_class,iter) %>%
+  dplyr::summarise(values=sum(values),
+                   n = sum(n),.groups="drop_last") %>% 
+  dplyr::summarise(deaths= mean(n),#take the mean for the reported deaths but it is same across all iterations
+                   est= mean((deaths-values)/values),
+                   lwb = quantile((deaths-values)/values,probs=0.025,na.rm=TRUE),
+                   upb = quantile((deaths-values)/values,probs=0.975,na.rm=TRUE), .groups="drop") 
+
+d %>% 
+  dplyr::mutate(est=ifelse(is.infinite(est),NA,est), #nan if no observed deaths, Inf if there is one iteration with 0 expected deaths
+                est=ifelse(is.nan(est),NA,est),
+                lwb=ifelse(is.na(est),NA,lwb),
+                upb=ifelse(is.na(est),NA,upb)) %>% 
+  left_join(data.frame(cause =c(causes,"covid"),
+                       cause_name = c("Cardiovascular\ndisease","Dementia","Diabetes","Accident","Cancer","Infectious\ndisease","Other","Respiratory\ndisease","COVID")),
+            by="cause") %>%
+  dplyr::mutate(phase=factor(phase)) %>% 
+  ggplot(aes(fill=phase)) +
+  geom_hline(yintercept=0,colour="black",size=1) +
+  geom_col(aes(x=cause_name,y=est),position=position_dodge(width = 0.7),colour="black",size=.3,width=.7,alpha=.5) +
+  geom_errorbar(aes(x=cause_name,y=est,ymin=lwb,ymax=upb),position=position_dodge(width = 0.7),
+                colour="black",width=.3,size=.3,alpha=.8) +
+  facet_grid(age_class~.,scales="free") +
+  scale_y_continuous(labels=scales::percent) +
+  labs(x="Cause",y="Relative excess mortality") +
+  theme_bw()+
+  theme(axis.text.x=element_text(angle=45,hjust = 1))
+```
+
+## Gaussian processes
+
+### Long-term trend
+
+```{r,  fig.width=8,fig.height=8,echo = FALSE}
+readRDS("results/mod3_year_GP.RDS") %>%
+  dplyr::mutate(year=isoyear(date)) %>%
+  group_by(cause,age_class) %>%
+  dplyr::mutate(ref=as.numeric(as.numeric(date)==min(as.numeric(date))),
+                est_rel=exp(est-est[ref==1])-1,
+                lwb_rel=exp(lwb-est[ref==1])-1,
+                upb_rel =exp(upb - est[ref==1])-1) %>% ungroup() %>%
+  ggplot(aes(x=date,y=est_rel)) +
+  geom_ribbon(aes(ymin=lwb_rel,ymax=upb_rel),alpha=0.2) +
+  geom_point(size=0.5)+
+  geom_line()+
+  facet_grid(cause~age_class,scales="free") +
+  scale_y_continuous(labels = scales::percent,name="Relative change in mortality") +
+  theme_bw()+
+  theme(axis.text.x=element_text(angle=45,hjust = 1))
+```
+
+
+### Periodic trend
+
+```{r,  fig.width=8,fig.height=8,echo = FALSE}
+readRDS("results/mod3_week_GP.RDS") %>%
+  filter(isoyear(date)>=2020) %>%
+  dplyr::mutate(year=isoyear(date)) %>%
+  group_by(cause,age_class) %>%
+  dplyr::mutate(ref=as.numeric(as.numeric(date)==min(as.numeric(date))),
+                est_rel=exp(est-est[ref==1])-1,
+                lwb_rel=exp(lwb-est[ref==1])-1,
+                upb_rel =exp(upb - est[ref==1])-1) %>% ungroup() %>%
+  ggplot(aes(x=date,y=est_rel)) +
+  geom_ribbon(aes(ymin=lwb_rel,ymax=upb_rel),alpha=0.2) +
+  geom_point(size=0.5)+
+  geom_line()+
+  geom_vline(xintercept=ymd(paste0(2019:2021,"-01-01")),linetype=2)+
+  facet_grid(cause~age_class,scales="free") +
+  scale_y_continuous(labels = scales::percent,name="Relative change in mortality") +
+  theme_bw()+
+  theme(axis.text.x=element_text(angle=45,hjust = 1))
+```
+
