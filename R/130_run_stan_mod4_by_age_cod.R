@@ -3,16 +3,19 @@ run_stan_mod4_by_age_cod = function(cod_agg_pop_df, age_class, cause, run.model=
                                     save.date){
   #name to save
   name_cod_age=paste0(cod_df %>% filter(cod_full==cause) %>% pull(cod_1word),"_",age_class)
-  if(file.exists(paste0("results/",save.date,"/mod4_stan_diag_",name_cod_age,".RDS"))){
-    stan_diag = readRDS(paste0("results/",save.date,"/mod4_stan_diag_",name_cod_age,".RDS"))
+  if(file.exists(paste0(code_root_path,"results/",save.date,"/mod4_stan_diag_",name_cod_age,".RDS"))){
+    stan_diag = readRDS(paste0(code_root_path,"results/",save.date,"/mod4_stan_diag_",name_cod_age,".RDS"))
     print(stan_diag)
     return(NULL)
   }
   
+  print("Compile stan")
+  #mod4_cmdstan <- cmdstan_model("stan/mod4_GP_year_season.stan")
   mod4_cmdstan <- cmdstan_model(paste0(code_root_path,"stan/mod4_GP_year_season.stan"))
  
   ###########################################################################
   #data
+  print("Data")
   data = cod_agg_pop_df %>% 
     filter(cod_group==cause,age_class==.env$age_class) %>% 
     dplyr::mutate(sex = factor(sex,levels=c("M","F")),
@@ -101,6 +104,7 @@ run_stan_mod4_by_age_cod = function(cod_agg_pop_df, age_class, cause, run.model=
   #Model
   if(run.model){
     #run model in cmdstan
+    print("Run Stan")
     fit4 <- mod4_cmdstan$sample(
       init=initfun,
       adapt_delta=0.99,
@@ -143,7 +147,7 @@ run_stan_mod4_by_age_cod = function(cod_agg_pop_df, age_class, cause, run.model=
   ###########################################################################
   #Deaths and excess mortality
   #number of deaths aggregated over sex, pandemic
-  
+  print("Produce estimate")
   #by week
   t0=Sys.time()
   data_pred_week = aggregate_stan(data, fit4, cmdstan=TRUE,
@@ -201,6 +205,7 @@ run_stan_mod4_by_age_cod = function(cod_agg_pop_df, age_class, cause, run.model=
   print(t4-t0)
   
   #save
+  print("Save")
   saveRDS(stan_diag, file=paste0(code_root_path,"results/",save.date,"/mod4_stan_diag_",name_cod_age,".RDS"))
   saveRDS(reg_effect, file=paste0(code_root_path,"results/",save.date,"/mod4_reg_effect_",name_cod_age,".RDS"))
   saveRDS(data_pred_week, file=paste0(code_root_path,"results/",save.date,"/mod4_data_pred_week_",name_cod_age,".RDS"))

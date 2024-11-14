@@ -24,7 +24,7 @@ print(args)
 print(save.date)
 
 # Check if the folder exists, and create it if it doesn't
-folder_path <- paste0(code_root_path,"/results/", save.date)
+folder_path <- paste0(code_root_path,"results/", save.date)
 if (!dir.exists(folder_path)) {
   dir.create(folder_path)
   cat("Folder created:", folder_path, "\n")
