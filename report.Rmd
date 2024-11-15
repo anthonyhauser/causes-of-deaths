@@ -28,15 +28,34 @@ res_list=load_results(age_classes, causes, save.date="20241113")
 
 # Aim
 
-We aim at exploring the different mortality causes by age in 2020 in Switzerland.
+We aim to
+1. explore the mortality trends over time, by cause in Switzerland
+2. assess excess mortality during 2020-2021, by cause
+3. investigate the correlations between mortality causes (e.g., COVID-19 and other causes)
 
 # Data
 
 ## Causes of deaths
 
-
-
 ## Reported deaths
+
+* individual, with information about the calendar year, calendar week, exact age, canton and sex
+* ICD-10 code of the cause of deaths, as well as secondary and other causes
+
+```{r,  echo = FALSE}
+cod_df0 = readRDS(paste0(code_root_path,"/data/cause_of_death2.rds"))
+print(colnames(cod_df0))
+
+```
+
+### ICD-10 code
+
+
+```{r,  echo = FALSE}
+list = get_icd10()
+icd10_chapter = list$icd10_chapter
+icd10_chapter %>% flextable(cwidth = c(1,5))
+```
 
 ### By cause and age, over calendar year
 
