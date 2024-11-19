@@ -59,7 +59,7 @@ This is cmdstanr version 0.8.1
 > print("print args")
 [1] "print args"
 > print(args)
-[1] 1 1 1 1 1 1 1 1
+[1] 1 2 1 1 1 1 1 1
 > print(save.date)
 [1] "20241114"
 > 
@@ -87,20 +87,20 @@ Folder already exists: /users/ahauser6/causes-of-deaths/results/20241114
 +                                                  run.model=TRUE, save.date=save.date)
 + }
     time num_successful_chains num_divergent num_max_treedepth     ebfmi
-1 22.443                     4             0                 0 0.9281925
-                cod_group age_class      cod_1word is.stan.ok
-1 Cardiovascular Diseases      0-17 cardiovascular       TRUE
+1 11.443                     4             0                 0 0.9757331
+        cod_group age_class cod_1word is.stan.ok
+1 External Causes      0-17  external       TRUE
     time num_successful_chains num_divergent num_max_treedepth     ebfmi
-1 22.443                     4             0                 0 0.9281925
-                cod_group age_class      cod_1word is.stan.ok
-1 Cardiovascular Diseases      0-17 cardiovascular       TRUE
+1 11.443                     4             0                 0 0.9757331
+        cod_group age_class cod_1word is.stan.ok
+1 External Causes      0-17  external       TRUE
     time num_successful_chains num_divergent num_max_treedepth     ebfmi
-1 22.443                     4             0                 0 0.9281925
-                cod_group age_class      cod_1word is.stan.ok
-1 Cardiovascular Diseases      0-17 cardiovascular       TRUE
+1 11.443                     4             0                 0 0.9757331
+        cod_group age_class cod_1word is.stan.ok
+1 External Causes      0-17  external       TRUE
 > 
 > 
 > 
 > proc.time()
    user  system elapsed 
-  0.947   0.957   1.895 
+  0.878   0.639   1.730 

@@ -1,0 +1,343 @@
+
+R version 4.4.1 (2024-06-14) -- "Race for Your Life"
+Copyright (C) 2024 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> ##########################################
+> #load arguments from ubelix array
+> # args9="20231129"
+> # for(args1 in c(3)){
+> #   for(args2 in c(2)){
+> #     for(args3 in c(3)){
+> #       for(args4 in c(1,2,3)){
+> #         for(args5 in c(1)){
+> #  args=c(args1,args2,args3,args4,args5,NA,NA,NA,args9) #args_all=c(4,7,1,4,1,1,1,1,20240620)
+> 
+> ##########################################
+> #Setting up paths
+> is.sim.cluster=TRUE
+> wd = getwd()
+> code_root_path = paste0(strsplit(wd, split="/cluster")[[1]][1],"/")
+> source(paste0(code_root_path,"R/000_setup.R"))
+This is cmdstanr version 0.8.1
+- CmdStanR documentation and vignettes: mc-stan.org/cmdstanr
+- CmdStan path: /users/ahauser6/.cmdstan/cmdstan-2.35.0
+- CmdStan version: 2.35.0
+ [1] "/users/ahauser6/causes-of-deaths//R//001_data_cleaning.R"                 
+ [2] "/users/ahauser6/causes-of-deaths//R//002_load_pop.R"                      
+ [3] "/users/ahauser6/causes-of-deaths//R//010_tuning_parameter_cond_EQ.R"      
+ [4] "/users/ahauser6/causes-of-deaths//R//011_tuning_parameter_cond_periodic.R"
+ [5] "/users/ahauser6/causes-of-deaths//R//020_aggregate_fit_deaths.R"          
+ [6] "/users/ahauser6/causes-of-deaths//R//021_aggregate_pand_deaths.R"         
+ [7] "/users/ahauser6/causes-of-deaths//R//030_run_stan_mod3_by_age_cause.R"    
+ [8] "/users/ahauser6/causes-of-deaths//R//101_get_icd10.R"                     
+ [9] "/users/ahauser6/causes-of-deaths//R//102_combine_cod_icd10.R"             
+[10] "/users/ahauser6/causes-of-deaths//R//103_aggregate_cod.R"                 
+[11] "/users/ahauser6/causes-of-deaths//R//104_load_attribute_pop.R"            
+[12] "/users/ahauser6/causes-of-deaths//R//130_run_stan_mod4_by_age_cod.R"      
+[13] "/users/ahauser6/causes-of-deaths//R//140_aggregate_pand_stan.R"           
+[14] "/users/ahauser6/causes-of-deaths//R//141_aggregate_fit_stan.R"            
+[15] "/users/ahauser6/causes-of-deaths//R//150_load_results.R"                  
+[16] "/users/ahauser6/causes-of-deaths//R//generic_functions.R"                 
+> 
+> args_all=(commandArgs(TRUE)) #args_all=c(rep(1,8),"20241114")
+> args=as.numeric(unlist(args_all[1:8]))#args[9] should be simulation date
+> save.date=as.character(args_all[[9]])
+> 
+> print("print args")
+[1] "print args"
+> print(args)
+[1] 5 5 1 1 1 1 1 1
+> print(save.date)
+[1] "20241114"
+> 
+> # Check if the folder exists, and create it if it doesn't
+> folder_path <- paste0(code_root_path,"results/", save.date)
+> if (!dir.exists(folder_path)) {
++   dir.create(folder_path)
++   cat("Folder created:", folder_path, "\n")
++ } else {
++   cat("Folder already exists:", folder_path, "\n")
++ }
+Folder already exists: /users/ahauser6/causes-of-deaths/results/20241114 
+> 
+> #load data
+> cod_agg_pop_df = readRDS(paste0(code_root_path,"/savepoint/cod_agg_pop_df.RDS"))
+> #causes = cod_agg_pop_df$cod_group %>% unique() %>% setdiff(.,"COVID-19")
+> causes = c("Cardiovascular Diseases","External Causes","Infectious and Parasitic Diseases",
++            "Mental and Neurological Disorders",
++            "Neoplasms (Cancers)","No Specific Causes", "Respiratory Diseases", "Suicide")
+> age_classes = cod_agg_pop_df$age_class %>% unique()
+> 
+> for(i in 1:3){#do it 3 times so that 1 might be successful (as soon as 1 is successful, it does not run the model again)
++   mod4_data_pred_pand = run_stan_mod4_by_age_cod(cod_agg_pop_df,
++                                                  age_class=age_classes[args[1]], cause=causes[args[2]],
++                                                  run.model=TRUE, save.date=save.date)
++ }
+[1] "Compile stan"
+[1] "Data"
+[1] "Run Stan"
+Init values were only set for a subset of parameters. 
+Missing init values for the following parameters:
+ - chain 1: mu0, beta_reg, beta_week, alpha_week, beta_year, alpha_year
+ - chain 2: mu0, beta_reg, beta_week, alpha_week, beta_year, alpha_year
+ - chain 3: mu0, beta_reg, beta_week, alpha_week, beta_year, alpha_year
+ - chain 4: mu0, beta_reg, beta_week, alpha_week, beta_year, alpha_year
+
+To disable this message use options(cmdstanr_warn_inits = FALSE).
+
+Running MCMC with 4 parallel chains...
+
+Chain 1 Iteration:    1 / 2000 [  0%]  (Warmup) 
+Chain 1 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
+Chain 1 Exception: poisson_log_lpmf: Log rate parameter[1] is -nan, but must be not nan! (in '/tmp/RtmpRiLLzs/model-1a6fe95850b2cc.stan', line 136, column 4 to column 44)
+Chain 1 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
+Chain 1 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+Chain 1 
+Chain 1 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
+Chain 1 Exception: poisson_log_lpmf: Log rate parameter[1] is -nan, but must be not nan! (in '/tmp/RtmpRiLLzs/model-1a6fe95850b2cc.stan', line 136, column 4 to column 44)
+Chain 1 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
+Chain 1 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+Chain 1 
+Chain 1 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
+Chain 1 Exception: poisson_log_lpmf: Log rate parameter[1] is -nan, but must be not nan! (in '/tmp/RtmpRiLLzs/model-1a6fe95850b2cc.stan', line 136, column 4 to column 44)
+Chain 1 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
+Chain 1 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+Chain 1 
+Chain 1 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
+Chain 1 Exception: poisson_log_lpmf: Log rate parameter[1] is -nan, but must be not nan! (in '/tmp/RtmpRiLLzs/model-1a6fe95850b2cc.stan', line 136, column 4 to column 44)
+Chain 1 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
+Chain 1 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+Chain 1 
+Chain 1 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
+Chain 1 Exception: poisson_log_lpmf: Log rate parameter[1] is -nan, but must be not nan! (in '/tmp/RtmpRiLLzs/model-1a6fe95850b2cc.stan', line 136, column 4 to column 44)
+Chain 1 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
+Chain 1 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+Chain 1 
+Chain 1 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
+Chain 1 Exception: poisson_log_lpmf: Log rate parameter[1] is -nan, but must be not nan! (in '/tmp/RtmpRiLLzs/model-1a6fe95850b2cc.stan', line 136, column 4 to column 44)
+Chain 1 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
+Chain 1 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+Chain 1 
+Chain 1 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
+Chain 1 Exception: poisson_log_lpmf: Log rate parameter[1] is -nan, but must be not nan! (in '/tmp/RtmpRiLLzs/model-1a6fe95850b2cc.stan', line 136, column 4 to column 44)
+Chain 1 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
+Chain 1 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+Chain 1 
+Chain 1 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
+Chain 1 Exception: poisson_log_lpmf: Log rate parameter[1] is -nan, but must be not nan! (in '/tmp/RtmpRiLLzs/model-1a6fe95850b2cc.stan', line 136, column 4 to column 44)
+Chain 1 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
+Chain 1 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+Chain 1 
+Chain 1 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
+Chain 1 Exception: poisson_log_lpmf: Log rate parameter[1] is -nan, but must be not nan! (in '/tmp/RtmpRiLLzs/model-1a6fe95850b2cc.stan', line 136, column 4 to column 44)
+Chain 1 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
+Chain 1 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+Chain 1 
+Chain 1 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
+Chain 1 Exception: poisson_log_lpmf: Log rate parameter[1] is -nan, but must be not nan! (in '/tmp/RtmpRiLLzs/model-1a6fe95850b2cc.stan', line 136, column 4 to column 44)
+Chain 1 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
+Chain 1 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+Chain 1 
+Chain 2 Iteration:    1 / 2000 [  0%]  (Warmup) 
+Chain 2 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
+Chain 2 Exception: poisson_log_lpmf: Log rate parameter[1] is -nan, but must be not nan! (in '/tmp/RtmpRiLLzs/model-1a6fe95850b2cc.stan', line 136, column 4 to column 44)
+Chain 2 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
+Chain 2 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+Chain 2 
+Chain 2 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
+Chain 2 Exception: poisson_log_lpmf: Log rate parameter[1] is -nan, but must be not nan! (in '/tmp/RtmpRiLLzs/model-1a6fe95850b2cc.stan', line 136, column 4 to column 44)
+Chain 2 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
+Chain 2 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+Chain 2 
+Chain 2 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
+Chain 2 Exception: poisson_log_lpmf: Log rate parameter[1] is -nan, but must be not nan! (in '/tmp/RtmpRiLLzs/model-1a6fe95850b2cc.stan', line 136, column 4 to column 44)
+Chain 2 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
+Chain 2 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+Chain 2 
+Chain 2 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
+Chain 2 Exception: poisson_log_lpmf: Log rate parameter[1] is -nan, but must be not nan! (in '/tmp/RtmpRiLLzs/model-1a6fe95850b2cc.stan', line 136, column 4 to column 44)
+Chain 2 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
+Chain 2 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+Chain 2 
+Chain 2 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
+Chain 2 Exception: poisson_log_lpmf: Log rate parameter[1] is -nan, but must be not nan! (in '/tmp/RtmpRiLLzs/model-1a6fe95850b2cc.stan', line 136, column 4 to column 44)
+Chain 2 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
+Chain 2 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+Chain 2 
+Chain 2 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
+Chain 2 Exception: poisson_log_lpmf: Log rate parameter[1] is -nan, but must be not nan! (in '/tmp/RtmpRiLLzs/model-1a6fe95850b2cc.stan', line 136, column 4 to column 44)
+Chain 2 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
+Chain 2 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+Chain 2 
+Chain 2 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
+Chain 2 Exception: poisson_log_lpmf: Log rate parameter[1] is -nan, but must be not nan! (in '/tmp/RtmpRiLLzs/model-1a6fe95850b2cc.stan', line 136, column 4 to column 44)
+Chain 2 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
+Chain 2 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+Chain 2 
+Chain 2 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
+Chain 2 Exception: poisson_log_lpmf: Log rate parameter[1] is -nan, but must be not nan! (in '/tmp/RtmpRiLLzs/model-1a6fe95850b2cc.stan', line 136, column 4 to column 44)
+Chain 2 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
+Chain 2 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+Chain 2 
+Chain 2 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
+Chain 2 Exception: poisson_log_lpmf: Log rate parameter[1] is -nan, but must be not nan! (in '/tmp/RtmpRiLLzs/model-1a6fe95850b2cc.stan', line 136, column 4 to column 44)
+Chain 2 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
+Chain 2 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+Chain 2 
+Chain 2 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
+Chain 2 Exception: poisson_log_lpmf: Log rate parameter[1] is -nan, but must be not nan! (in '/tmp/RtmpRiLLzs/model-1a6fe95850b2cc.stan', line 136, column 4 to column 44)
+Chain 2 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
+Chain 2 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+Chain 2 
+Chain 2 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
+Chain 2 Exception: poisson_log_lpmf: Log rate parameter[1] is -nan, but must be not nan! (in '/tmp/RtmpRiLLzs/model-1a6fe95850b2cc.stan', line 136, column 4 to column 44)
+Chain 2 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
+Chain 2 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+Chain 2 
+Chain 2 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
+Chain 2 Exception: poisson_log_lpmf: Log rate parameter[1] is -nan, but must be not nan! (in '/tmp/RtmpRiLLzs/model-1a6fe95850b2cc.stan', line 136, column 4 to column 44)
+Chain 2 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
+Chain 2 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+Chain 2 
+Chain 3 Iteration:    1 / 2000 [  0%]  (Warmup) 
+Chain 3 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
+Chain 3 Exception: poisson_log_lpmf: Log rate parameter[1] is -nan, but must be not nan! (in '/tmp/RtmpRiLLzs/model-1a6fe95850b2cc.stan', line 136, column 4 to column 44)
+Chain 3 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
+Chain 3 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+Chain 3 
+Chain 3 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
+Chain 3 Exception: poisson_log_lpmf: Log rate parameter[1] is -nan, but must be not nan! (in '/tmp/RtmpRiLLzs/model-1a6fe95850b2cc.stan', line 136, column 4 to column 44)
+Chain 3 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
+Chain 3 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+Chain 3 
+Chain 3 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
+Chain 3 Exception: poisson_log_lpmf: Log rate parameter[1] is -nan, but must be not nan! (in '/tmp/RtmpRiLLzs/model-1a6fe95850b2cc.stan', line 136, column 4 to column 44)
+Chain 3 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
+Chain 3 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+Chain 3 
+Chain 3 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
+Chain 3 Exception: poisson_log_lpmf: Log rate parameter[1] is -nan, but must be not nan! (in '/tmp/RtmpRiLLzs/model-1a6fe95850b2cc.stan', line 136, column 4 to column 44)
+Chain 3 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
+Chain 3 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+Chain 3 
+Chain 3 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
+Chain 3 Exception: poisson_log_lpmf: Log rate parameter[1] is -nan, but must be not nan! (in '/tmp/RtmpRiLLzs/model-1a6fe95850b2cc.stan', line 136, column 4 to column 44)
+Chain 3 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
+Chain 3 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+Chain 3 
+Chain 3 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
+Chain 3 Exception: poisson_log_lpmf: Log rate parameter[1] is -nan, but must be not nan! (in '/tmp/RtmpRiLLzs/model-1a6fe95850b2cc.stan', line 136, column 4 to column 44)
+Chain 3 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
+Chain 3 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+Chain 3 
+Chain 3 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
+Chain 3 Exception: poisson_log_lpmf: Log rate parameter[1] is -nan, but must be not nan! (in '/tmp/RtmpRiLLzs/model-1a6fe95850b2cc.stan', line 136, column 4 to column 44)
+Chain 3 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
+Chain 3 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+Chain 3 
+Chain 3 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
+Chain 3 Exception: poisson_log_lpmf: Log rate parameter[1] is -nan, but must be not nan! (in '/tmp/RtmpRiLLzs/model-1a6fe95850b2cc.stan', line 136, column 4 to column 44)
+Chain 3 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
+Chain 3 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+Chain 3 
+Chain 3 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
+Chain 3 Exception: poisson_log_lpmf: Log rate parameter[1] is -nan, but must be not nan! (in '/tmp/RtmpRiLLzs/model-1a6fe95850b2cc.stan', line 136, column 4 to column 44)
+Chain 3 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
+Chain 3 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+Chain 3 
+Chain 3 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
+Chain 3 Exception: poisson_log_lpmf: Log rate parameter[1] is -nan, but must be not nan! (in '/tmp/RtmpRiLLzs/model-1a6fe95850b2cc.stan', line 136, column 4 to column 44)
+Chain 3 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
+Chain 3 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+Chain 3 
+Chain 4 Iteration:    1 / 2000 [  0%]  (Warmup) 
+Chain 4 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
+Chain 4 Exception: poisson_log_lpmf: Log rate parameter[1] is -nan, but must be not nan! (in '/tmp/RtmpRiLLzs/model-1a6fe95850b2cc.stan', line 136, column 4 to column 44)
+Chain 4 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
+Chain 4 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+Chain 4 
+Chain 4 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
+Chain 4 Exception: poisson_log_lpmf: Log rate parameter[1] is -nan, but must be not nan! (in '/tmp/RtmpRiLLzs/model-1a6fe95850b2cc.stan', line 136, column 4 to column 44)
+Chain 4 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
+Chain 4 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+Chain 4 
+Chain 4 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
+Chain 4 Exception: poisson_log_lpmf: Log rate parameter[1] is -nan, but must be not nan! (in '/tmp/RtmpRiLLzs/model-1a6fe95850b2cc.stan', line 136, column 4 to column 44)
+Chain 4 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
+Chain 4 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+Chain 4 
+Chain 3 Iteration:  500 / 2000 [ 25%]  (Warmup) 
+Chain 2 Iteration:  500 / 2000 [ 25%]  (Warmup) 
+Chain 1 Iteration:  500 / 2000 [ 25%]  (Warmup) 
+Chain 3 Iteration: 1000 / 2000 [ 50%]  (Warmup) 
+Chain 3 Iteration: 1001 / 2000 [ 50%]  (Sampling) 
+Chain 2 Iteration: 1000 / 2000 [ 50%]  (Warmup) 
+Chain 2 Iteration: 1001 / 2000 [ 50%]  (Sampling) 
+Chain 1 Iteration: 1000 / 2000 [ 50%]  (Warmup) 
+Chain 1 Iteration: 1001 / 2000 [ 50%]  (Sampling) 
+Chain 3 Iteration: 1500 / 2000 [ 75%]  (Sampling) 
+Chain 3 Iteration: 2000 / 2000 [100%]  (Sampling) 
+Chain 3 finished in 26.1 seconds.
+Chain 2 Iteration: 1500 / 2000 [ 75%]  (Sampling) 
+Chain 4 Iteration:  500 / 2000 [ 25%]  (Warmup) 
+Chain 1 Iteration: 1500 / 2000 [ 75%]  (Sampling) 
+Chain 4 Iteration: 1000 / 2000 [ 50%]  (Warmup) 
+Chain 4 Iteration: 1001 / 2000 [ 50%]  (Sampling) 
+Chain 2 Iteration: 2000 / 2000 [100%]  (Sampling) 
+Chain 2 finished in 35.5 seconds.
+Chain 4 Iteration: 1500 / 2000 [ 75%]  (Sampling) 
+Chain 1 Iteration: 2000 / 2000 [100%]  (Sampling) 
+Chain 1 finished in 39.1 seconds.
+Chain 4 Iteration: 2000 / 2000 [100%]  (Sampling) 
+Chain 4 finished in 44.1 seconds.
+
+All 4 chains finished successfully.
+Mean chain execution time: 36.2 seconds.
+Total execution time: 44.4 seconds.
+
+[1] "divergence: " "0"            "0"            "0"            "0"           
+[1] "Produce estimate"
+Time difference of 33.43893 secs
+[1] "Save"
+# A tibble: 32 x 9
+   variable covid_phase age_class     est    lwb    upb cod_group      cod_1word
+   <chr>          <dbl> <fct>       <dbl>  <dbl>  <dbl> <chr>          <chr>    
+ 1 deaths             0 80+       58789.  58127. 59458. Neoplasms (Ca~ cancer   
+ 2 deaths             1 80+        2412.   2298   2525  Neoplasms (Ca~ cancer   
+ 3 deaths             2 80+        1880.   1775   1984. Neoplasms (Ca~ cancer   
+ 4 deaths             3 80+        2162.   2041   2277. Neoplasms (Ca~ cancer   
+ 5 deaths             4 80+        3111.   2938.  3270. Neoplasms (Ca~ cancer   
+ 6 deaths             5 80+        2982.   2778   3147  Neoplasms (Ca~ cancer   
+ 7 deaths             6 80+        1814.   1679   1935  Neoplasms (Ca~ cancer   
+ 8 deaths             7 80+        1306.   1198.  1405  Neoplasms (Ca~ cancer   
+ 9 excess             0 80+          37.6  -631.   700. Neoplasms (Ca~ cancer   
+10 excess             1 80+        -139.   -252    -25  Neoplasms (Ca~ cancer   
+# i 22 more rows
+# i 1 more variable: is.stan.ok <lgl>
+    time num_successful_chains num_divergent num_max_treedepth     ebfmi
+1 44.086                     4             0                 0 0.9181569
+            cod_group age_class cod_1word is.stan.ok
+1 Neoplasms (Cancers)       80+    cancer       TRUE
+    time num_successful_chains num_divergent num_max_treedepth     ebfmi
+1 44.086                     4             0                 0 0.9181569
+            cod_group age_class cod_1word is.stan.ok
+1 Neoplasms (Cancers)       80+    cancer       TRUE
+> 
+> 
+> 
+> proc.time()
+   user  system elapsed 
+181.941   3.131  85.588 
