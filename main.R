@@ -62,9 +62,69 @@ d %>%
 
 ################################################################################
 #Combine CoD dataset with icd10 categorization
-cod_ind_df = combine_cod_icd10(cod_df0,icd10_chapter_block,icd10_cat)
+causes = c("Cardiovascular Diseases","Infectious and Parasitic Diseases",
+           "Respiratory Diseases", "Mental and Neurological Disorders",
+           "COVID-19",
+           "Neoplasms (Cancers)","Suicide","External Causes","No Specific Causes")
+causes2 = c("Cardiovascular Diseases","Infectious and Parasitic Diseases",
+           "Respiratory Diseases", "Mental and Neurological Disorders",
+           "COVID-19",
+           "Neoplasms (Cancers)","Suicide","External Causes")
+
+#CoD: principal, primary and secondary 
+cod_ind_df = combine_cod_icd10(cod_df0,icd10_chapter_block,icd10_cat,icd_var = "ENDG_U_CD_GES_T",
+                               filter_cod_groups = causes)
+cod_ind_df2 = combine_cod_icd10(cod_df0,icd10_chapter_block,icd10_cat,icd_var = "ENDG_U_CD_GES_T",
+                               filter_cod_groups = causes2)
+cod_ind_df = combine_cod_icd10(cod_df0,icd10_chapter_block,icd10_cat,icd_var = "ENDG_U_CD_GES_T",
+                               filter_cod_groups = causes)
+cod_ind_df_primary = combine_cod_icd10(cod_df0,icd10_chapter_block,icd10_cat,icd_var = "GRUND_KRANK_GES_T",
+                                       filter_cod_groups = causes)
+cod_ind_df_secondary = combine_cod_icd10(cod_df0,icd10_chapter_block,icd10_cat,icd_var = "FOLGE_KRANK_GES_T",
+                                         filter_cod_groups = causes)
+
+#plot
+d = cod_ind_df %>% 
+  left_join(cod_ind_df_primary %>% dplyr::select(ind_id, cod_group_primary=cod_group),by="ind_id") %>% 
+  left_join(cod_ind_df_secondary %>% dplyr::select(ind_id, cod_group_secondary=cod_group),by="ind_id")
+#principal and primary
+d %>% 
+  group_by(cod_group,cod_group_primary) %>% 
+  dplyr::summarise(n=n(),.groups="drop_last") %>%
+  dplyr::mutate(p=n/sum(n)) %>% ungroup() %>% 
+  dplyr::mutate(cod_group=factor(cod_group,levels=c(causes,"Other Causes")),
+                cod_group_primary=factor(cod_group_primary,levels=c(causes,"Other Causes"))) %>% 
+  ggplot(aes(x = cod_group_primary, y = fct_rev(cod_group), fill = p)) +
+  geom_tile() +                          # Creates the heatmap tiles
+  geom_text(aes(label = scales::percent(p, accuracy = 1)),  # Add percentage labels
+            color = "black", size = 2.5) +
+  scale_fill_gradient(low = "lightgreen", high = "lightblue",
+                      labels=scales::label_percent(accuracy = 1)) + # Adjust the color gradient
+  labs(x = "Secondary", y = "Principal", fill = "Count") + # Axis and legend labels
+  theme_bw() +                      # Minimal theme for a clean look
+  theme(axis.text.x = element_text(angle = 45, hjust = 0))+
+  scale_x_discrete(position = "top")
+#principal and secondary
+d %>% 
+  group_by(cod_group,cod_group_secondary) %>% 
+  dplyr::summarise(n=n(),.groups="drop_last") %>%
+  dplyr::mutate(p=n/sum(n)) %>% ungroup() %>% 
+  dplyr::mutate(cod_group=factor(cod_group,levels=c(causes,"Other Causes")),
+                cod_group_secondary=factor(cod_group_secondary,levels=c(causes,"Other Causes"))) %>% 
+  ggplot(aes(x = cod_group_secondary, y = fct_rev(cod_group), fill = p)) +
+  geom_tile() +
+  geom_text(aes(label = scales::percent(p, accuracy = 1)),
+            color = "black", size = 2.5) +
+  scale_fill_gradient(low = "lightyellow", high = "lightblue",
+                      labels=scales::label_percent(accuracy = 1)) +
+  labs(x = "Secondary", y = "Principal", fill = "Count") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 0))+
+  scale_x_discrete(position = "top") 
+
+########################################
 #no missing title chapter or block
-cod_ind_df %>% filter(is.na(icd10Title_chapter)|is.na(icd10Title_block))
+cod_ind_df %>% filter(is.na(icd10Title_chapter)|is.na(icd10Title_block)) %>% dim()
 #check number of deaths for each chapter
 cod_ind_df %>%
   group_by(icd10Chapter,icd10Title_chapter) %>% 
@@ -80,8 +140,9 @@ cod_ind_df %>% filter(grepl("U",icd10)) %>%
 cod_ind_df %>% filter(icd10Title_block=="Intentional self-harm") %>% head()
 
 ################################################################################
-#Aggregate data by age, sex, calendar week and calendar year
+#Aggregate data by age, sex, calendar week, calendar year and cod group
 cod_agg_df = aggregate_cod(cod_ind_df)
+cod_agg_df2 = aggregate_cod(cod_ind_df2)
 
 cod_agg_df %>% 
   filter(cal_year %in% c(2020,2021)) %>% 
@@ -100,17 +161,28 @@ cod_agg_df %>%
 
 #load population data and interpolate for each week of the year
 pop = load_attribute_pop(cod_agg_df)
+pop2 = load_attribute_pop(cod_agg_df2)
 #combine
 cod_agg_pop_df = inner_join(cod_agg_df,
                pop %>% dplyr::rename(n.pop=n),
                by= c("cal_year","cal_week","age_class","sex")) %>% 
   arrange(cod_group,cal_year,cal_week,age_class,sex)
 saveRDS(cod_agg_pop_df,file="savepoint/cod_agg_pop_df.RDS")
+cod_agg_pop_df2 = inner_join(cod_agg_df2,
+                            pop2 %>% dplyr::rename(n.pop=n),
+                            by= c("cal_year","cal_week","age_class","sex")) %>% 
+  arrange(cod_group,cal_year,cal_week,age_class,sex)
+saveRDS(cod_agg_pop_df2,file="savepoint/cod_agg_pop_df2.RDS")
 
 ###########################################################################################################################
 #Run models
-cod_agg_pop_df = readRDS("savepoint/cod_agg_pop_df.RDS")
+cod_agg_pop_df = readRDS("savepoint/cod_agg_pop_df2.RDS")
+
 #causes = cod_agg_pop_df$cod_group %>% unique() %>% setdiff(.,"COVID-19")
+causes = c("Cardiovascular Diseases","Infectious and Parasitic Diseases",
+           "Respiratory Diseases", "Mental and Neurological Disorders",
+           "Other Causes",
+           "Neoplasms (Cancers)","Suicide","External Causes")
 causes = c("Cardiovascular Diseases","External Causes","Infectious and Parasitic Diseases",
            "Mental and Neurological Disorders",
            "Neoplasms (Cancers)","No Specific Causes", "Respiratory Diseases", "Suicide")
@@ -137,7 +209,22 @@ deaths_pred_sample = readRDS("results/deaths_pred_sample.RDS")
 ################################################################################################################################################################
 ################################################################################################################################################################
 #Plot
-res_list=load_results(age_classes, causes, save.date="20241113")
+res_list=load_results(age_classes, causes, save.date="20241114")
+
+
+#mortality risk by sex
+res_list$reg_effect %>% 
+  filter(var=="sex") %>% 
+  ggplot(aes(x=cod_1word,y=mean,ymin=`2.5%`,ymax=`97.5%`,col=age_class))+
+  geom_pointrange(position=position_dodge(width=0.5))+
+  geom_hline(aes(yintercept=0),lty=2)+
+  scale_y_continuous(name="Mortality risk ratio (RR)",
+                     limits=log(c(0.1,2)),
+                     breaks=log(c(0.1,0.2,0.5,1,2,5,10)),#log(c(-0.9,-0.75,-0.5,0,1,2)+1),
+                     labels = exp)+# labels = function(x){return(scales::percent(exp(x)-1))})+
+  theme_bw()+
+  theme(axis.text.x = element_text( angle = 45,
+                                    hjust = 1,vjust=1,size = 10))
 
 #mortality, fit
 res_list$data_pred_week %>% 

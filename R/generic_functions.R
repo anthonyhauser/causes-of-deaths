@@ -34,3 +34,14 @@ days_to_datetime_2020 <- function(days) {
   
   return(result_datetime)
 }
+
+
+summary_cmdstanr = function(fit=fit6, variable = "sigma",chains=chains){
+  d=fit$draws()[,,]
+  as.data.frame(ftable(d[,,grepl(variable,dimnames(d)[[3]])])) %>% 
+    filter(chain %in% chains) %>% 
+    group_by(variable) %>% 
+    dplyr::summarise(mean=mean(Freq),
+                     `2.5%` = quantile(Freq,probs=0.025),
+                     `97.5%` = quantile(Freq,probs=0.975),.groups="drop")
+}

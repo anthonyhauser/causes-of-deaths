@@ -40,10 +40,8 @@ data {
   //deaths and pop
   vector[N_all] deaths_all;
   array[N] int deaths;
-  vector[N_pand] deaths_pand;
   array[N_all] real n_pop_all;
   array[N] real n_pop;
-  array[N_pand] real n_pop_pand;
   
   //variables in regression
   matrix[N_all,N_reg] X_reg_all;
