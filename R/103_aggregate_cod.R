@@ -20,27 +20,7 @@ aggregate_cod = function(cod_ind_df){
   #Aggregate
   #clean data and define icd10 and age groups
   cod_ind_df2 = cod_ind_df %>%
-    filter(cal_year %in% c(2011:2021)) %>% #, cal_week<=52) %>% 
-    left_join(data.frame(chapter = 1:22,
-                         icd10Chapter = c("I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", 
-                                          "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", 
-                                          "XIX", "XX", "XXI", "XXII")),by="icd10Chapter") %>% 
-    dplyr::mutate(cod_group = case_when(
-      chapter %in% 1 ~ "Infectious and Parasitic Diseases",
-      chapter == 2 ~ "Neoplasms (Cancers)",
-      chapter %in% c(3,4) ~ "Blood, Endocrine, and Metabolic Diseases",
-      chapter %in% c(5,6) ~ "Mental and Neurological Disorders",
-      chapter %in% c(7,8,12) ~ "Eye, Ear and Skin Conditions",
-      chapter %in% 9 ~ "Cardiovascular Diseases",
-      chapter %in% 10 ~ "Respiratory Diseases",
-      chapter %in% c(11,14) ~ "Digestive and Genitourinary Diseases",
-      chapter == 13 ~ "Musculoskeletal Diseases",
-      chapter %in% 15:17 ~ "Pregnancy, Perinatal, and Congenital Conditions",
-      icd10Title_block=="Intentional self-harm" ~ "Suicide",
-      chapter %in% c(20) ~ "External Causes",
-      chapter %in% c(18) ~ "No Specific Causes",
-      icd10_cat %in% c("U07.1","U07.2") ~ "COVID-19",
-      icd10_cat == "U12.9" ~ "COVID-19 vaccine")) %>% 
+    filter(cal_year %in% c(2011:2021)) %>% #, cal_week<=52) %>%
     dplyr::mutate(age_class = cut(age,breaks = c(-1,18,40,65,80,Inf), labels = c("0-17","18-39","40-64","65-79","80+"),
                                   right=FALSE))
   #aggregate

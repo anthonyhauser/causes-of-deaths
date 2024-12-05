@@ -1,24 +1,24 @@
-run_stan_mod4 = function(cod_agg_pop_df, age_class, cause, run.model=TRUE,
+run_stan_mod5_by_age = function(cod_agg_pop_df, cause, run.model=TRUE,
                                     reg_var = c("sex"),reg_var_ref=c("M"),
                                     save.date){
   #name to save
-  name_cod_age=paste0(cod_df %>% filter(cod_full==cause) %>% pull(cod_1word),"_",age_class)
-  if(file.exists(paste0(code_root_path,"results/",save.date,"/mod4_stan_diag_",name_cod_age,".RDS"))){
-    stan_diag = readRDS(paste0(code_root_path,"results/",save.date,"/mod4_stan_diag_",name_cod_age,".RDS"))
+  if(file.exists(paste0(code_root_path,"results/",save.date,"/mod5_stan_diag_",age_class,".RDS"))){
+    stan_diag = readRDS(paste0(code_root_path,"results/",save.date,"/mod5_stan_diag_",age_class,".RDS"))
     print(stan_diag)
     return(NULL)
   }
   
   print("Compile stan")
   #mod4_cmdstan <- cmdstan_model("stan/mod4_GP_year_season.stan")
-  mod4_cmdstan <- cmdstan_model(paste0(code_root_path,"stan/mod4_GP_year_season.stan"))
- 
+  mod5_cmdstan <- cmdstan_model(paste0(code_root_path,"stan/mod5_GP_year_season.stan"))
+  
   ###########################################################################
   #data
   print("Data")
   data = cod_agg_pop_df %>% 
-    filter(cod_group==cause,age_class==.env$age_class) %>% 
+    filter(cod_group==cause) %>% 
     dplyr::mutate(sex = factor(sex,levels=c("M","F")),
+                  age_id = as.numeric(age_class),
                   #year.id = cal_year-min(cal_year)+1,
                   date=ISOweek2date(paste0(cal_year,"-W",ifelse(cal_week<10,paste0("0",cal_week),cal_week),"-1")),
                   week.id = as.numeric(1+(date-min(date))/7)) %>% #week.id = dense_rank(date)) %>% 
@@ -30,14 +30,12 @@ run_stan_mod4 = function(cod_agg_pop_df, age_class, cause, run.model=TRUE,
     }))
   
   data_fit = data %>% filter(cal_year<2020)
-  data_pand = data %>% filter(cal_year>=2020)
   X_reg_all = get_covariables_stan(data, reg_var,reg_var_ref)
   X_reg = get_covariables_stan(data_fit, reg_var,reg_var_ref)
-  X_reg_pand = get_covariables_stan(data_pand, reg_var,reg_var_ref)
   
   N = dim(data_fit)[1]
-  N_pand = dim(data_pand)[1]
-  N_all = N+N_pand
+  N_all = dim(data)[1]
+  N_age = data$age_id %>% unique() %>% length()
   x = data$week.id %>% unique()
   x_mean=mean(x)
   x_sd = sd(x)
@@ -56,21 +54,19 @@ run_stan_mod4 = function(cod_agg_pop_df, age_class, cause, run.model=TRUE,
     N=N,
     N_x = N_x,
     N_reg = dim(X_reg)[2],
-    N_pand = N_pand,
+    N_age = N_age,
     
     deaths = as.integer(data_fit$n),
-    deaths_pand = as.integer(data_pand$n),
     deaths_all = as.integer(data$n),
+    age_id = as.integer(data_fit$age_id),
+    age_id_all = as.integer(data$age_id),
     n_pop = structure(data_fit$n.pop,dim=N),
-    n_pop_pand = structure(data_pand$n.pop,dim=N_pand),
     n_pop_all = structure(data$n.pop,dim=N_all),
     
     X_reg = X_reg,
-    X_reg_pand = X_reg_pand,
     X_reg_all = X_reg_all,
     
     week_id = structure(as.integer(data_fit$week.id),dim=N),
-    week_id_pand = structure(as.integer(data_pand$week.id),dim=N_pand),
     week_id_all = structure(as.integer(data$week.id),dim=N_all),
     
     x = x,
@@ -97,35 +93,34 @@ run_stan_mod4 = function(cod_agg_pop_df, age_class, cause, run.model=TRUE,
     xlim(c(0,20))
   
   #init function
-  initfun <- function() { list(lambda_week=rlnorm(1,data_list$p_lambda_week[1],data_list$p_lambda_week[2]),
-                               lambda_year=rlnorm(1,data_list$p_lambda_year[1],data_list$p_lambda_year[2])) }
+  initfun <- function() { list(lambda_week=structure(rlnorm(data_list$N_age,data_list$p_lambda_week[1],data_list$p_lambda_week[2]),dim=data_list$N_age),
+                               lambda_year=structure(rlnorm(data_list$N_age,data_list$p_lambda_year[1],data_list$p_lambda_year[2]),dim=data_list$N_age)) }
   
   ###########################################################################
   #Model
   if(run.model){
     #run model in cmdstan
     print("Run Stan")
-    fit4 <- mod4_cmdstan$sample(
+    fit5 <- mod5_cmdstan$sample(
       init=initfun,
       adapt_delta=0.99,
       data = data_list,
       chains = 4, 
       parallel_chains = 4,
       show_messages = TRUE,#FALSE,
-      refresh = 500, # print update every 500 iters
+      refresh = 100, # print update every 500 iters
     )
     
-    if(fit4$diagnostic_summary()$num_divergent %>% length()<4){
+    if(fit5$diagnostic_summary()$num_divergent %>% length()<4){
       return(NULL)
     }
     
-    stan_diag =  data.frame(time = fit4$time()$chains[,"total"] %>% max(),
-                            num_successful_chains =  fit4$diagnostic_summary()$num_divergent %>% length(),
-                            num_divergent = fit4$diagnostic_summary()$num_divergent %>% sum(),#fit$sampler_diagnostics()
-                            num_max_treedepth = fit4$diagnostic_summary()$num_max_treedepth %>% sum(),
-                            ebfmi = fit4$diagnostic_summary()$ebfmi %>% min()) %>% 
-      dplyr::mutate(cod_group=cause,
-                    age_class=age_class) %>% 
+    stan_diag =  data.frame(time = fit5$time()$chains[,"total"] %>% max(),
+                            num_successful_chains =  fit5$diagnostic_summary()$num_divergent %>% length(),
+                            num_divergent = fit5$diagnostic_summary()$num_divergent %>% sum(),#fit$sampler_diagnostics()
+                            num_max_treedepth = fit5$diagnostic_summary()$num_max_treedepth %>% sum(),
+                            ebfmi = fit5$diagnostic_summary()$ebfmi %>% min()) %>% 
+      dplyr::mutate(cod_group=cause) %>% 
       left_join(cod_df,by=c("cod_group"="cod_full")) %>% 
       dplyr::mutate(is.stan.ok = num_successful_chains==4 & num_divergent==0 & ebfmi>0.2)
     
@@ -140,7 +135,7 @@ run_stan_mod4 = function(cod_agg_pop_df, age_class, cause, run.model=TRUE,
   }
   
   #divergence
-  print(paste(c("divergence: ",fit4$sampler_diagnostics()[,,"divergent__"] %>% apply(2,sum)),sep=" "))
+  print(paste(c("divergence: ",fit5$sampler_diagnostics()[,,"divergent__"] %>% apply(2,sum)),sep=" "))
   
   # fit3$summary(variables = c("beta_reg","lambda_year","alpha_year","lambda_week","alpha_week","mu0"),
   #              "mean",~quantile(.x, probs = c(0.01,0.025, 0.5, 0.975,0.99)),"rhat", "ess_bulk", "ess_tail")
@@ -150,35 +145,35 @@ run_stan_mod4 = function(cod_agg_pop_df, age_class, cause, run.model=TRUE,
   print("Produce estimate")
   #by week
   t0=Sys.time()
-  data_pred_week = aggregate_stan(data, fit4, cmdstan=TRUE,
-                                            groups=c("cal_year","cal_week","age_class","date")) %>% 
+  data_pred_week = aggregate_stan(data, fit5, cmdstan=TRUE,
+                                  groups=c("cal_year","cal_week","age_class","date")) %>% 
     dplyr::mutate(cod_group=cause) %>% 
     left_join(stan_diag %>% dplyr::select(cod_group,cod_1word, age_class, is.stan.ok),by=c("cod_group","age_class"))
   t1=Sys.time()
   #by COVID-19 phase
-  data_pred_phase = aggregate_stan(data, fit4, cmdstan=TRUE,
-                                             groups=c("covid_phase","age_class")) %>% 
+  data_pred_phase = aggregate_stan(data, fit5, cmdstan=TRUE,
+                                   groups=c("covid_phase","age_class")) %>% 
     dplyr::mutate(cod_group=cause) %>% 
     left_join(stan_diag %>% dplyr::select(cod_group,cod_1word, age_class, is.stan.ok),by=c("cod_group","age_class"))
   t2=Sys.time()
   #by year
-  data_pred_year = aggregate_stan(data, fit4, cmdstan=TRUE,
-                                            groups=c("cal_year","age_class")) %>% 
+  data_pred_year = aggregate_stan(data, fit5, cmdstan=TRUE,
+                                  groups=c("cal_year","age_class")) %>% 
     dplyr::mutate(cod_group=cause) %>% 
     left_join(stan_diag %>% dplyr::select(cod_group,cod_1word, age_class, is.stan.ok),by=c("cod_group","age_class")) %>% 
     left_join(data %>% group_by(cal_year) %>%
                 dplyr::summarise(n_week = length(unique(cal_week)),.groups="drop"),by="cal_year")
   t3=Sys.time()
-
+  
   ###########################################################################
   #sex
-  reg_effect = fit4$summary(variables = c("beta_reg"), "mean",~quantile(.x, probs = c(0.025, 0.975))) %>% 
+  reg_effect = fit5$summary(variables = c("beta_reg"), "mean",~quantile(.x, probs = c(0.025, 0.975))) %>% 
     dplyr::mutate(var = colnames(X_reg_all)) %>% 
     tidyr::separate(col = var, into = c("var", "ref", "level"), sep = "\\.")
   
   #GP
   #periodic
-  week_GP = fit4$summary(variables = c("f_week"), "mean",~quantile(.x, probs = c(0.025, 0.975))) %>% 
+  week_GP = fit5$summary(variables = c("f_week"), "mean",~quantile(.x, probs = c(0.025, 0.975))) %>% 
     tidyr::extract(variable,into=c("var","week.id"),
                    regex =paste0('(\\w.*)\\[',paste(rep("(.*)",1),collapse='\\,'),'\\]'), remove = T) %>% 
     as_tibble() %>% 
@@ -190,7 +185,7 @@ run_stan_mod4 = function(cod_agg_pop_df, age_class, cause, run.model=TRUE,
                   corr_date = days_to_datetime_2020(weeks_from_start*7)) %>% arrange(weeks_from_start) %>% 
     left_join(stan_diag %>% dplyr::select(cod_group,cod_1word, age_class, is.stan.ok),by=c("cod_group","age_class"))
   #long term trend
-  year_GP = fit4$summary(variables = c("f_year"), "mean",~quantile(.x, probs = c(0.025, 0.975))) %>% 
+  year_GP = fit5$summary(variables = c("f_year"), "mean",~quantile(.x, probs = c(0.025, 0.975))) %>% 
     tidyr::extract(variable,into=c("var","week.id"),
                    regex =paste0('(\\w.*)\\[',paste(rep("(.*)",1),collapse='\\,'),'\\]'), remove = T) %>% 
     as_tibble() %>% 

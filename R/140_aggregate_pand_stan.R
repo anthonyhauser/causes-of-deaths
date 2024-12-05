@@ -7,7 +7,7 @@ aggregate_stan = function(data, fit, cmdstan=TRUE,
     n_iter_per_chain = d[,1,1] %>% length()
     deaths_pred_sample = data %>%
       dplyr::mutate(data_row= dplyr::row_number()) %>% 
-      dplyr::select(cal_year,cal_week,date,covid_phase,age_class,sex,n,data_row) %>% 
+      dplyr::select(cal_year,cal_week,date,covid_phase,age_class,cod_group,n,data_row) %>% #sex
       left_join(.,
                 #as.data.frame(ftable(d[,,grepl(paste(variables,collapse="|"),dimnames(d)[[3]])])) %>% 
                 as.data.frame(ftable(d[,,grepl("deaths_all_pred",dimnames(d)[[3]])])) %>% 
