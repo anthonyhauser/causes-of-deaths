@@ -103,4 +103,4 @@ Folder already exists: /users/ahauser6/causes-of-deaths/results/20241114
 > 
 > proc.time()
    user  system elapsed 
-  0.878   0.639   1.730 
+  0.881   0.485   1.592 
