@@ -1,4 +1,4 @@
-load_results=function(age_classes, causes, save.date){
+load_results_mod4=function(age_classes, causes, save.date){
   names_df = cross_join(cod_df %>% filter(cod_full%in%causes) %>% dplyr::rename(cod_group=cod_full),
                         data.frame(age_class=as.character(age_classes))) %>% 
     rowwise() %>% dplyr::mutate(names = paste0(cod_1word,"_",age_class)) %>% ungroup()

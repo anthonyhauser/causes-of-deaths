@@ -34,7 +34,7 @@ if(FALSE){#check cmdstan
 }
 
 #covid phase
-covid_phase <- data.frame(
+covid_phase0 <- data.frame(
   start_date = as.Date(c("1995-01-02", "2019-11-04", "2020-03-02", "2020-06-08", "2020-09-28", 
                          "2021-03-01", "2021-08-02", "2021-11-01"),),
   phase = 0:7,
@@ -43,11 +43,20 @@ covid_phase <- data.frame(
   arrange(start_date) %>%
   mutate(end_date = lead(start_date, default = as.Date("2022-01-03")) - 1,
          n_weeks = as.numeric((1+end_date-start_date)/7))
+covid_phase <- data.frame(
+  start_date = as.Date(c("1995-01-02", "2019-11-04", "2020-02-24","2020-06-08","2020-09-28",
+                         "2021-02-15","2021-06-21","2021-10-11","2021-12-20"),),
+  phase = 0:8,
+  labels=c("Before 2020","Nov19-Feb20","Feb-Jun20 (1st wave)","Jun-Sep20"," Oct20-Feb21\n(2nd/3rd wave)","Feb-Jun21",
+           "Jun-Oct21","Oct-Dec21","Dec21")) %>%
+  arrange(start_date) %>%
+  mutate(end_date = lead(start_date, default = as.Date("2022-01-03")) - 1,
+         n_weeks = as.numeric((1+end_date-start_date)/7))
 
 cod_df = data.frame(cod_full=c("Cardiovascular Diseases","External Causes","Infectious and Parasitic Diseases",
           "Mental and Neurological Disorders",
-          "Neoplasms (Cancers)","No Specific Causes", "Respiratory Diseases", "Suicide"),
-          cod_1word = c("cardiovascular","external","infectious","mental","cancer","nocause","respiratory","suicide"))
+          "Neoplasms (Cancers)","No Specific Causes", "Respiratory Diseases", "Suicide","Other Causes"),
+          cod_1word = c("cardiovascular","external","infectious","mental","cancer","nocause","respiratory","suicide","other"))
 
 #load R files
 wd = getwd()
