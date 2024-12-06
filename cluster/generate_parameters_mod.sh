@@ -3,11 +3,7 @@ ramin=1
 ramax=5
 rastep=1
 rbmin=1 #7
-<<<<<<< HEAD
-rbmax=8 #7
-=======
-rbmax=10 #7
->>>>>>> 970f68e7bbef549d1cc6a72d03247aeb2fbbfd74
+rbmax=5
 rbstep=1
 rcmin=1
 rcmax=1

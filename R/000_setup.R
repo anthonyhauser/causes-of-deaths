@@ -3,7 +3,7 @@
 # library(data.table)
 # library(tidyfast)
 library(pacman)
-pacman::p_load(ISOweek, lubridate, data.table, tidyfast, tidyr, dplyr,purrr,ggplot2)
+pacman::p_load(ISOweek, lubridate, data.table, tidyfast, tidyr, dplyr,purrr,ggplot2,stringr)
 
 #cmdstanr
 library(cmdstanr)
