@@ -45,7 +45,7 @@ run_stan_mod7_by_cod = function(cod_agg_pop_df, age_class, run.model=TRUE,
   
   data_all_causes = data
   data_covid = data_all_causes %>% 
-    filter(cod_group=="COVID-19",cal_year>=2020)
+    filter(cal_year>=2020)
   data = data_all_causes %>% 
     filter(cod_group!="COVID-19")
   
@@ -57,6 +57,8 @@ run_stan_mod7_by_cod = function(cod_agg_pop_df, age_class, run.model=TRUE,
   
   deaths_df = matrix(data$n,nrow= data$week.id %>% max(), ncol=data$cod_group_id %>% max())
   deaths_fit_df = matrix(data_fit$n,nrow= data_fit$week.id %>% max(), ncol=data_fit$cod_group_id %>% max())
+  deaths_covid_df = matrix(data_covid$n,nrow= data_covid$week.id %>% unique() %>% length(),
+                           ncol=data_covid$cod_group_id %>% max())
   
   #prior mu0
   cod_agg_pop_df %>% 
@@ -67,16 +69,16 @@ run_stan_mod7_by_cod = function(cod_agg_pop_df, age_class, run.model=TRUE,
   
   data_list=list(N = dim(deaths_fit_df)[1],
                  N_all = dim(deaths_df)[1],
-                 N_covid = dim(data_covid)[1],
+                 N_covid = dim(deaths_covid_df)[1],
                  N_cause = dim(deaths_fit_df)[2],
                  deaths = t(deaths_fit_df),
                  deaths_all = t(deaths_df),
-                 deaths_covid = data_covid$n,
+                 deaths_covid = t(deaths_covid_df),
                  #X_reg = X_reg,
                  #X_reg_all = X_reg_all,
                  n_pop = data_fit %>% filter(cod_group_id==1) %>% pull(n.pop),
                  n_pop_all = data %>% filter(cod_group_id==1) %>% pull(n.pop),
-                 n_pop_covid = data_covid %>% pull(n.pop),
+                 n_pop_covid = data_covid %>% filter(cod_group_id==1) %>% pull(n.pop),
                  x_all = x_all,
                  
                  M_year = 20, 
@@ -90,6 +92,116 @@ run_stan_mod7_by_cod = function(cod_agg_pop_df, age_class, run.model=TRUE,
                  p_alpha_week = c(0,0.1),
                  
                  inference=1)
+  
+  
+  if(FALSE){
+    df = data_all_causes %>% filter(cal_year>=2020) %>% dplyr::select(date,cod_group,n)  %>% 
+      dplyr::filter(cod_group %in% c("Cardiovascular Diseases","Respiratory Diseases",
+                                     "Mental and Neurological Disorders","COVID-19"))#"Neoplasms (Cancers)"
+    
+    if(FALSE){
+      size_df=200
+      df_lag=1
+      sim_values=cumsum(rnorm(size_df+df_lag,0,1))
+      df0 = data.frame(t=1:size_df,
+                       y=sim_values[1:size_df],#X predicts Y 
+                       x=sim_values[(1+df_lag):(size_df + df_lag)])
+      df=data.frame(t=rep(df0$t,2),
+                    cod_group=rep(c("X","Y"),each=size_df),
+                    n=c(df0$x,df0$y))
+      df %>% 
+        ggplot(aes(x=t,y=n,col=cod_group))+
+        geom_line()
+    }
+    
+    # Reshape the data so that each cod_group becomes a column
+    reshaped_df <- pivot_wider(df, names_from = cod_group, values_from = n)
+    # Gather data for scatter plot pairs
+    pairwise_data <- combn(colnames(reshaped_df)[-1], 2, simplify = FALSE, FUN = function(pair) {
+      X <- reshaped_df[[pair[1]]]
+      Y <- reshaped_df[[pair[2]]]
+      date <- reshaped_df[["date"]]
+      cor_value <- cor(X, Y, use = "complete.obs")
+      data.frame(
+        X = X,
+        Y = Y,
+        date = date,
+        Pair = paste(pair[1], "vs", pair[2], sep = " "),
+        Correlation = paste("Corr =", round(cor_value, 2))
+      )
+    }) %>% bind_rows()
+    
+    # Plot scatter plots with facet_wrap
+    ggplot(pairwise_data, aes(x = X, y = Y)) +
+      geom_point(color = "blue", size = 3) +          # Scatter points
+      geom_smooth(method = "lm", se = FALSE, color = "red") +  # Regression line
+      facet_wrap(~ Pair, scales = "free") +          # Facet by pairs
+      geom_text(aes(label = Correlation), x = Inf, y = -Inf, 
+                hjust = 1.1, vjust = -1.1, inherit.aes = FALSE) +  # Add correlation text
+      theme_bw() +
+      labs(title = "Scatter Plots with Regression Line and Correlation",
+           x = "Value of Cod Group 1",
+           y = "Value of Cod Group 2")
+    pairwise_data %>% 
+      pivot_longer(cols=c("X",Y),names_to = "variable",values_to = "n") %>% 
+      ggplot(aes(x =date,y=n,col=variable)) +
+      geom_line()+
+      facet_wrap(~ Pair, scales = "free") +          # Facet by pairs
+      geom_text(aes(label = Correlation), x = Inf, y = -Inf, 
+                hjust = 1.1, vjust = -1.1, inherit.aes = FALSE) +  # Add correlation text
+      theme_bw() +
+      labs(title = "Scatter Plots with Regression Line and Correlation",
+           x = "Value of Cod Group 1",
+           y = "Value of Cod Group 2")
+    
+    calculate_lagged_correlation <- function(x, y, lags) {
+      correlations <- map_dfr(lags, function(lag) {
+        if (lag < 0) {
+          lagged_x <- x[(1 - lag):length(x)]
+          lagged_y <- y[1:(length(y) + lag)]
+        } else if (lag > 0) {
+          lagged_x <- x[1:(length(x) - lag)]
+          lagged_y <- y[(1 + lag):length(y)]
+        } else {
+          lagged_x <- x
+          lagged_y <- y
+        }
+        cor_value <- cor(lagged_x, lagged_y, use = "complete.obs")
+        n <- length(lagged_x)  # Sample size for this lag
+        fisher_z <- atanh(cor_value)  # Fisher's z-transformation
+        se <- 1 / sqrt(n - 3)  # Standard error of Fisher's z
+        z_low <- fisher_z - 1.96 * se  # Lower bound of Fisher's z
+        z_high <- fisher_z + 1.96 * se  # Upper bound of Fisher's z
+        ci_low <- tanh(z_low)  # Transform back to correlation
+        ci_high <- tanh(z_high)  # Transform back to correlation
+        data.frame(Lag = lag, Correlation = cor_value, CI_Low = ci_low, CI_High = ci_high)
+      })
+      return(correlations)
+    }
+    
+    # Compute correlations for all pairs of cod_group values with lags
+    lags <- -10:10
+    correlations_by_pair <- combn(colnames(reshaped_df)[-1], 2, simplify = FALSE, FUN = function(pair) {
+      x <- reshaped_df[[pair[1]]]
+      y <- reshaped_df[[pair[2]]]
+      correlations <- calculate_lagged_correlation(x, y, lags)
+      correlations$Pair <- paste(pair[1], "vs", pair[2], sep = " ")
+      return(correlations)
+    }) %>% bind_rows()
+    
+    # Plot lagged correlations with uncertainty intervals
+    ggplot(correlations_by_pair, aes(x = Lag, y = Correlation, group = Pair)) +
+      geom_hline(yintercept=0)+
+      geom_ribbon(aes(ymin = CI_Low, ymax = CI_High), fill = "black", alpha = 0.1) +  # Confidence interval ribbon
+      geom_line(color = "blue", size = 1) +           # Correlation line
+      geom_point(size = 3, color = "red") +           # Points for correlation values
+      facet_wrap(~ Pair, scales = "fixed") +
+      theme_bw() +
+      ylim(c(-1,1)) +
+      labs(title = "Lagged Correlations Between Cod Groups with Confidence Intervals",
+           x = "Lag",
+           y = "Correlation")
+  }
   
   
   #lengthscale for long-term trend
@@ -111,7 +223,7 @@ run_stan_mod7_by_cod = function(cod_agg_pop_df, age_class, run.model=TRUE,
   #init function
   data_list$p_intercept
   initfun <- function() { list(sigma = structure(abs(rnorm(data_list$N_cause+1,0,0.5)),dim=data_list$N_cause+1),
-                               mu0 = structure(rnorm(data_list$N_cause,data_list$p_intercept[1],data_list$p_intercept[2]),dim=data_list$N_cause),
+                               mu0 = structure(rnorm(data_list$N_cause+1,data_list$p_intercept[1],data_list$p_intercept[2]),dim=data_list$N_cause+1),
                                lambda_week=structure(rlnorm(data_list$N_cause,data_list$p_lambda_week[1],data_list$p_lambda_week[2]),dim=data_list$N_cause),
                                lambda_year=structure(rlnorm(data_list$N_cause,data_list$p_lambda_year[1],data_list$p_lambda_year[2]),dim=data_list$N_cause)) }
   
@@ -166,6 +278,7 @@ run_stan_mod7_by_cod = function(cod_agg_pop_df, age_class, run.model=TRUE,
     
     temp_rds_file <- paste0(code_root_path,"/results/",save.date,"/","mod7_",age_class,"_","fit.RDS")
     fit7$save_object(file = temp_rds_file)
+    #fit7 <- readRDS(temp_rds_file)
     
     if(!stan_diag$is.stan.ok){
       return(NULL)
