@@ -55,8 +55,8 @@ covid_phase <- data.frame(
 
 cod_df = data.frame(cod_full=c("Cardiovascular Diseases","External Causes","Infectious and Parasitic Diseases",
           "Mental and Neurological Disorders",
-          "Neoplasms (Cancers)","No Specific Causes", "Respiratory Diseases", "Suicide","Other Causes"),
-          cod_1word = c("cardiovascular","external","infectious","mental","cancer","nocause","respiratory","suicide","other"))
+          "Neoplasms (Cancers)","No Specific Causes", "Respiratory Diseases", "Suicide","Other Causes","COVID-19"),
+          cod_1word = c("cardiovascular","external","infectious","mental","cancer","nocause","respiratory","suicide","other","covid-19"))
 
 #load R files
 wd = getwd()

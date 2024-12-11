@@ -272,7 +272,7 @@ deaths_pred_sample = readRDS("results/deaths_pred_sample.RDS")
 ################################################################################################################################################################
 ################################################################################################################################################################
 #Plot
-res_list=load_results_mod6(age_classes, save.date="20241204")
+res_list=load_results_mod6(age_classes, save.date="20241211",mod="mod7")
 
 cod_agg_pop_df = cod_agg_pop_df %>%
   dplyr::mutate(date=ISOweek2date(paste0(cal_year,"-W",ifelse(cal_week<10,paste0("0",cal_week),cal_week),"-1"))) %>% 

@@ -162,6 +162,10 @@ run_stan_mod7_by_cod = function(cod_agg_pop_df, age_class, run.model=TRUE,
                             rhat = fit7$summary() %>% filter(!is.na(rhat)) %>% pull(rhat) %>% max()) %>% 
       dplyr::mutate(age_class=age_class) %>% 
       dplyr::mutate(is.stan.ok = num_successful_chains>=4 & num_divergent==0 & ebfmi>=0.3 & rhat<1.1)
+    print(stan_diag)
+    
+    temp_rds_file <- paste0(code_root_path,"/results/",save.date,"/","mod7_",age_class,"_",tempfile(fileext = ".RDS"))
+    fit7$save_object(file = temp_rds_file)
     
     if(!stan_diag$is.stan.ok){
       return(NULL)
