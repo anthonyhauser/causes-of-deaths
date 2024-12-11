@@ -60,6 +60,11 @@ d %>%
   arrange(-n) %>% head(n=14)
 
 
+cod_df0 %>% 
+  dplyr::select(GRUND_KRANK_GES_T, FOLGE_KRANK_GES_T, BEGLEIT_KRANK_A_GES_T, BEGLEIT_KRANK_B_GES_T, ENDG_U_CD_GES_T)
+  pivot_longer(cols = everything(),
+               names_to=c("variable","stat"),values_to ="n",names_sep = "\\.")
+
 ################################################################################
 #Combine CoD dataset with icd10 categorization
 causes = c("Cardiovascular Diseases","Infectious and Parasitic Diseases",
@@ -72,29 +77,90 @@ causes2 = c("Cardiovascular Diseases","Infectious and Parasitic Diseases",
            "Neoplasms (Cancers)","Suicide","External Causes")
 
 #CoD: principal, primary and secondary 
+# cod_ind_df = combine_cod_icd10(cod_df0,icd10_chapter_block,icd10_cat,icd_var = "ENDG_U_CD_GES_T",
+#                                filter_cod_groups = causes)
 cod_ind_df = combine_cod_icd10(cod_df0,icd10_chapter_block,icd10_cat,icd_var = "ENDG_U_CD_GES_T",
-                               filter_cod_groups = causes)
-cod_ind_df2 = combine_cod_icd10(cod_df0,icd10_chapter_block,icd10_cat,icd_var = "ENDG_U_CD_GES_T",
                                filter_cod_groups = causes2)
 cod_ind_df = combine_cod_icd10(cod_df0,icd10_chapter_block,icd10_cat,icd_var = "ENDG_U_CD_GES_T",
-                               filter_cod_groups = causes)
+                               filter_cod_groups = causes2)
 cod_ind_df_primary = combine_cod_icd10(cod_df0,icd10_chapter_block,icd10_cat,icd_var = "GRUND_KRANK_GES_T",
-                                       filter_cod_groups = causes)
+                                       filter_cod_groups = causes2)
 cod_ind_df_secondary = combine_cod_icd10(cod_df0,icd10_chapter_block,icd10_cat,icd_var = "FOLGE_KRANK_GES_T",
-                                         filter_cod_groups = causes)
+                                         filter_cod_groups = causes2)
+cod_ind_df_secondary = combine_cod_icd10(cod_df0,icd10_chapter_block,icd10_cat,icd_var = "FOLGE_KRANK_GES_T",
+                                         filter_cod_groups = causes2)
+cod_ind_df = combine_cod_icd10(cod_df0,icd10_chapter_block,icd10_cat,
+                                icd_var = c("ENDG_U_CD_GES_T","GRUND_KRANK_GES_T","FOLGE_KRANK_GES_T","BEGLEIT_KRANK_A_GES_T","BEGLEIT_KRANK_B_GES_T"),
+                              filter_cod_groups = causes2)
+cod_ind_df %>% filter(outcome=="ENDG_U_CD_GES_T")
+
+
+cod_df0=cod_df0
+icd10_chapter_block=icd10_chapter_block
+icd10_cat=icd10_cat
+icd_var = c("ENDG_U_CD_GES_T","GRUND_KRANK_GES_T","FOLGE_KRANK_GES_T","BEGLEIT_KRANK_A_GES_T","BEGLEIT_KRANK_B_GES_T")
+filter_cod_groups=causes2
 
 #plot
 d = cod_ind_df %>% 
   left_join(cod_ind_df_primary %>% dplyr::select(ind_id, cod_group_primary=cod_group),by="ind_id") %>% 
   left_join(cod_ind_df_secondary %>% dplyr::select(ind_id, cod_group_secondary=cod_group),by="ind_id")
 #principal and primary
-d %>% 
-  group_by(cod_group,cod_group_primary) %>% 
+
+cod_ind_df %>% 
+  filter(cal_year>=2020) %>% 
+  group_by(outcome,cod_group) %>% 
+  dplyr::summarise(n=n()) %>% ungroup() %>% 
+  filter(!is.na(cod_group)) %>% 
+  dplyr::mutate(outcome=factor(outcome,
+                               levels=c("ENDG_U_CD_GES_T","GRUND_KRANK_GES_T","FOLGE_KRANK_GES_T","BEGLEIT_KRANK_A_GES_T","BEGLEIT_KRANK_B_GES_T"))) %>% 
+  ggplot(aes(x=outcome,y=n,fill=cod_group)) +
+  geom_bar(stat="identity")+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+################################################################################
+#Random forest: predict covid
+library(randomForest)
+library(caret)
+d1 = cod_ind_df %>%
+  filter(cal_year>=2020) %>% 
+  dplyr::select(ind_id,outcome,cod_group) %>% 
+  dplyr::mutate(cod_group=replace_na(cod_group,"missing")) %>% 
+  pivot_wider(id_cols=ind_id,names_from = "outcome",values_from="cod_group") %>% 
+  dplyr::mutate(covid=as.factor(ENDG_U_CD_GES_T=="COVID-19")) %>% 
+  dplyr::select(covid,GRUND_KRANK_GES_T,FOLGE_KRANK_GES_T,
+                BEGLEIT_KRANK_A_GES_T,BEGLEIT_KRANK_B_GES_T) %>% 
+  filter(GRUND_KRANK_GES_T!="COVID-19",
+         FOLGE_KRANK_GES_T!="COVID-19")
+ 
+set.seed(123)  # For reproducibility
+train_index <- sample(seq_len(nrow(d1)), size = 0.7 * nrow(d1))  # 70% training
+train_data <- d1[train_index, ]
+test_data <- d1[-train_index, ]
+
+d1 %>% 
+  group_by(covid) %>% dplyr::summarise(n())
+
+rf_model <- randomForest(covid ~ .,
+                       data=train_data ,
+                       ntree=500, mtry=2,
+                       importance=TRUE)
+print(rf_model)
+predictions <- predict(rf_model, newdata = test_data, type = "response")
+table(predictions)
+confusionMatrix(predictions, test_data$covid)
+################################################################################
+  
+cod_ind_df %>%
+  dplyr::mutate(outcome=factor(outcome,levels=c("ENDG_U_CD_GES_T","GRUND_KRANK_GES_T"),labels=c("outcome1","outcome2"))) %>% 
+  filter(!is.na(outcome)) %>% 
+  pivot_wider(id_cols=ind_id,names_from="outcome",values_from="cod_group") %>% 
+  group_by(outcome1,outcome2) %>% 
   dplyr::summarise(n=n(),.groups="drop_last") %>%
   dplyr::mutate(p=n/sum(n)) %>% ungroup() %>% 
-  dplyr::mutate(cod_group=factor(cod_group,levels=c(causes,"Other Causes")),
-                cod_group_primary=factor(cod_group_primary,levels=c(causes,"Other Causes"))) %>% 
-  ggplot(aes(x = cod_group_primary, y = fct_rev(cod_group), fill = p)) +
+  dplyr::mutate_at(c("outcome1","outcome2"),function(x) factor(x,levels=c(causes2,"Other Causes"))) %>% 
+  ggplot(aes(x = outcome2, y = fct_rev(outcome1), fill = p)) +
   geom_tile() +                          # Creates the heatmap tiles
   geom_text(aes(label = scales::percent(p, accuracy = 1)),  # Add percentage labels
             color = "black", size = 2.5) +
@@ -183,9 +249,6 @@ causes = c("Cardiovascular Diseases","Infectious and Parasitic Diseases",
            "Respiratory Diseases", "Mental and Neurological Disorders",
            "Other Causes",
            "Neoplasms (Cancers)","Suicide","External Causes")
-causes = c("Cardiovascular Diseases","External Causes","Infectious and Parasitic Diseases",
-           "Mental and Neurological Disorders",
-           "Neoplasms (Cancers)","No Specific Causes", "Respiratory Diseases", "Suicide")
 age_classes = cod_agg_pop_df$age_class %>% unique()
 #causes="Cardiovascular Diseases"
 #age_classes=c("0-17")
@@ -220,20 +283,6 @@ cod_agg_pop_df = cod_agg_pop_df %>%
     if (length(phase) == 0) NA_real_ else phase
   }))
 
-
-#mortality risk by sex
-# res_list$reg_effect %>% 
-#   filter(var=="sex") %>% 
-#   ggplot(aes(x=cod_1word,y=mean,ymin=`2.5%`,ymax=`97.5%`,col=age_class))+
-#   geom_pointrange(position=position_dodge(width=0.5))+
-#   geom_hline(aes(yintercept=0),lty=2)+
-#   scale_y_continuous(name="Mortality risk ratio (RR)",
-#                      limits=log(c(0.1,2)),
-#                      breaks=log(c(0.1,0.2,0.5,1,2,5,10)),#log(c(-0.9,-0.75,-0.5,0,1,2)+1),
-#                      labels = exp)+# labels = function(x){return(scales::percent(exp(x)-1))})+
-#   theme_bw()+
-#   theme(axis.text.x = element_text( angle = 45,
-#                                     hjust = 1,vjust=1,size = 10))
 
 #mortality, fit
 res_list$data_pred_week %>% 

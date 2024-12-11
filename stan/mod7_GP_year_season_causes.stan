@@ -35,14 +35,17 @@ functions {
 data {
   int N; //number of datapoint
   int N_all;
+  int N_covid;
+  array[N_covid] int deaths_covid;
   // int N_reg;
   int<lower=1> N_cause;             // Number of causes
   
   // Deaths and populations by age group
-  array[N_cause] vector[N_all] deaths_all;
+  array[N_cause,N_all] int deaths_all;
   array[N_cause,N] int deaths;
   vector[N_all] n_pop_all;
   vector[N] n_pop;
+  vector[N_covid] n_pop_covid;
   
   // Variables for regression
   // matrix[N_all,N_reg] X_reg_all;
@@ -83,6 +86,7 @@ transformed data {
 }
 
 parameters {
+  real mu0_covid;
   vector[N_cause] mu0;                           // Intercept
   //array[N_cause] vector[N_reg] beta_reg;             // Regression coefficients
   
@@ -95,9 +99,9 @@ parameters {
   vector <lower=0> [N_cause] lambda_year;      // Yearly GP lengthscale by age
   array[N_cause] vector[M_year] beta_year; // Basis coefficients for yearly GP
 
-  vector<lower=0>[N_cause] sigma;
-  array[N_cause] row_vector[N] eta;                   // Random effects
-  cholesky_factor_corr[N_cause] rho_chol;
+  vector<lower=0>[N_cause+1] sigma;
+  array[N_cause+1] row_vector[N_all] eta;                   // Random effects
+  cholesky_factor_corr[N_cause+1] rho_chol;
 }
 
 transformed parameters {
@@ -115,12 +119,13 @@ transformed parameters {
     f_year[g] = PHI_year * (diagSPD_year[g] .* beta_year[g]);
   }
 
-  matrix[N_cause,N] eta2 = rho_chol * to_matrix(eta);
+  matrix[N_cause+1,N_all] eta2 = rho_chol * to_matrix(eta);
 }
 
 model {
   // Priors
   mu0 ~ normal(p_intercept[1], p_intercept[2]);
+  mu0_covid ~ normal(p_intercept[1], p_intercept[2]);
   
   //GP: variance and lengthscale
   lambda_week ~ lognormal(p_lambda_week[1], p_lambda_week[2]);
@@ -136,18 +141,23 @@ model {
     // beta_reg[g] ~ normal(0, 1);
     beta_week[g] ~ normal(0, 1);
     beta_year[g] ~ normal(0, 1);
+  }
+  for (g in 1:(N_cause+1)) {
     eta[g] ~ std_normal();
   }
   
   // Likelihood
   if(inference==1){
     for(g in 1:N_cause){
-      target += poisson_log_lpmf(deaths[g,] | mu0[g] + //X_reg * beta_reg[g] +
-                                              f_week[g,1:N] +
-                                              f_year[g,1:N] +
-                                              to_vector(eta2[g])*sigma[g] +
-                                              log(n_pop));
+      target += poisson_log_lpmf(deaths_all[g,] | mu0[g] + //X_reg * beta_reg[g] +
+                                              f_week[g,] +
+                                              f_year[g,] +
+                                              to_vector(eta2[g])*sigma[g]+
+                                              log(n_pop_all));
     }
+    target += poisson_log_lpmf(deaths_covid | mu0_covid + 
+                                              to_vector(eta2[N_cause+1,(N+1):N_all])*sigma[N_cause+1] +
+                                              log(n_pop_covid));
   }
 }
 
@@ -165,7 +175,7 @@ generated quantities {
         eta_all[g,i] = std_normal_rng();
       }
     }
-    eta2_all = rho_chol * to_matrix(eta_all);
+    eta2_all = rho_chol[1:N_cause,1:N_cause] * to_matrix(eta_all);
     for(g in 1:N_cause) {
       deaths_all_pred[g] = to_vector(poisson_log_rng(mu_all[g]+to_vector(eta2_all[g])*sigma[g]));
       deaths_all_pred0[g] = to_vector(poisson_log_rng(mu_all[g]));
@@ -173,5 +183,5 @@ generated quantities {
     }
   }
 
-  matrix[N_cause,N_cause] Sigma = rho_chol * rho_chol';
+  matrix[N_cause+1,N_cause+1] Sigma = rho_chol * rho_chol';
 }
