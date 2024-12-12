@@ -191,9 +191,11 @@ generated quantities {
       deaths_all_pred0[g] = to_vector(poisson_log_rng(mu_all[g]));
       //excess[g] = deaths_all[g] - deaths_all_pred[g];
     }
-    for(g in 1:(N_cause+1)){
-      deaths_covid_est[g] = exp(mu_all[g,(N+1):N_all] + to_vector(eta2_covid[g])*sigma[g]);
+    for(g in 1:N_cause){
+      deaths_covid_est[g] = exp(mu0[g] + f_week[g,(N+1):N_all] + f_year[g,(N+1):N_all] + log(n_pop_covid) + 
+                                to_vector(eta2_covid[g])*sigma[g]);
     }
+    deaths_covid_est[N_cause+1] = exp(mu0[N_cause+1] +log(n_pop_covid) + to_vector(eta2_covid[N_cause+1])*sigma[N_cause+1]);
   }
 
   matrix[N_cause+1,N_cause+1] Sigma = rho_chol * rho_chol';
