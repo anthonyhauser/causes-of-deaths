@@ -3,6 +3,7 @@
 .RData
 .RDataTmp
 .Ruserdata
+.exe
 
 data/
 #savepoint/
