@@ -15,7 +15,7 @@ wd = getwd()
 code_root_path = paste0(strsplit(wd, split="/cluster")[[1]][1],"/")
 source(paste0(code_root_path,"R/000_setup.R"))
 
-args_all=(commandArgs(TRUE)) #args_all=c(rep(1,8),"20241114")
+args_all=(commandArgs(TRUE)) #args_all=c(rep(1,8),"20241212")
 args=as.numeric(unlist(args_all[1:8]))#args[9] should be simulation date
 save.date=as.character(args_all[[9]])
 
@@ -33,17 +33,17 @@ if (!dir.exists(folder_path)) {
 }
 
 #load data
-cod_agg_pop_df = readRDS(paste0(code_root_path,"/savepoint/cod_agg_pop_df.RDS"))
+cod_agg_pop_df = readRDS(paste0(code_root_path,"/savepoint/cod_agg_pop_df2.RDS"))
 #causes = cod_agg_pop_df$cod_group %>% unique() %>% setdiff(.,"COVID-19")
-causes = c("Cardiovascular Diseases","External Causes","Infectious and Parasitic Diseases",
-           "Mental and Neurological Disorders",
-           "Neoplasms (Cancers)","No Specific Causes", "Respiratory Diseases", "Suicide")
+causes = c("Cardiovascular Diseases","Respiratory Diseases", "Mental and Neurological Disorders",
+           "Infectious and Parasitic Diseases",
+           "Neoplasms (Cancers)","Suicide","External Causes",
+           "Other Causes")
 age_classes = cod_agg_pop_df$age_class %>% unique()
 
-for(i in 1:3){#do it 3 times so that 1 might be successful (as soon as 1 is successful, it does not run the model again)
-  mod4_data_pred_pand = run_stan_mod4_by_age_cod(cod_agg_pop_df,
-                                                 age_class=age_classes[args[1]], cause=causes[args[2]],
-                                                 run.model=TRUE, save.date=save.date)
-}
+mod4_data_pred_pand = run_stan_mod4(cod_agg_pop_df,
+                                               age_class=age_classes[args[1]], cause=causes[args[2]],
+                                               run.model=TRUE, save.date=save.date)
+
 
 

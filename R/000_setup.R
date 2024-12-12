@@ -47,8 +47,8 @@ covid_phase <- data.frame(
   start_date = as.Date(c("1995-01-02", "2019-11-04", "2020-02-24","2020-06-08","2020-09-28",
                          "2021-02-15","2021-06-21","2021-10-11","2021-12-20"),),
   phase = 0:8,
-  labels=c("Before 2020","Nov19-Feb20","Feb-Jun20 (1st wave)","Jun-Sep20"," Oct20-Feb21\n(2nd/3rd wave)","Feb-Jun21",
-           "Jun-Oct21","Oct-Dec21","Dec21")) %>%
+  labels=c("0. Before 2020","Nov19-Feb20","1. Feb-Jun20 (1st wave)","2. Jun-Sep20","2b. Oct20-Feb21\n(2nd/3rd wave)","3. Feb-Jun21",
+           "4. Jun-Oct21","5. Oct-Dec21","6. Dec21")) %>%
   arrange(start_date) %>%
   mutate(end_date = lead(start_date, default = as.Date("2022-01-03")) - 1,
          n_weeks = as.numeric((1+end_date-start_date)/7))
