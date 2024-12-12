@@ -44,6 +44,8 @@ run_stan_mod4 = function(cod_agg_pop_df, age_class, cause, run.model=TRUE,
   xn = (x-mean(x))/x_sd
   N_x = length(x)
   
+  p_mean_mu0 = c("0-17"=-15, "18-39"=-14, "40-64"=-12, "65-79"=-11, "80+"=-9)[age_class]
+  
   #lengthscale for long-term trend
   l=rlnorm(100000,0.5,0.5)
   hist(l)
@@ -79,7 +81,7 @@ run_stan_mod4 = function(cod_agg_pop_df, age_class, cause, run.model=TRUE,
     c_year = 5,
     J_week = 20,
     
-    p_intercept = c(-10,2),
+    p_intercept = c(p_mean_mu0,2),
     p_alpha_year = c(0,0.1),
     p_lambda_year = c(0.5, 0.5),#c(0,0.4)
     p_lambda_week = c(1,0.4),#c(0.8,0.4),

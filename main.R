@@ -272,7 +272,9 @@ deaths_pred_sample = readRDS("results/deaths_pred_sample.RDS")
 ################################################################################################################################################################
 ################################################################################################################################################################
 #Plot
-res_list=load_results_mod6(age_classes, save.date="20241211",mod="mod7")
+cod_agg_pop_df = readRDS("savepoint/cod_agg_pop_df2.RDS")
+age_classes = cod_agg_pop_df$age_class %>% unique()
+res_list=load_results_mod6(age_classes, save.date="20241212",mod="mod6")
 
 cod_agg_pop_df = cod_agg_pop_df %>%
   dplyr::mutate(date=ISOweek2date(paste0(cal_year,"-W",ifelse(cal_week<10,paste0("0",cal_week),cal_week),"-1"))) %>% 
@@ -283,8 +285,8 @@ cod_agg_pop_df = cod_agg_pop_df %>%
     if (length(phase) == 0) NA_real_ else phase
   }))
 
-
-#mortality, fit
+################################################################################
+#mortality by week aggregated over causes, by age
 res_list$data_pred_week %>% 
   filter(variable=="deaths") %>% 
   #add observed deaths
@@ -306,7 +308,23 @@ res_list$data_pred_week %>%
   facet_grid(age_class~.,scales="free") +
   theme_bw()
 
-#mortality, fit, by cause
+#mortality by week for 80+, by cause
+res_list$data_pred_week_cause %>% 
+  filter(variable=="deaths") %>% 
+  left_join(res_list$data_pred_week_cause %>% 
+              filter(variable=="obs_deaths") %>% dplyr::select(obs_deaths=est,cal_year,cal_week,age_class,cod_group,pred),
+            by=c("cal_year","cal_week","age_class","cod_group","pred")) %>% 
+  filter(age_class=="80+",pred=="poisson") %>% 
+  ggplot() +
+  geom_line(aes(x=date,y=est),col="black") +
+  geom_ribbon(aes(x=date,ymin=lwb,ymax=upb),fill="black",alpha=0.15) +
+  geom_point(aes(x=date,y=obs_deaths),col="red",alpha=0.5,size=0.8) +
+  geom_vline(aes(xintercept=ymd("2020-01-01")))+
+  facet_grid(cod_group~age_class,scales="free") +
+  theme_bw()
+
+
+#mortality by week for a specific cause, by age
 res_list$data_pred_week_cause %>% 
   filter(variable=="deaths") %>% 
   left_join(res_list$data_pred_week_cause %>% 
@@ -321,6 +339,7 @@ res_list$data_pred_week_cause %>%
   facet_grid(age_class~cod_group,scales="free") +
   theme_bw()
 
+#CONSIDER REMOVING
 res_list$data_pred_week_cause %>% 
   filter(variable=="deaths") %>% 
   left_join(res_list$data_pred_week_cause %>% 
@@ -336,6 +355,7 @@ res_list$data_pred_week_cause %>%
   facet_grid(age_class~cod_group,scales="free") +
   theme_bw()
 
+################################################################################
 #mortality by year, by cause
 res_list$data_pred_year_cause %>% 
   filter(variable=="deaths") %>% 
@@ -399,7 +419,7 @@ res_list$data_pred_phase %>%
   theme(axis.text.x = element_text( angle = 45,
                                     hjust = 1,vjust=1,size = 10))
 
-
+################################################################################
 #Excess mortality, by year, by age class
 res_list$data_pred_year %>% 
   filter(variable=="excess",pred=="poisson") %>% 
@@ -416,6 +436,7 @@ res_list$data_pred_year %>%
   labs(x="Cause",y="Absolute excess mortality") +
   theme_bw() +
   theme(axis.text.x=element_text(angle=45,hjust = 1))
+
 #by year, by cause, 80+
 res_list$data_pred_year_cause %>% 
   left_join(cod_df,by=c("cod_group"="cod_full")) %>% 
@@ -438,7 +459,7 @@ res_list$data_pred_year_cause %>%
 res_list$data_pred_year_cause %>% 
   left_join(cod_df,by=c("cod_group"="cod_full")) %>% 
   filter(variable=="excess",cal_year>=2020,pred=="poisson") %>% 
-  ggplot(aes(x=cod_1word,y=est,ymin=lwb,ymax=upb,fill=cal_year,group=factor(cal_year))) +
+  ggplot(aes(x=cod_1word,y=est,ymin=lwb,ymax=upb,fill=factor(cal_year),group=factor(cal_year))) +
   geom_hline(yintercept=0,colour="grey50") +
   geom_col(position = position_dodge(width=0.5),
            width=0.5,alpha=.5) +
@@ -447,7 +468,7 @@ res_list$data_pred_year_cause %>%
   geom_errorbar(position = position_dodge(width=0.5),
                 colour="black",width=0.5,alpha=.8) +
   facet_wrap(age_class~.,scales="free",ncol=2) +
-  #scale_fill_discrete(guide="none") +
+  scale_fill_manual(values=c("#009999", "#0000FF")) +
   labs(x="Cause",y="Absolute excess mortality") +
   theme_bw() +
   theme(axis.text.x=element_text(angle=45,hjust = 1))
@@ -478,7 +499,7 @@ res_list$data_pred_year_cause %>%
 res_list$data_pred_phase_cause %>% 
   left_join(cod_df,by=c("cod_group"="cod_full")) %>% 
   filter(variable=="excess",covid_phase>0,pred=="poisson") %>% 
-  ggplot(aes(x=cod_1word,y=est,ymin=lwb,ymax=upb,fill=covid_phase,group=factor(covid_phase))) +
+  ggplot(aes(x=cod_1word,y=est,ymin=lwb,ymax=upb,fill=factor(covid_phase),group=factor(covid_phase))) +
   geom_hline(yintercept=0,colour="grey50") +
   geom_col(position = position_dodge(width=0.8),
            width=0.8,alpha=.5) +
@@ -487,7 +508,7 @@ res_list$data_pred_phase_cause %>%
   geom_errorbar(position = position_dodge(width=0.8),
                 colour="black",width=0.8,alpha=.8) +
   facet_wrap(age_class~.,scales="free",ncol=2) +
-  #scale_fill_discrete(guide="none") +
+  scale_fill_manual(values=viridis_pal()(9)) +
   labs(x="Cause",y="Absolute excess mortality") +
   theme_bw() +
   theme(axis.text.x=element_text(angle=45,hjust = 1))
@@ -518,11 +539,12 @@ res_list$week_GP %>%
                 est_rel=exp(est-est[ref==1])-1,
                 lwb_rel=exp(lwb-est[ref==1])-1,
                 upb_rel =exp(upb - est[ref==1])-1) %>% ungroup() %>%
-  ggplot(aes(x=corr_date,y=est_rel)) +
+  ggplot(aes(x=as.Date(corr_date),y=est_rel)) +
   geom_ribbon(aes(ymin=lwb_rel,ymax=upb_rel),alpha=0.2) +
   geom_point(size=0.5)+
   geom_line()+
   facet_grid(cod_1word~age_class,scales="fixed") +
+  scale_x_date(date_labels ="%b",name="")+
   scale_y_continuous(labels = scales::percent,name="Relative change in mortality") +
   theme_bw()+
   theme(axis.text.x=element_text(angle=45,hjust = 1))
@@ -568,3 +590,12 @@ res_list$Sigma_mat %>%
   theme_bw() +
   theme(axis.text.x = element_text(angle = 45, hjust = 0))+
   scale_x_discrete(position = "top") 
+
+
+res_list$sigma %>% 
+  left_join(cod_df %>% dplyr::select(cod_group=cod_full,cod_1word=cod_1word),by=c("cod_group")) %>% 
+  dplyr::mutate(cod_1word = factor(cod_1word, levels=cod_order)) %>% 
+  ggplot(aes(x=cod_1word,y=est,ymin=lwb,ymax=upb,col=age_class))+
+  geom_pointrange(position=position_dodge(width=0.5))+
+  theme_bw()+
+  theme(axis.text.x=element_text(angle=45,hjust = 1))
