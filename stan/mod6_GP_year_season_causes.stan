@@ -155,6 +155,7 @@ generated quantities {
   array[N_cause] vector[N_all] mu_all;
   array[N_cause] vector[N_all] deaths_all_pred;
   array[N_cause] vector[N_all] deaths_all_pred0;
+  array[N_cause] vector[N] deaths_all_est;
   //array[N_cause] vector[N_all] excess;
   {//define variables eta inside brackets so that they are not saved
     array[N_cause] row_vector[N_all] eta_all;
@@ -170,6 +171,9 @@ generated quantities {
       deaths_all_pred[g] = to_vector(poisson_log_rng(mu_all[g]+to_vector(eta2_all[g])*sigma[g]));
       deaths_all_pred0[g] = to_vector(poisson_log_rng(mu_all[g]));
       //excess[g] = deaths_all[g] - deaths_all_pred[g];
+    }
+    for(g in 1:N_cause){
+      deaths_all_est[g] = exp(mu_all[g,1:N] + to_vector(eta2[g])*sigma[g]);
     }
   }
 

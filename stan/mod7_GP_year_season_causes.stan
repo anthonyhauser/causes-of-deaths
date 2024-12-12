@@ -61,6 +61,7 @@ data {
   
   // Hyperprior parameters
   array[2] real p_intercept;      // Prior for intercept
+  vector[N_cause+1] p_sigma;
   array[2] real p_alpha_week;     // Prior for weekly GP scale
   array[2] real p_lambda_week;    // Prior for weekly GP lengthscale
   array[2] real p_alpha_year;     // Prior for yearly GP scale
@@ -133,7 +134,7 @@ model {
   lambda_year ~ lognormal(p_lambda_year[1], p_lambda_year[2]);
   alpha_year ~ normal(p_alpha_year[1], p_alpha_year[2]);
 
-  sigma ~ normal(0,0.5);
+  sigma ~ normal(0,p_sigma);
   rho_chol ~ lkj_corr_cholesky(1.0);
   
   //GP and regression parameters, eta
@@ -173,6 +174,7 @@ generated quantities {
   array[N_cause] vector[N_all] mu_all;
   array[N_cause] vector[N_all] deaths_all_pred;
   array[N_cause] vector[N_all] deaths_all_pred0;
+  array[N_cause+1] vector[N_covid] deaths_covid_est;
   //array[N_cause] vector[N_all] excess;
   {//define variables eta inside brackets so that they are not saved
     array[N_cause] row_vector[N_all] eta_all;
@@ -188,6 +190,9 @@ generated quantities {
       deaths_all_pred[g] = to_vector(poisson_log_rng(mu_all[g]+to_vector(eta2_all[g])*sigma[g]));
       deaths_all_pred0[g] = to_vector(poisson_log_rng(mu_all[g]));
       //excess[g] = deaths_all[g] - deaths_all_pred[g];
+    }
+    for(g in 1:(N_cause+1)){
+      deaths_covid_est[g] = exp(mu_all[g,(N+1):N_all] + to_vector(eta2_covid[g])*sigma[g]);
     }
   }
 

@@ -86,6 +86,7 @@ run_stan_mod7_by_cod = function(cod_agg_pop_df, age_class, run.model=TRUE,
                  J_week = 20,
                  
                  p_intercept = c(p_mean_mu0,2),
+                 p_sigma = c(rep(0.5,dim(deaths_fit_df)[2]),5),
                  p_alpha_year = c(0,0.1),
                  p_lambda_year = c(0.5, 0.5),#c(0,0.4)
                  p_lambda_week = c(1,0.4),#c(0.8,0.4),
@@ -397,6 +398,14 @@ run_stan_mod7_by_cod = function(cod_agg_pop_df, age_class, run.model=TRUE,
     
     print(t4-t0)
     
+    #deaths_covid_est
+    deaths_covid_est = fit7$summary(variables = c("deaths_covid_est")) %>% 
+      tidyr::extract(variable,into=c("var","cod_group_id","week.id"),
+                     regex =paste0('(\\w.*)\\[',paste(rep("(.*)",2),collapse='\\,'),'\\]'), remove = T) %>% 
+      dplyr::mutate(week.id =  data_list$N + as.numeric(week.id),
+                    cod_group_id=as.numeric(cod_group_id)) %>% 
+      left_join(data_covid,by=c("cod_group_id","week.id")) 
+    
     #save
     if(!file.exists(paste0(code_root_path,"results/",save.date,"/mod7_stan_diag_",age_class,".RDS"))){#check again in case another node in the cluster save results
       print("Save")
@@ -416,6 +425,8 @@ run_stan_mod7_by_cod = function(cod_agg_pop_df, age_class, run.model=TRUE,
       
       saveRDS(year_GP, file=paste0(code_root_path,"results/",save.date,"/mod7_year_GP_",age_class,".RDS"))
       saveRDS(week_GP, file=paste0(code_root_path,"results/",save.date,"/mod7_week_GP_",age_class,".RDS"))
+      
+      saveRDS(deaths_covid_est, file=paste0(code_root_path,"results/",save.date,"/mod7_deaths_covid_est_",age_class,".RDS"))
     }
   }
   print(data_pred_phase)
