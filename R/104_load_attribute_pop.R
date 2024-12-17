@@ -1,4 +1,4 @@
-load_attribute_pop = function(death_data){
+load_attribute_pop = function(cod_agg_df){#pop = get_pop_by_age_sex_year_ctn()
   #load pop
   pop.list = lapply(2010:2021,function(x){
     d = read_excel("data/pop_CH_age_sex_2010_2021.xlsx",sheet=as.character(x))[-c(1,2),c(1,3,4)] %>% as_tibble()

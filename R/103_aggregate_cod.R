@@ -1,4 +1,4 @@
-aggregate_cod = function(cod_ind_df){
+aggregate_cod = function(cod_ind_df,agg_var = c("age_class","sex")){
   #Checking for outliers
   if(FALSE){
     #year
@@ -22,20 +22,27 @@ aggregate_cod = function(cod_ind_df){
   cod_ind_df2 = cod_ind_df %>%
     filter(cal_year %in% c(2011:2021)) %>% #, cal_week<=52) %>%
     dplyr::mutate(age_class = cut(age,breaks = c(-1,18,40,65,80,Inf), labels = c("0-17","18-39","40-64","65-79","80+"),
-                                  right=FALSE))
+                                  right=FALSE)) %>% 
+    left_join(canton_df,by="ctn_id")
   #aggregate
   df = cod_ind_df2 %>% 
-    group_by(age_class,sex,cal_year,cal_week,cod_group) %>% #ctn
+    group_by_at(c(agg_var,"cal_year","cal_week","cod_group")) %>% #ctn
     dplyr::summarise(n=n(),.groups="drop")
   
   #all combination
+  df_cross_join = cross_join(df %>% dplyr::select(cal_year,cal_week) %>% unique() %>% arrange(cal_year,cal_week),
+                             df %>% dplyr::select(age_class) %>% unique()) %>% 
+    cross_join(df %>% dplyr::select(sex) %>% unique()) %>% 
+    cross_join(df %>% dplyr::select(cod_group) %>% unique())
+  if("NUTS2_id" %in% agg_var){
+    df_cross_join <- df_cross_join %>% 
+      cross_join(df %>% dplyr::select(NUTS2_id,NUTS2_name) %>% unique())
+  }
   cod_agg_df = df %>% 
-    full_join(cross_join(df %>% dplyr::select(cal_year,cal_week) %>% unique() %>% arrange(cal_year,cal_week),
-                         df %>% dplyr::select(age_class) %>% unique()) %>% 
-                cross_join(df %>% dplyr::select(sex) %>% unique()) %>% 
-                #cross_join(df %>% dplyr::select(ctn) %>% unique()) %>% 
-                cross_join(df %>% dplyr::select(cod_group) %>% unique())) %>% 
+    full_join(df_cross_join) %>% 
     dplyr::mutate(n=replace_na(n,0))
+  
+  
   
   
   # #Select main categories

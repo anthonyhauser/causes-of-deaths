@@ -58,7 +58,7 @@ run_stan_mod6_by_cod = function(cod_agg_pop_df, age_class, run.model=TRUE,
     group_by(age_class,cod_group) %>% 
     dplyr::summarise(mu0=log(sum(n)/sum(n.pop)),.groups = "drop_last") %>% 
     dplyr::summarise(median=median(mu0),min=min(mu0),max=max(mu0))
-  p_mean_mu0 = c("0-17"=-15, "18-39"=-14, "40-64"=-12, "65-79"=-11, "80+"=-9)[age_class]
+  p_mean_mu0 = c("0-17"=-14, "18-39"=-13, "40-64"=-11, "65-79"=-9, "80+"=-7)[age_class]
   
   data_list=list(N = dim(deaths_fit_df)[1],
                  N_all = dim(deaths_df)[1],

@@ -10,7 +10,7 @@ run_stan_mod7_by_cod = function(cod_agg_pop_df, age_class, run.model=TRUE,
   
   print("Compile stan")
   mod7_cmdstan <- cmdstan_model(paste0(code_root_path,"stan/mod7_GP_year_season_causes.stan"))
-  mod7_cmdstan <- cmdstan_model(paste0("stan/mod7_GP_year_season_causes.stan"))
+  #mod7_cmdstan <- cmdstan_model(paste0("stan/mod7_GP_year_season_causes.stan"))
   
   causes = c("Cardiovascular Diseases","Respiratory Diseases", "Mental and Neurological Disorders",
              "Infectious and Parasitic Diseases",

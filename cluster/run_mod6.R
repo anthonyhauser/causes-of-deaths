@@ -33,7 +33,7 @@ if (!dir.exists(folder_path)) {
 }
 
 #load data
-cod_agg_pop_df = readRDS(paste0(code_root_path,"/savepoint/cod_agg_pop_df2.RDS"))
+cod_agg_pop_df = readRDS(paste0(code_root_path,"/savepoint/cod_agg_pop_df.RDS"))
 age_classes = cod_agg_pop_df$age_class %>% unique()
 mod6_by_cod_stan_diag = run_stan_mod6_by_cod(cod_agg_pop_df,
                                              age_class=age_classes[args[1]],

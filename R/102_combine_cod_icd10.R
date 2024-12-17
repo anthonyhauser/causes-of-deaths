@@ -3,7 +3,7 @@ combine_cod_icd10 = function(cod_df0,icd10_chapter_block,icd10_cat,icd_var = "EN
   cod_ind_df = cod_df0 %>%
     #add a dot when needed
     mutate_at(icd_var,function(x) ifelse(nchar(x)==3,x, gsub('^(.{3})(.*)$', '\\1.\\2',x))) %>% 
-    dplyr::select(ind_id = LAUF_KS_N, age=P_ALTER_ERFUELLT_N, sex=GESCHLECHT_CD_GES_T,ctn=WOHNKANTON_AKT_N,
+    dplyr::select(ind_id = LAUF_KS_N, age=P_ALTER_ERFUELLT_N, sex=GESCHLECHT_CD_GES_T,ctn_id=WOHNKANTON_AKT_N,
                   cal_week= EREIGNIS_KW_GES_N, cal_year=EREIGNIS_KJ_GES_N,
                   all_of(icd_var)) %>% 
     pivot_longer(cols=icd_var,names_to = "outcome",values_to="icd10_cat") %>% 
