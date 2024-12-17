@@ -1,0 +1,9 @@
+4
+SCR: /users/ahauser6/causes-of-deaths/cluster/temp-run_mod8-20241217-1-4-1-1-1-1-1-1
+OUT: /users/ahauser6/causes-of-deaths/cluster/outfiles/run_mod8-20241217-1-4-1-1-1-1-1-1.Rout
+Job array item 4: ra=1, rb=4, rc=1, rd=1, re=1, rf=1, rg=1, rh=1
+---------------------------------
+/var/spool/slurm/d/job49005468/slurm_script: line 48: dcsrsoft: command not found
+---------------------------------
+WARNING: group: unknown groupid 160167
+slurmstepd: error: *** JOB 49005468 ON dna088 CANCELLED AT 2024-12-17T16:23:35 ***
