@@ -49,7 +49,7 @@ var_df = data.frame(var=colnames(cod_df0),
 
 #Check missing
 d = cod_df0 %>% 
-  summarise(across(everything(), 
+  dplyr::summarise(across(everything(), 
                            .fns = list(na = ~ sum(is.na(.)),
                                        empty = ~ sum(.==""),
                                        na_empty = ~ sum(is.na(.)|.=="")), 
@@ -84,7 +84,7 @@ if(FALSE){
   cod_ind_df %>% filter(outcome=="ENDG_U_CD_GES_T")
   saveRDS(cod_ind_df,paste0(code_root_path,"savepoint/cod_ind_df.RDS"))
 }
-cod_ind_df=readRDS(paste0(code_root_path,"savepoint/cod_ind_df.RDS"))
+cod_ind_df = readRDS(paste0(code_root_path,"savepoint/cod_ind_df.RDS"))
 
 d = cod_ind_df %>% dplyr::select(ind_id,age,sex,cal_week,cal_year,outcome,cod_group) %>% 
   pivot_wider(id_cols=c(ind_id,age,sex,cal_week,cal_year),names_from="outcome",values_from="cod_group")
@@ -325,9 +325,10 @@ cod_agg_df %>%
 
 #load population data and interpolate for each week of the year
 pop = load_attribute_pop(cod_agg_df)
-pop2_ctn = load_attribute_pop_ctn(cod_agg_df)
-pop2_nuts = pop2_ctn %>% 
-  group_by(cal_year,cal_week)
+pop_ctn = load_attribute_pop_ctn(cod_agg_nuts_df)
+pop_nuts = pop_ctn %>% 
+  group_by(cal_year,cal_week,age_class,sex,NUTS2_id,NUTS2_name) %>% 
+  dplyr::summarise(n=sum(n),.groups="drop")
 
 #combine
 cod_agg_pop_df = inner_join(cod_agg_df,
@@ -335,15 +336,16 @@ cod_agg_pop_df = inner_join(cod_agg_df,
                by= c("cal_year","cal_week","age_class","sex")) %>% 
   arrange(cod_group,cal_year,cal_week,age_class,sex)
 saveRDS(cod_agg_pop_df,file="savepoint/cod_agg_pop_df.RDS")
-cod_agg_pop_df2 = inner_join(cod_agg_df2,
-                            pop2 %>% dplyr::rename(n.pop=n),
-                            by= c("cal_year","cal_week","age_class","sex")) %>% 
-  arrange(cod_group,cal_year,cal_week,age_class,sex)
-saveRDS(cod_agg_pop_df2,file="savepoint/cod_agg_pop_df2.RDS")
+
+cod_agg_pop_nuts_df = inner_join(cod_agg_nuts_df,
+                                 pop_nuts %>% dplyr::rename(n.pop=n),
+                            by= c("cal_year","cal_week","age_class","sex","NUTS2_id","NUTS2_name")) %>% 
+  arrange(cod_group,cal_year,cal_week,age_class,sex,NUTS2_id)
+saveRDS(cod_agg_pop_nuts_df,file="savepoint/cod_agg_pop_nuts_df.RDS")
 
 ###########################################################################################################################
 #Run models
-cod_agg_pop_df = readRDS("savepoint/cod_agg_pop_df2.RDS")
+cod_agg_pop_df = readRDS("savepoint/cod_agg_pop_df.RDS")
 
 #causes = cod_agg_pop_df$cod_group %>% unique() %>% setdiff(.,"COVID-19")
 causes = c("Cardiovascular Diseases","Infectious and Parasitic Diseases",
@@ -373,7 +375,7 @@ deaths_pred_sample = readRDS("results/deaths_pred_sample.RDS")
 ################################################################################################################################################################
 ################################################################################################################################################################
 #Plot
-cod_agg_pop_df = readRDS("savepoint/cod_agg_pop_df2.RDS")
+cod_agg_pop_df = readRDS("savepoint/cod_agg_pop_df.RDS")
 age_classes = cod_agg_pop_df$age_class %>% unique()
 res_list=load_results_mod6(age_classes, save.date="20241212",mod="mod6")
 
