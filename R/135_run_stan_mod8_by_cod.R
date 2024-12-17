@@ -137,7 +137,7 @@ run_stan_mod8_by_cod = function(cod_agg_pop_nuts_df, age_class, run.model=TRUE,
     print("Run Stan")
     fit8 <- mod8_cmdstan$sample(
       init=initfun,
-      iter_sampling=1000,
+      iter_sampling=700,
       iter_warmup =1000,
       adapt_delta=0.99,
       data = data_list,
