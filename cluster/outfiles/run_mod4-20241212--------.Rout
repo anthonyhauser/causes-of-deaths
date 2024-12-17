@@ -1,0 +1,68 @@
+
+R version 4.4.1 (2024-06-14) -- "Race for Your Life"
+Copyright (C) 2024 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> ##########################################
+> #load arguments from ubelix array
+> # args9="20231129"
+> # for(args1 in c(3)){
+> #   for(args2 in c(2)){
+> #     for(args3 in c(3)){
+> #       for(args4 in c(1,2,3)){
+> #         for(args5 in c(1)){
+> #  args=c(args1,args2,args3,args4,args5,NA,NA,NA,args9) #args_all=c(4,7,1,4,1,1,1,1,20240620)
+> 
+> ##########################################
+> #Setting up paths
+> is.sim.cluster=TRUE
+> wd = getwd()
+> code_root_path = paste0(strsplit(wd, split="/cluster")[[1]][1],"/")
+> source(paste0(code_root_path,"R/000_setup.R"))
+This is cmdstanr version 0.8.1
+- CmdStanR documentation and vignettes: mc-stan.org/cmdstanr
+- CmdStan path: /users/ahauser6/.cmdstan/cmdstan-2.35.0
+- CmdStan version: 2.35.0
+
+A newer version of CmdStan is available. See ?install_cmdstan() to install it.
+To disable this check set option or environment variable cmdstanr_no_ver_check=TRUE.
+ [1] "/users/ahauser6/causes-of-deaths//R//001_data_cleaning.R"                 
+ [2] "/users/ahauser6/causes-of-deaths//R//002_load_pop.R"                      
+ [3] "/users/ahauser6/causes-of-deaths//R//010_tuning_parameter_cond_EQ.R"      
+ [4] "/users/ahauser6/causes-of-deaths//R//011_tuning_parameter_cond_periodic.R"
+ [5] "/users/ahauser6/causes-of-deaths//R//020_aggregate_fit_deaths.R"          
+ [6] "/users/ahauser6/causes-of-deaths//R//021_aggregate_pand_deaths.R"         
+ [7] "/users/ahauser6/causes-of-deaths//R//030_run_stan_mod3_by_age_cause.R"    
+ [8] "/users/ahauser6/causes-of-deaths//R//101_get_icd10.R"                     
+ [9] "/users/ahauser6/causes-of-deaths//R//102_combine_cod_icd10.R"             
+[10] "/users/ahauser6/causes-of-deaths//R//103_aggregate_cod.R"                 
+[11] "/users/ahauser6/causes-of-deaths//R//104_load_attribute_pop.R"            
+[12] "/users/ahauser6/causes-of-deaths//R//130_run_stan_mod4_by_age_cod.R"      
+[13] "/users/ahauser6/causes-of-deaths//R//131_run_stan_mod5_by_age_cod.R"      
+[14] "/users/ahauser6/causes-of-deaths//R//132_run_stan_mod5_by_cod.R"          
+[15] "/users/ahauser6/causes-of-deaths//R//133_run_stan_mod6_by_cod.R"          
+[16] "/users/ahauser6/causes-of-deaths//R//134_run_stan_mod7_by_cod.R"          
+[17] "/users/ahauser6/causes-of-deaths//R//140_aggregate_pand_stan.R"           
+[18] "/users/ahauser6/causes-of-deaths//R//141_aggregate_fit_stan.R"            
+[19] "/users/ahauser6/causes-of-deaths//R//142_aggregate_stan_mod6.R"           
+[20] "/users/ahauser6/causes-of-deaths//R//150_load_results_mod4.R"             
+[21] "/users/ahauser6/causes-of-deaths//R//151_load_results_mod6.R"             
+[22] "/users/ahauser6/causes-of-deaths//R//generic_functions.R"                 
+> 
+> args_all=(commandArgs(TRUE)) #args_all=c(rep(1,8),"20241212")
+> args=as.numeric(unlist(args_all[1:8]))#args[9] should be simulation date
+> save.date=as.character(args_all[[9]])
+Error in args_all[[9]] : subscript out of bounds
+Execution halted

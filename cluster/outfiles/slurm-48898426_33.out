@@ -1,0 +1,20 @@
+33
+head: cannot open 'parameters_mod.txt' for reading: No such file or directory
+head: cannot open 'parameters_mod.txt' for reading: No such file or directory
+head: cannot open 'parameters_mod.txt' for reading: No such file or directory
+head: cannot open 'parameters_mod.txt' for reading: No such file or directory
+head: cannot open 'parameters_mod.txt' for reading: No such file or directory
+head: cannot open 'parameters_mod.txt' for reading: No such file or directory
+head: cannot open 'parameters_mod.txt' for reading: No such file or directory
+head: cannot open 'parameters_mod.txt' for reading: No such file or directory
+SCR: /users/ahauser6/causes-of-deaths/cluster/temp-run_mod4-20241212--------
+OUT: /users/ahauser6/causes-of-deaths/cluster/outfiles/run_mod4-20241212--------.Rout
+Job array item 33: ra=, rb=, rc=, rd=, re=, rf=, rg=, rh=
+---------------------------------
+/var/spool/slurm/d/job48898479/slurm_script: line 48: dcsrsoft: command not found
+---------------------------------
+WARNING: group: unknown groupid 160167
+---------------------------------
+cp: cannot stat 'run_mod4.Rout': No such file or directory
+rm: cannot remove 'run_mod4.Rout': No such file or directory
+Job is done.
