@@ -14,6 +14,14 @@ load_results_mod6=function(age_classes, save.date,mod="mod6"){
                                                                        dplyr::mutate(age_class=x),error=function(e) NULL)))
   Sigma_mat = rbindlist(lapply(as.list(age_classes),function(x) tryCatch(readRDS(paste0("results/",save.date,"/",mod,"_Sigma_mat_",x,".RDS")) %>% 
                                                                            dplyr::mutate(age_class=x),error=function(e) NULL)))
+  #if(mod=="mod8"){
+    sex_effect = rbindlist(lapply(as.list(age_classes),function(x) tryCatch(readRDS(paste0("results/",save.date,"/",mod,"_sex_effect_",x,".RDS")) %>% 
+                                                                              dplyr::mutate(age_class=x),error=function(e) NULL)))
+    nuts_effect = rbindlist(lapply(as.list(age_classes),function(x) tryCatch(readRDS(paste0("results/",save.date,"/",mod,"_nuts_effect_",x,".RDS"))%>% 
+                                                                               dplyr::mutate(age_class=x),error=function(e) NULL)))
+  #}else{
+    
+  #}
  
   
 
@@ -26,6 +34,8 @@ load_results_mod6=function(age_classes, save.date,mod="mod6"){
               data_pred_year_cause = data_pred_year_cause ,
               sigma = sigma,
               Sigma_mat = Sigma_mat,
+              sex_effect = sex_effect,
+              nuts_effect = nuts_effect,
               year_GP = year_GP,
               week_GP = week_GP))
 }

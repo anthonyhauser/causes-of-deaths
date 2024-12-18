@@ -509,16 +509,39 @@ res_list$Sigma_mat %>%
 
 ```{r,  fig.width=8,fig.height=6,echo = FALSE}
 #mortality risk by sex
-res_list_mod4$reg_effect %>%
-  filter(var=="sex") %>%
+# res_list_mod4$reg_effect %>%
+#   filter(var=="sex") %>%
+res_list$sex_effect %>%
+  filter(sex=="F") %>%
+  left_join(cod_df,c("cod_group"="cod_full")) %>% 
   ggplot(aes(x=cod_1word,y=mean,ymin=`2.5%`,ymax=`97.5%`,col=age_class))+
   geom_pointrange(position=position_dodge(width=0.5))+
   geom_hline(aes(yintercept=0),lty=2)+
   scale_y_continuous(name="Mortality risk ratio (RR), women vs men",
                      limits=log(c(0.1,2.1)),
                      breaks=log(c(0.1,0.2,0.5,1,2,5,10)),#log(c(-0.9,-0.75,-0.5,0,1,2)+1),
-                     labels = exp)+# labels = function(x){return(scales::percent(exp(x)-1))})+
+                     labels = exp)+
   theme_bw()+
+  theme(axis.text.x = element_text( angle = 45,
+                                    hjust = 1,vjust=1,size = 10))
+```
+
+### Regional differences
+
+```{r,  fig.width=8,fig.height=6,echo = FALSE}
+#mortality risk by sex
+# res_list_mod4$reg_effect %>%
+#   filter(var=="sex") %>%
+res_list$nuts_effect %>%
+  left_join(cod_df,c("cod_group"="cod_full")) %>% 
+  ggplot(aes(x=cod_1word,y=mean,ymin=`2.5%`,ymax=`97.5%`,col=age_class))+
+  geom_pointrange(position=position_dodge(width=0.5))+
+  geom_hline(aes(yintercept=0),lty=2)+
+  scale_y_continuous(name="Mortality risk ratio (RR), women vs men",
+                     limits=log(c(0.1,2.1)),
+                     breaks=log(c(0.1,0.2,0.5,1,2,5,10)),#log(c(-0.9,-0.75,-0.5,0,1,2)+1),
+                     labels = exp)+
+    facet_wrap(.~NUTS2_name)
   theme(axis.text.x = element_text( angle = 45,
                                     hjust = 1,vjust=1,size = 10))
 ```

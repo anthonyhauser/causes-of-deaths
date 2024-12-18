@@ -305,8 +305,8 @@ cod_ind_df %>% filter(icd10Title_block=="Intentional self-harm") %>% head()
 
 ################################################################################
 #Aggregate data by age, sex, calendar week, calendar year and cod group
-cod_agg_df = aggregate_cod(cod_ind_df,agg_var=c("age_class","sex"))
-cod_agg_nuts_df = aggregate_cod(cod_ind_df,agg_var=c("age_class","sex","NUTS2_id","NUTS2_name"))
+cod_agg_df = aggregate_cod(cod_ind_df %>% filter(outcome=="ENDG_U_CD_GES_T"),agg_var=c("age_class","sex"))
+cod_agg_nuts_df = aggregate_cod(cod_ind_df %>% filter(outcome=="ENDG_U_CD_GES_T"),agg_var=c("age_class","sex","NUTS2_id","NUTS2_name"))
 
 cod_agg_df %>% 
   filter(cal_year %in% c(2020,2021)) %>% 
@@ -377,7 +377,7 @@ deaths_pred_sample = readRDS("results/deaths_pred_sample.RDS")
 #Plot
 cod_agg_pop_df = readRDS("savepoint/cod_agg_pop_df.RDS")
 age_classes = cod_agg_pop_df$age_class %>% unique()
-res_list=load_results_mod6(age_classes, save.date="20241212",mod="mod6")
+res_list=load_results_mod6(age_classes, save.date="20241217",mod="mod8")
 
 cod_agg_pop_df = cod_agg_pop_df %>%
   dplyr::mutate(date=ISOweek2date(paste0(cal_year,"-W",ifelse(cal_week<10,paste0("0",cal_week),cal_week),"-1"))) %>% 
