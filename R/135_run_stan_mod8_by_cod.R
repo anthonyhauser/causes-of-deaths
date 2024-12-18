@@ -39,7 +39,7 @@ run_stan_mod8_by_cod = function(cod_agg_pop_nuts_df, age_class, run.model=TRUE,
   
   #aggregate
   data = data %>%
-    group_by(age_class,cal_year,cal_week,cod_group,age_id,sex_id,NUTS2_id,
+    group_by(age_class,cal_year,cal_week,cod_group,age_id,sex,sex_id,NUTS2_name,NUTS2_id,
              cod_group_id,date,week.id,covid_phase) %>% 
     dplyr::summarise(n=sum(n),
                      n.pop=sum(n.pop)) %>% ungroup() %>% 
@@ -165,6 +165,7 @@ run_stan_mod8_by_cod = function(cod_agg_pop_nuts_df, age_class, run.model=TRUE,
       dplyr::mutate(is.stan.ok = num_successful_chains>=4 & num_divergent==0 & ebfmi>=0.3 & rhat<1.1)
     print(stan_diag)
     
+    print("Save Stan posteriors")
     temp_rds_file <- paste0(code_root_path,"/results/",save.date,"/","mod8_",age_class,"_","fit.RDS")
     fit8$save_object(file = temp_rds_file)
     #fit8 <- readRDS(temp_rds_file)
@@ -194,6 +195,7 @@ run_stan_mod8_by_cod = function(cod_agg_pop_nuts_df, age_class, run.model=TRUE,
     data_pred_week_cause = aggregate_stan_mod6(data, fit8, cmdstan=TRUE,
                                                groups=c("cal_year","cal_week","age_class","cod_group","date"),chains=chains) %>% 
       left_join(stan_diag %>% dplyr::select(age_class, is.stan.ok),by=c("age_class"))
+    print("------------------------")
     data_pred_week = aggregate_stan_mod6(data, fit8, cmdstan=TRUE,
                                          groups=c("cal_year","cal_week","age_class","date"),chains=chains) %>% 
       left_join(stan_diag %>% dplyr::select(age_class, is.stan.ok),by=c("age_class"))
@@ -290,15 +292,7 @@ run_stan_mod8_by_cod = function(cod_agg_pop_nuts_df, age_class, run.model=TRUE,
     t4=Sys.time()
     print(t4-t1)
     print(t4-t0)
-    
-    #deaths_covid_est
-    deaths_covid_est = fit8$summary(variables = c("deaths_covid_est")) %>% 
-      tidyr::extract(variable,into=c("var","cod_group_id","week.id"),
-                     regex =paste0('(\\w.*)\\[',paste(rep("(.*)",2),collapse='\\,'),'\\]'), remove = T) %>% 
-      dplyr::mutate(week.id =  data_list$N + as.numeric(week.id),
-                    cod_group_id=as.numeric(cod_group_id)) %>% 
-      left_join(data_covid,by=c("cod_group_id","week.id")) 
-    
+       
     #save
     if(!file.exists(paste0(code_root_path,"results/",save.date,"/mod8_stan_diag_",age_class,".RDS"))){#check again in case another node in the cluster save results
       print("Save")
@@ -319,8 +313,6 @@ run_stan_mod8_by_cod = function(cod_agg_pop_nuts_df, age_class, run.model=TRUE,
       
       saveRDS(year_GP, file=paste0(code_root_path,"results/",save.date,"/mod8_year_GP_",age_class,".RDS"))
       saveRDS(week_GP, file=paste0(code_root_path,"results/",save.date,"/mod8_week_GP_",age_class,".RDS"))
-      
-      saveRDS(deaths_covid_est, file=paste0(code_root_path,"results/",save.date,"/mod8_deaths_covid_est_",age_class,".RDS"))
     }
   }
   print(data_pred_phase)
