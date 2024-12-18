@@ -15,7 +15,7 @@ wd = getwd()
 code_root_path = paste0(strsplit(wd, split="/cluster")[[1]][1],"/")
 source(paste0(code_root_path,"R/000_setup.R"))
 
-args_all=(commandArgs(TRUE)) #args_all=c(rep(1,8),"20241210")
+args_all=(commandArgs(TRUE)) #args_all=c(c(5,rep(1,7)),"20241210")
 args=as.numeric(unlist(args_all[1:8]))#args[9] should be simulation date
 save.date=as.character(args_all[[9]])
 
