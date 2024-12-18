@@ -1,5 +1,5 @@
 #! /bin/bash
-#SBATCH --mail-user=<anthony.hauser@unisante.ch>
+#SBATCH --mail-user=<anthonyhauser06@gmail.com>
 #SBATCH --mail-type=END,FAIL
 #SBATCH --time=24:00:00
 #SBATCH --mem-per-cpu=10G
@@ -19,14 +19,14 @@ date="20241217"
 N=${SLURM_ARRAY_TASK_ID}
 echo "$N"
 
-ra=`head -n ${N} parameters_mod.txt | tail -n 1 | cut -d' ' -f1`
-rb=`head -n ${N} parameters_mod.txt | tail -n 1 | cut -d' ' -f2`
-rc=`head -n ${N} parameters_mod.txt | tail -n 1 | cut -d' ' -f3`
-rd=`head -n ${N} parameters_mod.txt | tail -n 1 | cut -d' ' -f4`
-re=`head -n ${N} parameters_mod.txt | tail -n 1 | cut -d' ' -f5`
-rf=`head -n ${N} parameters_mod.txt | tail -n 1 | cut -d' ' -f6`
-rg=`head -n ${N} parameters_mod.txt | tail -n 1 | cut -d' ' -f7`
-rh=`head -n ${N} parameters_mod.txt | tail -n 1 | cut -d' ' -f8`
+ra=`head -n ${N} parameters_mod8.txt | tail -n 1 | cut -d' ' -f1`
+rb=`head -n ${N} parameters_mod8.txt | tail -n 1 | cut -d' ' -f2`
+rc=`head -n ${N} parameters_mod8.txt | tail -n 1 | cut -d' ' -f3`
+rd=`head -n ${N} parameters_mod8.txt | tail -n 1 | cut -d' ' -f4`
+re=`head -n ${N} parameters_mod8.txt | tail -n 1 | cut -d' ' -f5`
+rf=`head -n ${N} parameters_mod8.txt | tail -n 1 | cut -d' ' -f6`
+rg=`head -n ${N} parameters_mod8.txt | tail -n 1 | cut -d' ' -f7`
+rh=`head -n ${N} parameters_mod8.txt | tail -n 1 | cut -d' ' -f8`
 
 # Paths to temporary file and out file
 SCR="/users/ahauser6/${PROJECT}/temp-$Rfile-$date-$ra-$rb-$rc-$rd-$re-$rf-$rg-$rh"
