@@ -1,0 +1,11 @@
+2
+SCR: /users/ahauser6/causes-of-deaths/cluster/temp-run_mod8-20241217-1-2-1-1-1-1-1-1
+OUT: /users/ahauser6/causes-of-deaths/cluster/outfiles/run_mod8-20241217-1-2-1-1-1-1-1-1.Rout
+Job array item 2: ra=1, rb=2, rc=1, rd=1, re=1, rf=1, rg=1, rh=1
+---------------------------------
+/var/spool/slurm/d/job49011939/slurm_script: line 48: dcsrsoft: command not found
+---------------------------------
+WARNING: group: unknown groupid 160167
+---------------------------------
+Job is done.
+slurmstepd: error: Detected 1 oom_kill event in StepId=49011939.batch. Some of the step tasks have been OOM Killed.
