@@ -17,7 +17,7 @@ source("R/000_setup.R")
 wd_ofsp = "L:/UNISANTE_DESS/S_SUMAC/OFSP_2023/"
 data_folder = paste0(wd_ofsp,"02_data/cause_of_death/")
 
-cod_agg_pop_df = readRDS("savepoint/cod_agg_pop_df2.RDS")
+cod_agg_pop_df = readRDS("savepoint/cod_agg_pop_df.RDS")
 age_classes = cod_agg_pop_df$age_class %>% unique()
 res_list=load_results_mod6(age_classes, save.date="20241212",mod="mod6")
   causes = c("Cardiovascular Diseases","Respiratory Diseases", "Mental and Neurological Disorders",
@@ -480,6 +480,27 @@ res_list$week_GP %>%
 cod_order = res_list$Sigma_mat %>% dplyr::select(cod_group_id,cod_group) %>% unique() %>% 
   left_join(cod_df %>% dplyr::select(cod_group=cod_full,cod_1word=cod_1word),by=c("cod_group")) %>% 
   arrange(cod_group_id) %>% pull(cod_1word)
+
+res_list$Sigma_mat %>% 
+  left_join(cod_df %>% dplyr::select(cod_group=cod_full,cod_1word=cod_1word),by=c("cod_group")) %>% 
+  left_join(cod_df %>% dplyr::select(cod_group2=cod_full,cod_1word2=cod_1word),by=c("cod_group2")) %>% 
+  dplyr::mutate(cod_1word = factor(cod_1word, levels=cod_order),
+                cod_1word2 = factor(cod_1word2, levels=cod_order)) %>% 
+  filter(cod_group_id<cod_group_id2) %>% 
+  ggplot(aes(x=cod_1word,y=est,ymin=lwb,ymax=upb,col=age_class))+
+  geom_hline(yintercept = 0,lty=1)+
+  geom_pointrange(position=position_dodge(width=0.5))+
+  scale_y_continuous(limits = c(-1,1))+
+  facet_grid(cod_1word2~.)+
+  theme_bw()+
+  theme(axis.text.x=element_text(angle=45,hjust = 1))
+```
+
+```{r,  fig.width=8,fig.height=6,echo = FALSE}
+#mortality risk by sex
+cod_order = res_list$Sigma_mat %>% dplyr::select(cod_group_id,cod_group) %>% unique() %>% 
+  left_join(cod_df %>% dplyr::select(cod_group=cod_full,cod_1word=cod_1word),by=c("cod_group")) %>% 
+  arrange(cod_group_id) %>% pull(cod_1word)
 res_list$Sigma_mat %>% 
   left_join(cod_df %>% dplyr::select(cod_group=cod_full,cod_1word=cod_1word),by=c("cod_group")) %>% 
   left_join(cod_df %>% dplyr::select(cod_group2=cod_full,cod_1word2=cod_1word),by=c("cod_group2")) %>% 
@@ -500,7 +521,7 @@ res_list$Sigma_mat %>%
   labs(x = "", y = "", fill = "Count") +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 45, hjust = 0))+
-  scale_x_discrete(position = "top") 
+  scale_x_discrete(position = "top")
 ```
 
 ## Regression
@@ -529,11 +550,9 @@ res_list$sex_effect %>%
 ### Regional differences
 
 ```{r,  fig.width=8,fig.height=6,echo = FALSE}
-#mortality risk by sex
-# res_list_mod4$reg_effect %>%
-#   filter(var=="sex") %>%
+
 res_list$nuts_effect %>%
-  left_join(cod_df,c("cod_group"="cod_full")) %>% 
+  left_join(cod_df,c("cod_group"="cod_full")) %>%
   ggplot(aes(x=cod_1word,y=mean,ymin=`2.5%`,ymax=`97.5%`,col=age_class))+
   geom_pointrange(position=position_dodge(width=0.5))+
   geom_hline(aes(yintercept=0),lty=2)+
@@ -541,7 +560,7 @@ res_list$nuts_effect %>%
                      limits=log(c(0.1,2.1)),
                      breaks=log(c(0.1,0.2,0.5,1,2,5,10)),#log(c(-0.9,-0.75,-0.5,0,1,2)+1),
                      labels = exp)+
-    facet_wrap(.~NUTS2_name)
+    facet_wrap(.~NUTS2_name)+
   theme(axis.text.x = element_text( angle = 45,
                                     hjust = 1,vjust=1,size = 10))
 ```

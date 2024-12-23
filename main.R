@@ -377,7 +377,7 @@ deaths_pred_sample = readRDS("results/deaths_pred_sample.RDS")
 #Plot
 cod_agg_pop_df = readRDS("savepoint/cod_agg_pop_df.RDS")
 age_classes = cod_agg_pop_df$age_class %>% unique()
-res_list=load_results_mod6(age_classes, save.date="20241217",mod="mod8")
+res_list=load_results_mod6(age_classes, save.date="20241218",mod="mod8")
 
 cod_agg_pop_df = cod_agg_pop_df %>%
   dplyr::mutate(date=ISOweek2date(paste0(cal_year,"-W",ifelse(cal_week<10,paste0("0",cal_week),cal_week),"-1"))) %>% 
@@ -425,7 +425,6 @@ res_list$data_pred_week_cause %>%
   geom_vline(aes(xintercept=ymd("2020-01-01")))+
   facet_grid(cod_group~age_class,scales="free") +
   theme_bw()
-
 
 #mortality by week for a specific cause, by age
 res_list$data_pred_week_cause %>% 
