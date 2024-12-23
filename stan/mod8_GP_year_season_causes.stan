@@ -171,12 +171,12 @@ model {
 }
 
 generated quantities {
-  array[N_cause,N_sex,N_region] vector[N_all] mu_all;
   array[N_cause] vector[N_all] deaths_all_pred;
   array[N_cause] vector[N_all] deaths_all_pred0;
   array[N_cause] vector[N] deaths_all_est;
   //array[N_cause] vector[N_all] excess;
   {//define variables eta inside brackets so that they are not saved
+    array[N_cause,N_sex,N_region] vector[N_all] mu_all;
     array[N_cause] row_vector[N_all] eta_all;
     matrix[N_cause,N_all] eta2_all;
     for(g in 1:N_cause) {

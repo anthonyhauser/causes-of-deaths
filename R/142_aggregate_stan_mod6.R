@@ -7,7 +7,9 @@ aggregate_stan_mod6 = function(data, fit, cmdstan=TRUE,
     d=fit$draws()[,,]
     n_iter_per_chain = d[,1,1] %>% length()
     deaths_pred_sample = data %>%
-      dplyr::select(cal_year,cal_week,date,covid_phase,age_class,cod_group,n,cod_group_id,week.id) %>% #sex
+      group_by(cal_year,cal_week,date,covid_phase,age_class,cod_group,cod_group_id,week.id) %>%
+      dplyr::summarise(n=sum(n),.groups="drop") %>%
+      #dplyr::select(cal_year,cal_week,date,covid_phase,age_class,cod_group,n,cod_group_id,week.id) %>% #sex
       left_join(.,
             as.data.frame(ftable(d[,,grepl("deaths_all_pred",dimnames(d)[[3]])])) %>% 
                   dplyr::mutate(chain = as.numeric(as.character(chain)),
@@ -26,6 +28,7 @@ aggregate_stan_mod6 = function(data, fit, cmdstan=TRUE,
                             week.id=as.numeric(week.id)) %>% 
               dplyr::select(-var),by=c("cod_group_id","week.id")) %>% 
       dplyr::mutate(pred = factor(variable,levels=c("deaths_all_pred0","deaths_all_pred"),labels=c("poisson","dispersed poisson")))
+    print("deaths_all_pred processed")
     
   }else{
     return(NULL)
