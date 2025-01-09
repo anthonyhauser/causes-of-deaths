@@ -1,0 +1,11 @@
+.Rproj.user
+.Rhistory
+.RData
+.RDataTmp
+.Ruserdata
+*.exe
+
+data/
+savepoint/cod_ind_df.RDS
+results/
+

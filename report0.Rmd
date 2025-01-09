@@ -1,0 +1,371 @@
+---
+title: "Causes of deaths 2011-2021, mod4"
+date: "`r format(Sys.time(), 'Report generated on Date: %Y-%m-%d Time: %H:%M')`"
+output:
+  html_document:
+    number_sections: true
+    toc: true
+    toc_float:
+      collapsed: true
+      smooth_scroll: true
+---
+
+      
+```{r, include=FALSE}
+source("R/000_setup.R")
+
+wd_ofsp = "L:/UNISANTE_DESS/S_SUMAC/OFSP_2023/"
+data_folder = paste0(wd_ofsp,"02_data/cause_of_death/")
+
+cod_agg_pop_df = readRDS("savepoint/cod_agg_pop_df.RDS")
+causes = c("Cardiovascular Diseases","External Causes","Infectious and Parasitic Diseases",
+           "Mental and Neurological Disorders",
+           "Neoplasms (Cancers)","No Specific Causes", "Respiratory Diseases", "Suicide")
+age_classes = cod_agg_pop_df$age_class %>% unique()
+res_list=load_results_mod4(age_classes, causes, save.date="20241114")
+
+```
+
+# Aim
+
+We aim to
+1. explore the mortality trends over time, by cause in Switzerland
+2. assess excess mortality during 2020-2021, by cause
+3. investigate the correlations between mortality causes (e.g., COVID-19 and other causes)
+
+# Data
+
+## Causes of deaths
+
+## Reported deaths
+
+* individual, with information about the calendar year, calendar week, exact age, canton and sex
+* ICD-10 code of the cause of deaths, as well as secondary and other causes
+
+```{r,  echo = FALSE}
+cod_df0 = readRDS(paste0(code_root_path,"/data/cause_of_death2.rds"))
+print(colnames(cod_df0))
+
+```
+
+### ICD-10 code
+
+
+```{r,  echo = FALSE}
+list = get_icd10()
+icd10_chapter = list$icd10_chapter
+icd10_chapter %>% flextable(cwidth = c(1,5))
+```
+
+### By cause and age, over calendar year
+
+```{r,  echo = FALSE}
+
+
+```
+
+### Comparison with mortality reported by FSO
+
+
+
+### Comparison with data from excess mortality
+
+
+
+## Population
+
+To predict the mortality risk by age group, we need to adjust for the population size.
+We retrieve the population for each age group on the 1st of January of each year from FSO website and interpolate it to obtain the weekly population.
+
+```{r,  fig.width=8,fig.height=8,echo = FALSE}
+data.plot = cod_agg_pop_df %>% 
+  dplyr::mutate(date=ISOweek2date(paste0(cal_year,"-W",ifelse(cal_week<10,paste0("0",cal_week),cal_week),"-1"))) %>% 
+  dplyr::select(age_class,sex,cal_year,cal_week,date,n.pop) %>% unique() %>% 
+  group_by(date,age_class,cal_week,cal_year,sex) %>% 
+  dplyr::summarise(n=sum(n.pop),.groups="drop")
+ggplot() +
+  geom_point(data=data.plot %>% filter(cal_week==1),aes(x=date,y=n)) +
+  geom_line(data=data.plot,aes(x=date,y=n)) +
+  facet_grid(age_class~sex,scales="free") +
+  #annotate("text",x=2020,y=0,label="") +
+  theme_bw()
+```
+
+
+# Analysis
+
+## Fitting mortality 2010-2019
+
+For each cause and each age group, we use the weekly mortality data in 2010-2019 to predict the weekly mortality in 2020.
+We assumed that the number of deaths $y_{i}(t)$ due to a given cause in given age group at time $t$ for sex $i$ followed a Poisson distribution:
+$$y_{i}(t)\sim Poisson(\mu_{i}(t))$$
+
+We model the changes of mortality risk over time using two Gaussian Processes (GPs).
+We use an offset for the total population $N$ in the given age group:
+
+$$\log\mu_{ijk} = \alpha + \beta_{F}\mathbb{1}_{i=F} + f(t) + g(t) + \log(N)$$
+where $\alpha$ is the intercept,$\beta_F$ is the effect of being a female on the mortality and $N$ is the population.
+The GP $f$ models the long-term trend in mortality over time while the GP $g$ represents the change in mortality over the weeks of the year.
+We assume an exponential quadratic Kernel for $f$ and a periodic Kernel for $g$.
+
+## Excess mortality
+
+The model provides estimates of the weekly expected mortality by cause and age class in 2020.
+We obtain the excess mortality by subtracting the expected mortality to the reported number of deaths.
+
+# Results
+
+## Fit 2010-2019
+
+We only show fit for 70-79 and 80+, the two groups who gather most of the deaths.
+The red dots represent the weekly number of deaths, the black lines the estimated mean number of deaths and the gray areas the 95% credibility intervals.
+
+### 70-79
+
+```{r,  fig.width=8,fig.height=8,echo = FALSE}
+
+res_list$data_pred_week %>% 
+  filter(variable=="deaths",age_class=="65-79") %>% 
+  left_join(res_list$data_pred_week %>% 
+              filter(variable=="obs_deaths",age_class=="65-79") %>% dplyr::select(cod_group,obs_deaths=est,cal_year,cal_week),
+            by=c("cal_year","cal_week","cod_group")) %>% 
+  ggplot() +
+  geom_line(aes(x=date,y=est),col="black") +
+  geom_ribbon(aes(x=date,ymin=lwb,ymax=upb),fill="black",alpha=0.15) +
+  geom_point(aes(x=date,y=obs_deaths),col="red",alpha=0.5,size=0.8) +
+  geom_vline(aes(xintercept=ymd("2020-01-01")))+
+  facet_grid(cod_1word~age_class,scales="free") +
+  theme_bw()
+```
+
+### 80+
+
+```{r,  fig.width=8,fig.height=8,echo = FALSE}
+res_list$data_pred_week %>% 
+  filter(variable=="deaths",age_class=="80+") %>% 
+  left_join(res_list$data_pred_week %>% 
+              filter(variable=="obs_deaths",age_class=="80+") %>% dplyr::select(cod_group,obs_deaths=est,cal_year,cal_week),
+            by=c("cal_year","cal_week","cod_group")) %>% 
+  ggplot() +
+  geom_line(aes(x=date,y=est),col="black") +
+  geom_ribbon(aes(x=date,ymin=lwb,ymax=upb),fill="black",alpha=0.15) +
+  geom_point(aes(x=date,y=obs_deaths),col="red",alpha=0.5,size=0.8) +
+  geom_vline(aes(xintercept=ymd("2020-01-01")))+
+  facet_grid(cod_1word~age_class,scales="free") +
+  theme_bw()
+```
+
+## Expected mortality
+
+### by year
+
+```{r,  fig.width=8,fig.height=10,echo = FALSE}
+res_list$data_pred_year %>% 
+  filter(variable=="deaths",age_class %in% c("65-79","80+")) %>% 
+  left_join(res_list$data_pred_year %>% 
+              filter(variable=="obs_deaths",age_class %in% c("65-79","80+")) %>% dplyr::select(cod_group,age_class,obs_deaths=est,cal_year),
+            by=c("cal_year","cod_group","age_class")) %>% 
+  ggplot() +
+  geom_line(aes(x=cal_year,y=est),col="black") +
+  geom_ribbon(aes(x=cal_year,ymin=lwb,ymax=upb),fill="black",alpha=0.15) +
+  geom_point(aes(x=cal_year,y=obs_deaths),col="red",alpha=0.5,size=2) +
+  facet_grid(cod_1word~age_class,scales="free") +
+  geom_vline(aes(xintercept=2019.5))+
+  theme_bw()
+```
+
+
+### by phase
+
+```{r,  fig.width=8,fig.height=10,echo = FALSE}
+res_list$data_pred_phase %>% 
+  filter(variable=="deaths",age_class %in% c("65-79","80+")) %>% 
+  left_join(res_list$data_pred_phase %>% 
+              filter(variable=="obs_deaths",age_class %in% c("65-79","80+")) %>% dplyr::select(cod_group,age_class,obs_deaths=est,covid_phase),
+            by=c("covid_phase","cod_group","age_class")) %>% 
+  filter(covid_phase>0) %>% 
+  left_join(covid_phase %>% dplyr::select(covid_phase=phase,n_weeks,labels),by="covid_phase") %>% 
+  dplyr::mutate(est=est/n_weeks,lwb=lwb/n_weeks,upb=upb/n_weeks,obs_deaths=obs_deaths/n_weeks) %>% 
+  ggplot(aes(x=covid_phase,y=est,ymin=lwb,ymax=upb)) +
+  geom_line(col="black") +
+  geom_ribbon(fill="black",alpha=0.15) +
+  geom_point(aes(y=obs_deaths),col="red",alpha=0.5,size=2) +
+  facet_grid(cod_1word~age_class,scales="free") +
+  scale_x_continuous(breaks=covid_phase$phase,labels=covid_phase$labels)+
+  theme_bw()+
+  ylab("Number of deaths by week")+
+  theme(axis.text.x = element_text( angle = 45,
+                                    hjust = 1,vjust=1,size = 10))
+```
+
+## Excess mortality by cause
+
+### Absolute
+
+```{r,  fig.width=8,fig.height=12,echo = FALSE}
+res_list$data_pred_year %>% 
+  filter(variable=="excess",cal_year>=2020) %>% 
+  ggplot(aes(x=cod_1word,y=est,ymin=lwb,ymax=upb,fill=cal_year,group=factor(cal_year))) +
+  geom_hline(yintercept=0,colour="grey50") +
+  geom_col(position = position_dodge(width=0.5),
+           width=0.5,alpha=.5) +
+  # geom_point(position = position_dodge(width=0.5),
+  #               colour="black",alpha=.8) +
+  geom_errorbar(position = position_dodge(width=0.5),
+                colour="black",width=0.5,alpha=.8) +
+  facet_wrap(age_class~.,scales="free",ncol=2) +
+  #scale_fill_discrete(guide="none") +
+  labs(x="Cause",y="Absolute excess mortality") +
+  theme_bw() +
+  theme(axis.text.x=element_text(angle=45,hjust = 1))
+```
+
+### Relative
+
+```{r,  fig.width=8,fig.height=12,echo = FALSE}
+res_list$data_pred_year %>% 
+  filter(variable=="rel_excess",cal_year>=2020) %>% 
+  dplyr::mutate(lwb=ifelse(is.infinite(est),NA,lwb),
+                upb=ifelse(is.infinite(est),NA,upb),
+                est=ifelse(is.infinite(est),NA,est)) %>% 
+  ggplot(aes(x=cod_1word,y=est,ymin=lwb,ymax=upb,fill=cal_year,group=factor(cal_year))) +
+  geom_hline(yintercept=0,colour="grey50") +
+  geom_col(position = position_dodge(width=0.5),
+           width=0.5,alpha=.5) +
+  # geom_point(position = position_dodge(width=0.5),
+  #               colour="black",alpha=.8) +
+  geom_errorbar(position = position_dodge(width=0.5),
+                colour="black",width=0.5,alpha=.8) +
+  facet_wrap(age_class~.,scales="free",ncol=2) +
+  #scale_fill_discrete(guide="none") +
+  labs(x="Cause",y="Absolute excess mortality") +
+  theme_bw() +
+  theme(axis.text.x=element_text(angle=45,hjust = 1))+
+  scale_y_continuous(labels = scales::percent)
+```
+
+## Excess mortality by cause and phase
+
+
+```{r,  fig.width=8,fig.height=8,echo = FALSE}
+covid_phase %>% flextable(cwidth=c(1,1,2.5,1,1))
+```
+
+
+### Absolute excess mortality (without COVID)
+
+The deaths due to COVID-19 are removed for a better readability.
+
+```{r,  fig.width=8,fig.height=12,echo = FALSE}
+res_list$data_pred_phase %>% 
+  left_join(res_list$data_pred_phase %>% 
+              filter(variable=="obs_deaths",age_class %in% c("65-79","80+")) %>% dplyr::select(cod_group,age_class,obs_deaths=est,covid_phase),
+            by=c("covid_phase","cod_group","age_class")) %>% 
+  filter(variable=="excess",covid_phase>0) %>% 
+  ggplot(aes(x=cod_1word,y=est,ymin=lwb,ymax=upb,fill=covid_phase,group=factor(covid_phase))) +
+  geom_hline(yintercept=0,colour="grey50") +
+  geom_col(position = position_dodge(width=0.5),
+           width=0.5,alpha=.5) +
+  # geom_point(position = position_dodge(width=0.5),
+  #               colour="black",alpha=.8) +
+  geom_errorbar(position = position_dodge(width=0.5),
+                colour="black",width=0.5,alpha=.8) +
+  facet_grid(age_class~.,scales="free") +
+  labs(x="Cause",y="Absolute excess mortality") +
+  scale_fill_continuous(breaks=covid_phase$phase,labels=covid_phase$labels)+
+  theme_bw() +
+  theme(axis.text.x=element_text(angle=45,hjust = 1)) %>% 
+  theme(axis.text.x = element_text( angle = 45,
+                                    hjust = 1,vjust=1,size = 10))
+```
+
+### Relative excess mortality
+
+Results are only shown for the categories where both the observed and the expected mortality is greater than 0.
+
+```{r,  fig.width=8,fig.height=12,echo = FALSE}
+res_list$data_pred_phase %>% 
+  left_join(res_list$data_pred_phase %>% 
+              filter(variable=="obs_deaths",age_class %in% c("65-79","80+")) %>% dplyr::select(cod_group,age_class,obs_deaths=est,covid_phase),
+            by=c("covid_phase","cod_group","age_class")) %>% 
+  filter(variable=="rel_excess",covid_phase>0) %>% 
+  dplyr::mutate(lwb=ifelse(is.infinite(est)|is.nan(est),NA,lwb),
+                upb=ifelse(is.infinite(est)|is.nan(est),NA,upb),
+                est=ifelse(is.infinite(est)|is.nan(est),NA,est)) %>% 
+  ggplot(aes(x=cod_1word,y=est,ymin=lwb,ymax=upb,fill=covid_phase,group=factor(covid_phase))) +
+  geom_hline(yintercept=0,colour="grey50") +
+  geom_col(position = position_dodge(width=0.5),
+           width=0.5,alpha=.5) +
+  # geom_point(position = position_dodge(width=0.5),
+  #               colour="black",alpha=.8) +
+  geom_errorbar(position = position_dodge(width=0.5),
+                colour="black",width=0.5,alpha=.8) +
+  facet_wrap(age_class~.,scales="free",ncol=2) +
+  #scale_fill_discrete(guide="none") +
+  scale_fill_continuous(breaks=covid_phase$phase,labels=covid_phase$labels)+
+  labs(x="Cause",y="Absolute excess mortality") +
+  theme_bw() +
+  theme(axis.text.x=element_text(angle=45,hjust = 1))+
+  scale_y_continuous(labels = scales::percent)
+```
+
+## Gaussian processes
+
+### Long-term trend
+
+```{r,  fig.width=8,fig.height=8,echo = FALSE}
+res_list$year_GP %>% 
+  group_by(cod_1word,age_class) %>%
+  dplyr::mutate(ref=as.numeric(as.numeric(date)==min(as.numeric(date))),
+                est_rel=exp(est-est[ref==1])-1,
+                lwb_rel=exp(lwb-est[ref==1])-1,
+                upb_rel =exp(upb - est[ref==1])-1) %>% ungroup() %>%
+  ggplot(aes(x=date,y=est_rel)) +
+  geom_ribbon(aes(ymin=lwb_rel,ymax=upb_rel),alpha=0.2) +
+  geom_point(size=0.5)+
+  geom_line()+
+  facet_grid(cod_1word~age_class,scales="free") +
+  scale_y_continuous(labels = scales::percent,name="Relative change in mortality risk") +
+  theme_bw()+
+  theme(axis.text.x=element_text(angle=45,hjust = 1))
+```
+
+
+### Periodic trend
+
+```{r,  fig.width=8,fig.height=8,echo = FALSE}
+res_list$week_GP %>% 
+  group_by(cod_1word,age_class) %>%
+  dplyr::mutate(ref=as.numeric(as.numeric(corr_date)==min(as.numeric(corr_date))),
+                est_rel=exp(est-est[ref==1])-1,
+                lwb_rel=exp(lwb-est[ref==1])-1,
+                upb_rel =exp(upb - est[ref==1])-1) %>% ungroup() %>%
+  ggplot(aes(x=corr_date,y=est_rel)) +
+  geom_ribbon(aes(ymin=lwb_rel,ymax=upb_rel),alpha=0.2) +
+  geom_point(size=0.5)+
+  geom_line()+
+  facet_grid(cod_1word~age_class,scales="free") +
+  scale_y_continuous(labels = scales::percent,name="Relative change in mortality") +
+  theme_bw()+
+  theme(axis.text.x=element_text(angle=45,hjust = 1))
+```
+
+## Regression
+
+### Sex differences
+
+```{r,  fig.width=8,fig.height=6,echo = FALSE}
+#mortality risk by sex
+res_list$reg_effect %>%
+  filter(var=="sex") %>%
+  ggplot(aes(x=cod_1word,y=mean,ymin=`2.5%`,ymax=`97.5%`,col=age_class))+
+  geom_pointrange(position=position_dodge(width=0.5))+
+  geom_hline(aes(yintercept=0),lty=2)+
+  scale_y_continuous(name="Mortality risk ratio (RR), women vs men",
+                     limits=log(c(0.1,2)),
+                     breaks=log(c(0.1,0.2,0.5,1,2,5,10)),#log(c(-0.9,-0.75,-0.5,0,1,2)+1),
+                     labels = exp)+# labels = function(x){return(scales::percent(exp(x)-1))})+
+  theme_bw()+
+  theme(axis.text.x = element_text( angle = 45,
+                                    hjust = 1,vjust=1,size = 10))
+```

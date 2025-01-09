@@ -1,0 +1,10 @@
+mod1: two GPs with EQ kernel, one on year id, one on week id (from 1 to 53), no prediction for pandemic
+mod1_noyear: mod1 with no year (long-term trend)
+mod1_noweek: mod1 with no week (seasonality)
+mod1_GP_normalized: with EQ kernel for seasonality, normalized x
+mod1_GP_normalized2: with periodic kernel for seasonality, normalized x
+
+mod2_GP_normalized: two GPs with EQ kernel, both on week id, normalized x
+
+mod3_GP_year_season: mod2_GP_normalized but with adapted prior on GP parameters
+mod3_GP_year: mod3_GP_year_season but with 1 GP for long-term trend
