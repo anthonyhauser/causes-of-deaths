@@ -37,7 +37,7 @@ run_stan_mod8_by_cod = function(cod_agg_pop_nuts_df, age_class, run.model=TRUE,
     })) %>% 
     arrange(cod_group_id,week.id)
   
-  #aggregate
+  #aggregate (not useful anymore, as we also consider sex and NUTS2 now)
   data = data %>%
     group_by(age_class,cal_year,cal_week,cod_group,age_id,sex_id,NUTS2_id,
              cod_group_id,date,week.id,covid_phase) %>% 

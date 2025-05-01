@@ -19,8 +19,8 @@ data_folder = paste0(wd_ofsp,"02_data/cause_of_death/")
 
 cod_agg_pop_df = readRDS("savepoint/cod_agg_pop_df.RDS")
 age_classes = cod_agg_pop_df$age_class %>% unique()
-res_list=load_results_mod6(age_classes, save.date="20241212",mod="mod6")
-  causes = c("Cardiovascular Diseases","Respiratory Diseases", "Mental and Neurological Disorders",
+res_list=load_results_mod6(age_classes, save.date="20241218",mod="mod8")
+causes = c("Cardiovascular Diseases","Respiratory Diseases", "Mental and Neurological Disorders",
              "Infectious and Parasitic Diseases",
              "Neoplasms (Cancers)","Suicide","External Causes",
              "Other Causes")

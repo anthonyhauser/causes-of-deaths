@@ -3,7 +3,7 @@
 # library(data.table)
 # library(tidyfast)
 library(pacman)
-pacman::p_load(ISOweek, lubridate, data.table, tidyfast, tidyr, dplyr,purrr,ggplot2,stringr)
+pacman::p_load(ISOweek, lubridate, data.table, tidyfast, tidyr, dplyr,purrr,ggplot2,stringr,zoo)
 
 #cmdstanr
 library(cmdstanr)
@@ -54,6 +54,28 @@ covid_phase <- data.frame(
   arrange(start_date) %>%
   mutate(end_date = lead(start_date, default = as.Date("2022-01-03")) - 1,
          n_weeks = as.numeric((1+end_date-start_date)/7))
+covid_phase2 <- data.frame(start_date = as.Date(c("1995-01-02",  # Arbitrary early date for phase 0
+                                                 "2019-12-30",  # Phase 1 start (early 2020 pre-pandemic)
+                                                 "2020-02-24",  # Phase 2: 1st wave
+                                                 "2020-05-04",  # Phase 3: summer low
+                                                 "2020-09-28",  # Phase 4: autumn wave
+                                                 "2020-12-28",  # Phase 5: winter Alpha wave
+                                                 "2021-03-01",  # Phase 6: vaccination rollout
+                                                 "2021-09-27",  # Phase 7: delta wave resurgence
+                                                 "2021-12-27")),   # Phase 8: delta wave resurgence
+                          phase = 0:8,
+                          labels = c("0. Before 2020",
+                                     "1. Jan–Feb 20\nPre-pandemic",
+                                     "2. Feb–May 20\n1st wave",
+                                     "3. May–Sep 20\nSummer low",
+                                     "4. Oct–Dec 20\nAutumn wave",
+                                     "5. Jan–Feb 21\nWinter (Alpha)",
+                                     "6. Mar–Sep 21\nVaccination rollout",
+                                     "7. Oct–Dec 21\nDelta wave resurgence",
+                                     "8. Dec21-Jan22, incomplete week to delete")) %>%
+  arrange(start_date) %>%
+  dplyr::mutate(end_date = lead(start_date, default = as.Date("2022-01-03")) - 1,
+                n_weeks = as.numeric((1 + end_date - start_date) / 7))
 
 cod_df = data.frame(cod_full=c("Cardiovascular Diseases","External Causes","Infectious and Parasitic Diseases",
           "Mental and Neurological Disorders",
@@ -80,7 +102,7 @@ canton_df <- data.frame(
 
 #load R files
 wd = getwd()
-code_root_path = paste0(strsplit(wd, split="/cluster")[[1]][1],"/")
+code_root_path = paste0(strsplit(wd, split="/cluster|/manuscript")[[1]][1],"/")
 path_functions = list.files(pattern="[.]R$", path=paste0(code_root_path,"/R/"), full.names=TRUE)
 path_functions = path_functions[!grepl("000",path_functions)]
 print(path_functions)

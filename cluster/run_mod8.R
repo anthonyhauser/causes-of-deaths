@@ -15,7 +15,7 @@ wd = getwd()
 code_root_path = paste0(strsplit(wd, split="/cluster")[[1]][1],"/")
 source(paste0(code_root_path,"R/000_setup.R"))
 
-args_all=(commandArgs(TRUE)) #args_all=c(c(5,rep(1,7)),"20241210")
+args_all=(commandArgs(TRUE)) #args_all=c(c(5,rep(1,7)),"20241218")
 args=as.numeric(unlist(args_all[1:8]))#args[9] should be simulation date
 save.date=as.character(args_all[[9]])
 
@@ -38,3 +38,7 @@ age_classes = cod_agg_pop_nuts_df$age_class %>% unique()
 mod8_by_cod_stan_diag = run_stan_mod8_by_cod(cod_agg_pop_nuts_df,
                                              age_class=age_classes[args[1]],
                                              run.model=TRUE, save.date=save.date)
+
+
+age_class="80+"
+run.model=TRUE

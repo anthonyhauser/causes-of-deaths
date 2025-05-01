@@ -38,9 +38,29 @@ icd10_chapter
 #load CoD data
 cod_df0 = readRDS(paste0(code_root_path,"/data/cause_of_death2.rds"))
 
+#check which year variables to use: we will use the EREIGNIS_KJ_GES_N, as it corresponds to the iso calendar year of the event date
+d_sim = cod_df0 %>% 
+  dplyr::mutate(sim1 = SJAHR_N!=EREIGNIS_JJJJ_GES_N,
+                sim2 = SJAHR_N!=EREIGNIS_KJ_GES_N,
+                sim3 = EREIGNIS_KJ_GES_N!=EREIGNIS_JJJJ_GES_N)
+#Similarity between the two variables informing about year
+d_sim %>% 
+  group_by(sim1,sim2,sim3) %>% 
+  dplyr::summarise(n=n())
+d_sim %>% filter(sim1,sim2,sim3)#all different -> very rare
+d_sim %>% filter(sim1,sim3,!sim2)#EREIGNIS_JJJJ_GES_N different -> very rare
+#Dissimilarity occurs mostly at calendar week 1 and 53 (means that probably one variables give the iso week and the other the actual year)
+d_sim %>% filter(sim1 | sim2 | sim3) %>% 
+  group_by(EREIGNIS_KJ_GES_N,EREIGNIS_KW_GES_N) %>% 
+  dplyr::summarise(n=n()) %>% filter(n>20) %>% View()
+#check number of calendar weeks for the iso year EREIGNIS_KJ_GES_N, 53 weeks only for the right years
+d_sim %>% 
+  group_by(EREIGNIS_KJ_GES_N) %>% 
+  dplyr::summarise(n_weeks = max(EREIGNIS_KW_GES_N)) %>% filter(n_weeks>52)
+
 #Definition of colnames
 var_df = data.frame(var=colnames(cod_df0),
-                    definition=c("Death ID","Year of what","Birth year","Event month","Event year","Event calendar week","Event calendar year",
+                    definition=c("Death ID","Statistical year","Birth year","Event month","Event year","Event calendar week","Event calendar year",
                                  "Age reached","Sex",
                                  "Primary cause of death","Secondary cause of death",
                                  "First tertiary cause of death","Second tertiary cause of death","Principal cause of death",
@@ -60,13 +80,25 @@ d %>%
   arrange(-n) %>% head(n=14)
 
 
-cod_df0 %>% 
-  dplyr::select(GRUND_KRANK_GES_T, FOLGE_KRANK_GES_T, BEGLEIT_KRANK_A_GES_T, BEGLEIT_KRANK_B_GES_T, ENDG_U_CD_GES_T) %>% 
-  pivot_longer(cols = everything(),
-               names_to=c("variable","stat"),values_to ="n",names_sep = "\\.")
+# cod_df0 %>% 
+#   dplyr::select(GRUND_KRANK_GES_T, FOLGE_KRANK_GES_T, BEGLEIT_KRANK_A_GES_T, BEGLEIT_KRANK_B_GES_T, ENDG_U_CD_GES_T) %>% 
+#   pivot_longer(cols = everything(),
+#                names_to=c("variable","stat"),values_to ="n",names_sep = "\\.")
 
 ################################################################################
 #Combine CoD dataset with icd10 categorization
+
+#CoD: principal, primary and secondary 
+if(FALSE){
+  cod_ind_df = combine_cod_icd10(cod_df0,icd10_chapter_block,icd10_cat,
+                                 icd_var = c("ENDG_U_CD_GES_T","GRUND_KRANK_GES_T","FOLGE_KRANK_GES_T","BEGLEIT_KRANK_A_GES_T","BEGLEIT_KRANK_B_GES_T"),
+                                 filter_cod_groups = causes2)
+  cod_ind_df %>% filter(outcome=="ENDG_U_CD_GES_T")
+  saveRDS(cod_ind_df,paste0(code_root_path,"savepoint/cod_ind_df.RDS"))
+}
+cod_ind_df = readRDS(paste0(code_root_path,"savepoint/cod_ind_df.RDS"))
+
+
 causes = c("Cardiovascular Diseases","Infectious and Parasitic Diseases",
            "Respiratory Diseases", "Mental and Neurological Disorders",
            "COVID-19",
@@ -75,7 +107,6 @@ causes2 = c("Cardiovascular Diseases","Infectious and Parasitic Diseases",
            "Respiratory Diseases", "Mental and Neurological Disorders",
            "COVID-19",
            "Neoplasms (Cancers)","Suicide","External Causes")
-
 
 causes2_df = data.frame(cod_group=c("Cardiovascular Diseases","Infectious and Parasitic Diseases",
                                     "Respiratory Diseases", "Mental and Neurological Disorders",
@@ -90,7 +121,8 @@ causes2_df = data.frame(cod_group=c("Cardiovascular Diseases","Infectious and Pa
                                    "Pulmonary disease, pneumonia, influenza", "Dementia, Alzheimer, Parkinson",
                                    "COVID-19",
                                    "Lung, breast, prostate neoplasms","Intentional self-harm/poisoning","Fall, vehicule accident",
-                                   "Unspecified, diabetes, senility, organ disease")) %>% 
+                                   "Unspecified, diabetes, senility, organ disease")) %>%
+  #add chapter of cod-10
   left_join(cod_ind_df %>% 
               filter(outcome=="ENDG_U_CD_GES_T") %>% 
               dplyr::select(cod_group,chapter) %>% unique() %>% 
@@ -99,23 +131,13 @@ causes2_df = data.frame(cod_group=c("Cardiovascular Diseases","Infectious and Pa
               dplyr::summarise(chapter=paste(chapter, collapse=", ")),by="cod_group") %>% 
   arrange(order)
 
+#Tables with categories and causes
 causes2_df %>% 
   dplyr::select(`Cause`=cod_group,Examples=example,Chapters=chapter) %>% 
   flextable::flextable() %>% 
   flextable::width(j=1:3, width=c(1,1,1)*2)
 
-
-
-#CoD: principal, primary and secondary 
-if(FALSE){
-  cod_ind_df = combine_cod_icd10(cod_df0,icd10_chapter_block,icd10_cat,
-                                 icd_var = c("ENDG_U_CD_GES_T","GRUND_KRANK_GES_T","FOLGE_KRANK_GES_T","BEGLEIT_KRANK_A_GES_T","BEGLEIT_KRANK_B_GES_T"),
-                                 filter_cod_groups = causes2)
-  cod_ind_df %>% filter(outcome=="ENDG_U_CD_GES_T")
-  saveRDS(cod_ind_df,paste0(code_root_path,"savepoint/cod_ind_df.RDS"))
-}
-cod_ind_df = readRDS(paste0(code_root_path,"savepoint/cod_ind_df.RDS"))
-
+#some data exploration
 d = cod_ind_df %>% dplyr::select(ind_id,age,sex,cal_week,cal_year,outcome,cod_group) %>% 
   pivot_wider(id_cols=c(ind_id,age,sex,cal_week,cal_year),names_from="outcome",values_from="cod_group")
 d0_cardio = cod_ind_df %>% 
@@ -130,6 +152,7 @@ d %>% filter(ENDG_U_CD_GES_T!="COVID-19",
 d %>% filter(ENDG_U_CD_GES_T=="COVID-19",GRUND_KRANK_GES_T!="COVID-19") %>% View()
 
 ################################################################################
+#Number of deaths in 2020-2021 by chapter: ENDG_U_CD_GES_T
 cod_ind_df %>% 
   filter(cal_year>=2020,outcome=="ENDG_U_CD_GES_T") %>% 
   group_by(icd10Chapter) %>% 
@@ -138,7 +161,7 @@ cod_ind_df %>%
   geom_bar(stat="identity")+
   theme_bw()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
+#Chapter V and VI: ENDG_U_CD_GES_T
 cod_ind_df %>% 
   filter(cal_year>=2020,outcome=="ENDG_U_CD_GES_T",icd10Chapter%in% c("V","VI")) %>% 
   group_by(icd10Chapter,icd10Title_block) %>% 
@@ -150,13 +173,14 @@ cod_ind_df %>%
   theme_bw()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
+#before 2020
 cod_ind_df %>% 
   filter(cal_year<=2020,outcome=="ENDG_U_CD_GES_T",icd10Chapter%in% c("V","VI")) %>% 
   group_by(icd10Chapter,icd10Title_block,icd10,icd10Title_cat1) %>% 
   dplyr::summarise(n=n()) %>% ungroup() %>% 
   dplyr::mutate(p=n/sum(n)) %>% 
   arrange(-n)
-
+#2020-2021
 cod_ind_df %>% 
   filter(cal_year>=2020,outcome=="ENDG_U_CD_GES_T") %>% 
   group_by(cod_group,icd10Title_cat1) %>% 
@@ -186,7 +210,7 @@ cod_ind_df %>%
   theme_bw()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-#Secondary cause: NA values by principal cause, over year
+#Proportion of missing secondary cause (NA) by principal cause, over year
 d %>%
   group_by(ENDG_U_CD_GES_T,cal_year) %>% 
   dplyr::summarise(p=sum(is.na(BEGLEIT_KRANK_A_GES_T))/n()) %>% ungroup() %>% 
@@ -214,6 +238,7 @@ d0_cardio %>% filter(outcome=="FOLGE_KRANK_GES_T",cod_group=="Respiratory Diseas
 
 d0_cardio %>% filter(outcome=="FOLGE_KRANK_GES_T",icd10Title_cat=="Pneumonia, unspecified") %>% View()
 
+
 ################################################################################
 
 
@@ -223,6 +248,7 @@ principal_cause="Respiratory Diseases"
 secondary_cause=c("Respiratory Diseases","Cardiovascular Diseases","Mental and Neurological Disorders",
                   "Other Causes")
 secondary_cause="Cardiovascular Diseases"
+
 #Number of deaths
 #overall
 d %>% filter(ENDG_U_CD_GES_T==principal_cause,cal_year<2020,cal_week<53) %>%
@@ -239,35 +265,53 @@ d %>% filter(ENDG_U_CD_GES_T==principal_cause,cal_year<2020,cal_week<53) %>%
   facet_wrap(.~FOLGE_KRANK_GES_T)#+ylim(c(0,0.2))
 
 #Distribution of secondary cause for cardiovascular primary cause
-#by age group and over week
-d %>% filter(ENDG_U_CD_GES_T==principal_cause,cal_year>2010,cal_year<2020,cal_week<53,age>0) %>%
+#absolute, by age over week
+d %>% filter(ENDG_U_CD_GES_T==principal_cause,cal_year<2020,cal_week<53,
+             FOLGE_KRANK_GES_T %in% secondary_cause) %>%
+  dplyr::mutate(age_group=factor(as.numeric(age>50)+as.numeric(age>70)+as.numeric(age>80))) %>% 
+  group_by(cal_week,age_group,FOLGE_KRANK_GES_T) %>% 
+  dplyr::summarise(n=n(),.groups="drop_last") %>% 
+  ggplot(aes(x=cal_week,y=n,col=age_group))+geom_line()+
+  facet_wrap(.~FOLGE_KRANK_GES_T)+labs(title=principal_cause)#+ylim(c(0,0.2))
+#relative, by age over week
+d %>% filter(ENDG_U_CD_GES_T==principal_cause,cal_year<2020,cal_week<53,
+             FOLGE_KRANK_GES_T %in% secondary_cause) %>%
   dplyr::mutate(age_group=factor(as.numeric(age>50)+as.numeric(age>70)+as.numeric(age>80))) %>% 
   group_by(cal_week,age_group,FOLGE_KRANK_GES_T) %>% 
   dplyr::summarise(n=n(),.groups="drop_last") %>% 
   dplyr::mutate(p=n/sum(n)) %>% ungroup() %>% 
   ggplot(aes(x=cal_week,y=p,col=age_group))+geom_line()+
-  facet_wrap(.~FOLGE_KRANK_GES_T)#+ylim(c(0,0.2))
-#distribution of respiratory disease by age over week
-d %>% filter(ENDG_U_CD_GES_T==principal_cause,cal_year<=2020,cal_week<53) %>%
-  dplyr::mutate(age_group=factor(as.numeric(age>50)+as.numeric(age>70)+as.numeric(age>80))) %>% 
-  group_by(cal_week,age_group,FOLGE_KRANK_GES_T) %>% 
-  dplyr::summarise(n=n(),.groups="drop_last") %>% 
-  dplyr::mutate(p=n/sum(n)) %>% filter(FOLGE_KRANK_GES_T%in%secondary_cause) %>% 
-  ggplot(aes(x=cal_week,y=p,col=age_group))+geom_line()+
-  facet_wrap(.~FOLGE_KRANK_GES_T)#+ylim(c(0,0.2))
+  facet_wrap(.~FOLGE_KRANK_GES_T)+labs(title=principal_cause)#+ylim(c(0,0.2))
+
 #distribution of respiratory disease over 5 calendar week groups, by year
+#relative
 d %>% filter(ENDG_U_CD_GES_T==principal_cause,cal_year>2010,cal_year<2022,cal_week<53,age>70) %>%
   dplyr::mutate(cal_week=as.numeric(cut(cal_week,c(0,10,20,30,40,55)))) %>% 
   group_by(cal_week,cal_year,FOLGE_KRANK_GES_T) %>% 
   dplyr::summarise(n=n(),.groups="drop_last") %>% 
   dplyr::mutate(p=n/sum(n)) %>% 
   filter(FOLGE_KRANK_GES_T%in%secondary_cause) %>% 
-  dplyr::mutate(year_epi = as.factor(cal_year %in% c(2015,2017))) %>% 
+  dplyr::mutate(year_epi = as.factor(cal_year %in% c(2015,2017,2020,2021))) %>% 
   ggplot(aes(x=cal_week,y=p,col=factor(cal_year),alpha=year_epi),group=cal_year)+
   geom_point()+geom_line()+
   annotate("text",x=1,y=0,label="")+
   facet_wrap(.~FOLGE_KRANK_GES_T,scales="free")+
-  scale_alpha_manual(values=c(0.15,1))
+  scale_alpha_manual(values=c(0.15,1))+labs(title=principal_cause)
+#absolute
+d %>% filter(FOLGE_KRANK_GES_T=="COVID-19") %>% 
+  group_by(ENDG_U_CD_GES_T) %>% dplyr::summarise(n())
+
+d %>% filter(ENDG_U_CD_GES_T==principal_cause,cal_year>2010,cal_year<2022,cal_week<53,age>70) %>% 
+  dplyr::mutate(cal_week=as.numeric(cut(cal_week,c(0,10,20,30,40,55)))) %>% 
+  group_by(cal_week,cal_year,FOLGE_KRANK_GES_T) %>% 
+  dplyr::summarise(n=n(),.groups="drop_last") %>% 
+  filter(FOLGE_KRANK_GES_T%in%secondary_cause | is.na(FOLGE_KRANK_GES_T)) %>% 
+  dplyr::mutate(year_epi = as.factor(cal_year %in% c(2015,2017,2020,2021))) %>% 
+  ggplot(aes(x=cal_week,y=n,col=factor(cal_year),alpha=year_epi),group=cal_year)+
+  geom_point()+geom_line()+
+  annotate("text",x=1,y=0,label="")+
+  facet_wrap(.~FOLGE_KRANK_GES_T,scales="free")+
+  scale_alpha_manual(values=c(0.15,1))+labs(title=principal_cause)
 
 ################################################################################
 #Random forest: predict covid
@@ -312,6 +356,22 @@ cod_ind_df %>%
   dplyr::select(ind_id,outcome,cod_group) %>% 
   ggplot(aes(x = outcome, stratum = cod_group, alluvium = ind_id,
               fill = cod_group)) +
+  geom_flow(curve_type = "cubic")+
+  geom_stratum()+
+  scale_fill_discrete(name="Cause of death")+
+  scale_y_continuous(name="Number of deaths (2020-2021)")+
+  scale_x_discrete(name="")
+
+cod_ind_df %>% 
+  filter(cal_year>=2020) %>% 
+  dplyr::mutate(outcome=factor(outcome,levels=c("FOLGE_KRANK_GES_T","ENDG_U_CD_GES_T"),
+                               labels=c("Secondary cause (direct)","Principal cause (FSO)"))) %>% 
+  dplyr::mutate(cod_group = factor(cod_group,levels=causes2_df$cod_group,
+                                   labels=causes2_df$cod_group_label)) %>% 
+  filter(!is.na(outcome)) %>% 
+  dplyr::select(ind_id,outcome,cod_group) %>% 
+  ggplot(aes(x = outcome, stratum = cod_group, alluvium = ind_id,
+             fill = cod_group)) +
   geom_flow(curve_type = "cubic")+
   geom_stratum()+
   scale_fill_discrete(name="Cause of death")+
@@ -455,7 +515,7 @@ cod_agg_pop_nuts_df = inner_join(cod_agg_nuts_df,
 saveRDS(cod_agg_pop_nuts_df,file="savepoint/cod_agg_pop_nuts_df.RDS")
 
 ###########################################################################################################################
-#Run models
+#Run models: old as causes analysed simultaneously now
 cod_agg_pop_df = readRDS("savepoint/cod_agg_pop_df.RDS")
 
 #causes = cod_agg_pop_df$cod_group %>% unique() %>% setdiff(.,"COVID-19")
@@ -482,6 +542,29 @@ if(FALSE){
 
 deaths_pand_pred_sample = readRDS("results/deaths_pand_pred_sample.RDS")
 deaths_pred_sample = readRDS("results/deaths_pred_sample.RDS")
+
+################################################################################
+#Peak estimates
+if(FALSE){
+  #expected peak: from model estimates of expected mortality (for mod8)
+  mod="mod8"; save.date="20241218";
+  peak_dates_summary_df = rbindlist(lapply(as.list(age_classes),function(x){
+    print(x);
+    peak_dates_summary(age_class=x,chains=1:4,mod=mod,save.date=save.date)}))
+  saveRDS(peak_dates_summary_df,file=paste0("results/",save.date,"/",mod,"_peak_dates_summary_df.RDS"))
+  #observed peak (with smoothed data)
+  observed_peak_date_df = observed_peak(cod_agg_pop_df)
+  saveRDS(observed_peak_date_df,file=paste0("results/","observed_peak_date_df.RDS"))
+}
+################################################################################
+#Cumulative excess
+if(FALSE){
+  mod="mod8"; save.date="20241218";
+  cum_excess_pand_df = rbindlist(lapply(as.list(age_classes),function(x){
+    print(x);
+    cumulative_excess(age_class=x,chains=1:4,mod=mod,save.date=save.date)}))
+  saveRDS(cum_excess_pand_df,file=paste0("results/",save.date,"/",mod,"_cum_excess_pand_df.RDS"))
+}
 
 ################################################################################################################################################################
 ################################################################################################################################################################
@@ -1026,7 +1109,7 @@ data = cod_agg_pop_df %>%
                 #year.id = cal_year-min(cal_year)+1,
                 date=ISOweek2date(paste0(cal_year,"-W",ifelse(cal_week<10,paste0("0",cal_week),cal_week),"-1")),
                 week.id = as.numeric(1+(date-min(date))/7)) %>% #week.id = dense_rank(date)) %>% 
-  mutate(covid_phase = map2_dbl(date, list(covid_phase), function(d, phases) {
+  dplyr::mutate(covid_phase = map2_dbl(date, list(covid_phase), function(d, phases) {
     phase <- phases %>%
       filter(d >= start_date & d <= end_date) %>%
       pull(phase)

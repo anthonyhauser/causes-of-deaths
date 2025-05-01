@@ -1,0 +1,35 @@
+---
+title: "Title"
+output:
+    word_document: 
+      number_sections: yes
+      df_print: paged
+---
+# Methods
+
+We constructed a statistical model (synthetic contact matrix) that uses mobility data to reproduce the work-related social contact patterns observed in the CoMix survey.
+In a first step, we designed a statistical model that is able to appropriately describe the CoMix data.
+In a second step, we constructed a synthetic contact matrix by adapting the model including mobility data at the workplaces.
+We run the model separately for three countries: the Netherlands, Belgium and United Kingdom.
+All code is available from <https://github.com/anthonyhauser/social_contact>.
+
+## Data
+
+**CoMix social contact data**
+
+CoMix is a longitudinal multi-country survey aiming at monitoring behavioural changes during the COVID-19 pandemic in Europe from March 2020 to March 2022 Among the 20 countries that conducted the survey, Belgium, the Netherlands and the United Kingdom (UK) were the only ones starting in Spring 2020 and carrying it over 2021.
+At the start of the study, a representative panel of individuals (e.g., in terms of age, gender, region of residence) was recruited.
+For the following survey waves, additional panel members were recruited in case of significant proportion of lost-to-follow-ups.
+<!-- and for most countries, either socio-economic status, occupation or educational attainment (REF Verhelst). --> At each survey wave, participants were asked to report each contact they had in past 24 hours.
+They were also asked to indicate the setting (home, work, school, etc) as well as demographic information (e.g., age range) of the contacts.
+A contact is defined as an in-person conversation of at least a few words or a skin-contact (REF coletti 2020 Nature).
+
+The Netherlands gathered information about XX participants in XX survey waves from XX to XX.
+The median number of survey wave by participants was XX.
+XX participants reported their contacts in Belgium during XX survey from XX to XX.
+The number of participants was much higher in the UK with a total of XX, reporting contacts from XX to XX during XX survey waves The median number of survey wave by participants was also higher in the UK (XX) compared to the Netherlands (XX) and Belgium.
+<!-- Majority participated in several waves. --> For Netherlands and Belgium, the survey stopped between XX and XX, while social contact data were collected continuously in the UK.
+As we focused on work-related contacts, we only considered the adult participants separated in four age groups: 18-29, 30-49, 50-69, 70+.
+For the contacts, we still considered reported contacts with minor, thus including a fifth age group 0-17.
+
+Restriction to different age groups
