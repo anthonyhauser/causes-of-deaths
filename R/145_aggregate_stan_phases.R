@@ -13,12 +13,10 @@ aggregate_stan_group = function(age_class="80+",chains=1:4,mod="mod8",save.date,
     save.date = "20241218"
   }
   
-  groups=c("covid_phase","cal_year","cal_week","cod_group")
-  
   #get data (reported deaths)
   cod_agg_pop_nuts_df = readRDS(paste0(code_root_path,"/savepoint/cod_agg_pop_nuts_df.RDS"))
   data = cod_agg_pop_nuts_df %>% 
-    filter(age_class==.env$age_class,cod_group %in% c(causes,"COVID-19"),cal_year>=2020) %>% 
+    filter(age_class==.env$age_class,cod_group %in% c(causes,"COVID-19")) %>% 
     dplyr::mutate(sex = factor(sex,levels=c("M","F")),
                   sex_id = as.numeric(sex),
                   age_id = as.numeric(age_class),
@@ -26,7 +24,7 @@ aggregate_stan_group = function(age_class="80+",chains=1:4,mod="mod8",save.date,
                   #year.id = cal_year-min(cal_year)+1,
                   date=ISOweek2date(paste0(cal_year,"-W",ifelse(cal_week<10,paste0("0",cal_week),cal_week),"-1")),
                   week.id = as.numeric(1+(date-min(date))/7),
-                  covid_phase = map2_dbl(date, list(covid_phase), function(d, phases) {
+                  covid_phase = map2_dbl(date, list(covid_phase2), function(d, phases) {
                                                 phase <- phases %>%
                                                   filter(d >= start_date & d <= end_date) %>%
                                                   pull(phase)
@@ -39,6 +37,7 @@ aggregate_stan_group = function(age_class="80+",chains=1:4,mod="mod8",save.date,
   d=fit$draws(c("deaths_all_pred","deaths_all_pred0"))[,,]
   n_iter_per_chain = d[,1,1] %>% length()
   deaths_pred_sample = data %>%
+    filter(cal_year>=2020) %>% 
     group_by(cal_year,cal_week,date,age_class,cod_group,cod_group_id,week.id,covid_phase) %>%
     dplyr::summarise(n=sum(n),.groups="drop") %>%
     #dplyr::select(cal_year,cal_week,date,covid_phase,age_class,cod_group,n,cod_group_id,week.id) %>% #sex
@@ -87,40 +86,13 @@ aggregate_stan_group = function(age_class="80+",chains=1:4,mod="mod8",save.date,
   
   if(FALSE){
     deaths_pred_agg %>% 
-      filter(variable=="excess",pred=="poisson",cod_group!="Other Causes") %>% 
-             #covid_phase %in% 1:7) %>% 
+      filter(variable=="rel_excess",pred=="poisson",cod_group!="Other Causes",
+             covid_phase %in% 1:7) %>% 
       ggplot(aes(x=covid_phase,y=est,ymin=lwb,ymax=upb))+
       geom_pointrange()+
       geom_hline(yintercept = 0)+
       facet_grid(cod_group~age_class,scales = "free")
   }
-  deaths_pred_sample %>% 
-    filter(pred=="poisson",cod_group=="Cardiovascular Diseases",iter==1) %>% View()
-  deaths_pred_agg %>% 
-    filter(variable=="deaths",pred=="poisson",cod_group=="Cardiovascular Diseases") 
-  
-  res_list$data_pred_phase_cause %>% 
-    filter(variable=="deaths",pred=="poisson",
-           age_class=="80+",cod_group=="Cardiovascular Diseases") 
-  
-  
-  
-  deaths_pred_sample %>% 
-    filter(pred=="poisson",cod_group=="Cardiovascular Diseases",iter==1) %>% View()
-  deaths_pred_agg %>% 
-    filter(variable=="deaths",pred=="poisson",
-           age_class=="80+",cod_group=="Cardiovascular Diseases",cal_year==2020,cal_week==1) 
-  
-  res_list$data_pred_week_cause %>% 
-    filter(variable=="deaths",pred=="poisson",
-           age_class=="80+",cod_group=="Cardiovascular Diseases",cal_year==2020,cal_week==1) 
-  
-  
-  
-  
-  
-  fit$summary(variables="Sigma")
-  res_list$Sigma_mat 
   
   return(deaths_pred_agg)
 }

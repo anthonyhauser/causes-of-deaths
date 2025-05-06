@@ -46,6 +46,9 @@ summary_cmdstanr = function(fit=fit6, variable = "sigma",chains=chains){
                      `97.5%` = quantile(Freq,probs=0.975),.groups="drop")
 }
 
+quantile2 <- function(x, probs) {
+  if (any(is.na(x))) NA_real_ else quantile(x, probs = probs, na.rm = FALSE)
+}
 
 
 summarise_peak_dates <- function(.x) {

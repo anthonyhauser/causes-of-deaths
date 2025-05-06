@@ -564,6 +564,23 @@ if(FALSE){
     print(x);
     cumulative_excess(age_class=x,chains=1:4,mod=mod,save.date=save.date)}))
   saveRDS(cum_excess_pand_df,file=paste0("results/",save.date,"/",mod,"_cum_excess_pand_df.RDS"))
+  excess_phase2_pand_df = rbindlist(lapply(as.list(age_classes),function(x){
+    print(x);
+    aggregate_stan_group(age_class=x,chains=1:4,mod=mod,save.date=save.date,
+                         groups=c("covid_phase","age_class","cod_group"))}))
+  saveRDS(excess_phase2_pand_df,file=paste0("results/",save.date,"/",mod,"_excess_phase2_pand_df.RDS"))
+}
+
+
+################################################################################
+#Correlation of excess mortality with respiratory causes
+if(FALSE){
+  mod="mod8"; save.date="20241218";
+  corr_res_df = rbindlist(lapply(age_classes,function(a){
+    print(a)
+    corr_resp_lag_combine(age_class=a,chains=1:4,mod=mod,save.date=save.date)
+  }))
+  saveRDS(corr_res_df,file=paste0("results/",save.date,"/",mod,"_corr_res_df.RDS"))
 }
 
 ################################################################################################################################################################
@@ -964,8 +981,6 @@ res_list$data_pred_phase_cause %>%
   theme_bw() +
   theme(axis.text.x=element_text(angle=45,hjust = 1,size=10))
 
-
-
 #GP
 res_list$year_GP %>% 
   left_join(cod_df,by=c("cod_group"="cod_full")) %>% 
@@ -1096,7 +1111,6 @@ res_list$nuts_effect %>%
   theme(axis.text.x = element_text( angle = 45,
                                     hjust = 1,vjust=1,size = 11))+
   scale_color_discrete(name="NUTS2 region")
-
 
 
 #Correlation

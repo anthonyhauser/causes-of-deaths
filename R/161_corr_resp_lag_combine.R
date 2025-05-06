@@ -1,11 +1,11 @@
-cumulative_excess = function(age_class="80+",chains=1:4,mod="mod8",save.date){
+corr_resp_lag_combine = function(age_class="80+",chains=1:4,mod="mod8",save.date){
   causes = c("Cardiovascular Diseases","Respiratory Diseases", "Mental and Neurological Disorders",
              "Infectious and Parasitic Diseases",
              "Neoplasms (Cancers)","Suicide","External Causes",
              "Other Causes")
   
   if(FALSE){#debugging
-    age_class = "0-17"
+    age_class = "80+"
     chains = 1:4
     mod = "mod8"
     save.date = "20241218"
@@ -20,7 +20,6 @@ cumulative_excess = function(age_class="80+",chains=1:4,mod="mod8",save.date){
                   sex_id = as.numeric(sex),
                   age_id = as.numeric(age_class),
                   cod_group_id = as.numeric(factor(cod_group,levels=c(causes,"COVID-19"))),
-                  #year.id = cal_year-min(cal_year)+1,
                   date=ISOweek2date(paste0(cal_year,"-W",ifelse(cal_week<10,paste0("0",cal_week),cal_week),"-1")),
                   week.id = as.numeric(1+(date-min(date))/7)) %>% #week.id = dense_rank(date)) %>% 
     arrange(cod_group_id,week.id)
@@ -32,7 +31,6 @@ cumulative_excess = function(age_class="80+",chains=1:4,mod="mod8",save.date){
   deaths_pred_sample = data %>%
     group_by(cal_year,cal_week,date,age_class,cod_group,cod_group_id,week.id) %>%
     dplyr::summarise(n=sum(n),.groups="drop") %>%
-    #dplyr::select(cal_year,cal_week,date,covid_phase,age_class,cod_group,n,cod_group_id,week.id) %>% #sex
     left_join(.,
               as.data.frame(ftable(d[,,grepl("deaths_all_pred",dimnames(d)[[3]])])) %>% 
                 dplyr::mutate(chain = as.numeric(as.character(chain)),
@@ -40,7 +38,6 @@ cumulative_excess = function(age_class="80+",chains=1:4,mod="mod8",save.date){
                               iter=iteration+n_iter_per_chain*(chain-1)) %>% 
                 dplyr::filter(chain %in% chains) %>% 
                 dplyr::select(iter,var=variable,values=Freq) %>% 
-                #separate(col=var,into=c("variable","data_row"),sep="\\[") %>%
                 as.data.table() %>% 
                 .[, c("variable", "cod_group_id", "week.id") := .(
                   str_extract(var, "^[^\\[]+"),                 # Extract prefix (before [)
@@ -53,58 +50,61 @@ cumulative_excess = function(age_class="80+",chains=1:4,mod="mod8",save.date){
     dplyr::mutate(pred = factor(variable,levels=c("deaths_all_pred0","deaths_all_pred"),labels=c("poisson","dispersed poisson")))
   print("deaths_all_pred processed")
   
+  #cumulative excess: summary posterior estimates
   cum_excess_pand_df = deaths_pred_sample %>% 
-    dplyr::mutate(excess = n - values,
-                  excess = replace_na(excess,0)) %>% #for covid 
+    dplyr::mutate(values = if_else(cod_group=="COVID-19",0,values),
+                  excess = n - values) %>% #for covid 
     filter(cal_year>=2020) %>% 
-    arrange(cod_group_id,pred,iter,week.id) %>% 
-    group_by(cod_group_id,pred,iter) %>% 
-    dplyr::mutate(cum_excess = cumsum(excess),
-                  cum_deaths = cumsum(n),
-                  cum_expected = cumsum(values),
-                  rel_cum_excess = cum_excess/values[week.id==max(week.id)]) %>% ungroup() %>% 
-    group_by(age_class,cod_group,cod_group_id,pred) %>% 
-    dplyr::mutate(cum_expected_mean = mean(cum_expected[week.id==max(week.id)])) %>% ungroup() %>% 
     group_by(cal_year,cal_week,date,age_class,cod_group,cod_group_id,week.id,pred) %>% 
-    dplyr::summarise(excess_mean = mean(cum_excess),
-                     excess_lwb = quantile(cum_excess,probs = 0.025),
-                     excess_upb = quantile(cum_excess,probs = 0.975),
-                     rel_excess_mean = mean(rel_cum_excess),
-                     rel_excess_lwb = quantile2(rel_cum_excess,probs = 0.025),
-                     rel_excess_upb = quantile2(rel_cum_excess,probs = 0.975),
-                     rel_excess_mean2 = mean(excess_mean/cum_expected_mean),
-                     rel_excess_lwb2 = quantile2(cum_excess/cum_expected_mean,probs = 0.025),
-                     rel_excess_upb2 = quantile2(cum_excess/cum_expected_mean,probs = 0.975))
+    dplyr::summarise(excess_mean = mean(excess),
+                     excess_lwb = quantile(excess,probs = 0.025),
+                     excess_upb = quantile(excess,probs = 0.975),.groups="drop")
+  #Adapt structure of the data
+  reshaped_df <- cum_excess_pand_df %>%
+    filter(is.na(pred) | pred=="poisson") %>% 
+    dplyr::mutate(week.id=week.id-min(week.id)+1) %>% 
+    dplyr::select(week.id,age_class,cod_group,excess_mean) %>% 
+    pivot_wider(names_from = cod_group, values_from = excess_mean) %>% 
+    arrange(week.id)
   
-    # dplyr::mutate(covid_phase = map2_dbl(date, list(covid_phase), function(d, phases) {
-    #                                       phase <- phases %>%
-    #                                         filter(d >= start_date & d <= end_date) %>%
-    #                                         pull(phase)
-    #                                       if (length(phase) == 0) NA_real_ else phase
-    #                                            }),
-    #               week_id2 = week.id -min(week.id)+1,
-    #               month_id = (week_id2 -1) %/% 4) %>% 
+  #jobs
+  jobs <- CJ(y = setdiff(causes, "Respiratory Diseases"),
+             lag = -8:8)
+  
+  # Run the function across all combinations
+  pb <- progress_bar$new(total = nrow(jobs))
+  results <- lapply(seq_len(nrow(jobs)), function(j) {
+    pb$tick()
+    row <- jobs[j]
+    corr_resp_lag_noci(
+      data = reshaped_df,
+      x = c("COVID-19", "Respiratory Diseases"),
+      y = row$y,
+      lag = row$lag)
+    })
+  # Combine once
+  df_res <- rbindlist(results)
+  
+  # df_res = rbindlist(lapply(setdiff(causes,c("Respiratory Diseases")), function(y) {
+  #   print(y)
+  #   rbindlist(lapply(-15:15,function(l) corr_resp_lag(data=reshaped_df,x=c("COVID-19","Respiratory Diseases"),
+  #                                                     y=y,lag=l)))
+  # }))
   
   if(FALSE){
-    cum_excess_pand_df %>% 
-      filter(pred=="poisson",cod_group!="Other Causes") %>% 
-      ggplot(aes(x=date,y=excess_mean,ymin=excess_lwb,ymax=excess_upb))+
+    df_res %>% 
+      filter(var!="(Intercept)",lag>=-8,lag<=8) %>% 
+      ggplot(aes(x=lag,y=est,ymin=lwb,ymax=upb,fill=var))+
       geom_ribbon(alpha=0.1)+
-      geom_line()+
-      facet_grid(age_class~cod_group,scales = "free")
-    cum_excess_pand_df %>% 
-      filter(pred=="poisson",cod_group!="Other Causes") %>% 
-      ggplot(aes(x=date,y=rel_excess_mean2,ymin=rel_excess_lwb2,ymax=rel_excess_upb2))+
-      geom_ribbon(alpha=0.1)+
-      geom_line()+
-      facet_grid(age_class~cod_group,scales = "free")+
-      scale_y_continuous(labels = scales::percent)
-    
-    cum_excess_pand_df %>% 
-      filter(pred=="poisson",cod_group=="External Causes")
+      geom_line(aes(col=var))+
+      geom_point(aes(col=var))+
+      geom_line(aes(y=pcor_est),linetype="dashed")+
+      geom_line(aes(y=r_squared),col="black",linetype="dashed")+
+      geom_hline(yintercept = 0,linetype="dashed") +
+      scale_y_continuous(limits=c(-1,1))+
+      facet_wrap(.~y)
   }
-  
-  return(cum_excess_pand_df)
+  return(df_res)
 }
 
 

@@ -11,6 +11,8 @@ wd_ofsp = "L:/UNISANTE_DESS/S_SUMAC/OFSP_2023/"
 data_folder = paste0(wd_ofsp,"02_data/cause_of_death/")
 save.date="20241218"
 
+col_age = viridis_pal()(5)[5:1]
+
 ################################################################################
 #Individual dataset
 cod_ind_df = readRDS(paste0(code_root_path,"savepoint/cod_ind_df.RDS"))
@@ -47,21 +49,62 @@ causes2_df = data.frame(cod_group=c("Cardiovascular Diseases","Infectious and Pa
 #Aggregated dataset and results
 add_apo = function(x){format(x, big.mark=",")}
 
-cod_agg_pop_df = readRDS(paste0(code_root_path,"savepoint/cod_agg_pop_df.RDS"))
-age_classes = cod_agg_pop_df$age_class %>% unique()
-setwd(code_root_path)
-res_list = load_results_mod6(age_classes, save.date="20241218",mod="mod8")
+cod_agg_pop_df = readRDS(paste0(code_root_path,"savepoint/cod_agg_pop_df.RDS")) #used to add covid-19 deaths in Figure 2
+cod_agg_pop_nuts_df = readRDS(paste0(code_root_path,"savepoint/cod_agg_pop_nuts_df.RDS")) #used for Figure 1.1
+age_classes = cod_agg_pop_df$age_class %>% unique() #used
+setwd(code_root_path) #in order to load res_list
+res_list = load_results_mod6(age_classes, save.date="20241218",mod="mod8") #used
 
-cod_agg_pop_df = cod_agg_pop_df %>%
-  dplyr::mutate(date=ISOweek2date(paste0(cal_year,"-W",ifelse(cal_week<10,paste0("0",cal_week),cal_week),"-1"))) %>% 
-  mutate(covid_phase = map2_dbl(date, list(covid_phase), function(d, phases) {
-    phase <- phases %>%
-      filter(d >= start_date & d <= end_date) %>%
-      pull(phase)
-    if (length(phase) == 0) NA_real_ else phase
-  }))
+#not used
+# cod_agg_pop_df = cod_agg_pop_df %>%
+#   dplyr::mutate(date=ISOweek2date(paste0(cal_year,"-W",ifelse(cal_week<10,paste0("0",cal_week),cal_week),"-1"))) %>% 
+#   mutate(covid_phase = map2_dbl(date, list(covid_phase), function(d, phases) {
+#     phase <- phases %>%
+#       filter(d >= start_date & d <= end_date) %>%
+#       pull(phase)
+#     if (length(phase) == 0) NA_real_ else phase
+#   }))
 
-################################################################################
+################################################################################################################################################################
+#Figure 1.1
+p1 = cod_agg_pop_nuts_df %>% 
+  filter(cal_year == 2020) %>% 
+  group_by(age_class) %>% 
+  dplyr::summarise(n = sum(n), .groups = "drop") %>% 
+  dplyr::mutate(p = n / sum(n),
+         label = paste0(signif(100 * p, 2), "%")) %>% 
+  ggplot(aes(x = age_class, y = n)) +
+  geom_col(fill = "gray") +
+  geom_text(aes(label = label), vjust = -0.5) +
+  scale_x_discrete(name = "Age class") +
+  scale_y_continuous(name = "Deaths")
+
+p2 = cod_agg_pop_nuts_df %>%
+  filter(cal_year == 2020) %>% 
+  dplyr::mutate(cod_group = factor(cod_group,levels=causes2_df$cod_group[c(1:9)],#put in the right order
+                                   labels=causes2_df$cod_group_label[c(1:9)]),
+                cod_group_id = as.numeric(cod_group)) %>% 
+  filter(!is.na(cod_group)) %>% 
+  group_by(age_class,cod_group,cod_group_id) %>% 
+  dplyr::summarise(n = sum(n), .groups = "drop") %>% 
+  group_by(age_class) %>% 
+  dplyr::mutate(p = n / sum(n)) %>% ungroup() %>% 
+  ggplot(aes(x=cod_group_id,y=p,col=age_class))+
+  geom_point()+
+  geom_line()+
+  scale_x_continuous(name="Causes of deaths",breaks=causes2_df$order,
+                   labels=causes2_df$cod_group_label)+
+  scale_y_continuous(name="Distribution of deaths", labels=scales::percent)+
+  scale_color_manual(name="Age class",values=col_age)
+
+fig1_1 = cowplot::plot_grid(p1,p2,
+                   ncol=2,rel_widths = c(1,2),
+                   labels=c("A.","B."))
+
+pdf(file=paste0(code_root_path,"/manuscript/fig1_1.pdf"),width=12,height=6)
+print(fig1_1)
+dev.off()
+
 # Fig 1
 causes2_df = causes2_df %>% 
   dplyr::mutate(cod_group_label = ifelse(cod_group_label=="Mental/Neurological",
@@ -236,8 +279,254 @@ dev.off()
 
 
 ################################################################################
-#Figure 3
+#Figure 3: excess by age and cod
+cum_excess_pand_df
+
+excess_phase2_pand_df = readRDS(paste0("results/",save.date,"/","mod8","_excess_phase2_pand_df.RDS"))
+cum_excess_pand_df = readRDS(paste0("results/",save.date,"/","mod8","_cum_excess_pand_df.RDS"))
+
+excess_phase2_pand_df
+cum_excess_pand_df
+covid_phase2
+
+cum_excess_pand_df %>% 
+  filter(pred=="poisson",cod_group!="Other Causes",age_class=="80+") %>% 
+  dplyr::mutate(cod_group = factor(cod_group,levels=causes2_df$cod_group[c(1:5)],#put in the right order
+                                   labels=causes2_df$cod_group_label[c(1:5)]),
+                cod_group_id = as.numeric(cod_group)) %>% 
+  filter(!is.na(cod_group)) %>% 
+  ggplot(aes(x=date,y=excess_mean,ymin=excess_lwb,ymax=excess_upb))+
+  geom_ribbon(alpha=0.1)+
+  geom_line()+
+  facet_grid(cod_group~age_class,scales = "free")
+
+
+#Figure 4: Correlation
+
+
+#Figure 3: Data
+
+# Filter and prepare weekly cumulative excess data
+cum_df <- cum_excess_pand_df %>% 
+  filter(pred == "poisson",
+         age_class == "80+",
+         cod_group %in% causes2_df$cod_group[c(1:5)]) %>%
+  mutate(cod_group = factor(cod_group,
+                            levels = causes2_df$cod_group[c(1:5)],
+                            labels = causes2_df$cod_group_label[c(1:5)]))
+
+# Filter and prepare phase-level data
+phase_df0 <- excess_phase2_pand_df %>%
+  filter(covid_phase<8,
+         variable == "rel_excess",
+         pred == "poisson",
+         age_class == "80+",
+         cod_group %in% causes2_df$cod_group[c(1:5)]) %>%
+  mutate(cod_group = factor(cod_group,
+                            levels = causes2_df$cod_group[c(1:5)],
+                            labels = causes2_df$cod_group_label[c(1:5)])) %>%
+  left_join(covid_phase2, by = c("covid_phase" = "phase")) %>%
+  mutate(phase_mid = start_date + (end_date - start_date)/2)
+
+labels_df <- cum_df %>%
+  filter(week.id == max(week.id)) %>%
+  dplyr::mutate(label = paste0("Cum. excess: ", round(excess_mean))) %>%
+  left_join(cum_df %>%
+      group_by(cod_group) %>%
+        dplyr::summarise(rib_max = max(rel_excess_upb2, na.rm = TRUE), .groups = "drop") %>%
+      left_join(
+        phase_df0 %>%
+          group_by(cod_group) %>%
+          summarise(point_max = max(upb, na.rm = TRUE), .groups = "drop"),  by = "cod_group") %>%
+      dplyr::mutate(y_pos = pmax(rib_max, point_max, na.rm = TRUE) + 0.02) %>%
+      select(cod_group, y_pos),by = "cod_group")
+
+#plot
+ggplot() +
+  # Weekly ribbon + line
+  geom_ribbon(data = cum_df,aes(x = date,ymin = rel_excess_lwb2,ymax = rel_excess_upb2),
+              fill = "gray80", alpha = 0.3) +
+  geom_line(data = cum_df, aes(x = date, y = rel_excess_mean2),
+            color = "black", size = 0.7) +
+  # Phase estimates (scaled)
+  geom_pointrange(data = phase_df0, aes(x = phase_mid,y = est,
+                                       ymin = lwb,ymax = upb, color = labels),
+                  position = position_dodge(width = 0.3),size = 0.8) +
+  # Vertical phase boundaries
+  geom_hline(yintercept=0,linetype=4)+
+  geom_vline(data = covid_phase2,
+             aes(xintercept = as.numeric(start_date)),
+             linetype = "dashed", color = "black") +
+  geom_text(data = labels_df,aes(x = date, y = y_pos, label = label),
+            inherit.aes = FALSE,
+            size = 3.5,vjust = 1, hjust = 1,color = "black")+
+  facet_wrap(~ cod_group, scales = "free_y",nrow=1) +
+  scale_y_continuous(name = "Relative excess mortality",
+                     labels = scales::percent_format(accuracy = 1)) +
+  scale_x_date(name = "Date") +
+  scale_color_viridis_d(name = "COVID Phase",option = "C") +
+  theme(axis.title.y.left = element_text(color = "black"),
+        axis.title.y.right = element_text(color = "black"),
+        legend.position = "bottom",
+        strip.text = element_text(size = 11))
+
+#dual y axis
+# Calculate scale factor per cod_group
+scale_df <- cum_df %>%
+  group_by(cod_group) %>%
+  dplyr::summarise(max_excess = max(abs(rel_excess_mean2), na.rm = TRUE)) %>%
+  left_join(phase_df0 %>%
+              group_by(cod_group) %>%
+              summarise(max_rel = max(abs(est), na.rm = TRUE)), by = "cod_group") %>%
+  dplyr::mutate(scale_factor = max_excess / max_rel)
+
+# Join scale factor back into phase data
+phase_df <- phase_df0 %>%
+  left_join(scale_df %>% select(cod_group, scale_factor), by = "cod_group") %>%
+  dplyr::mutate(est_scaled = est * scale_factor,
+                lwb_scaled = lwb * scale_factor,
+                upb_scaled = upb * scale_factor)
+
+# Plot
+ggplot() +
+  # Weekly ribbon + line
+  geom_ribbon(data = cum_df,aes(x = date,ymin = rel_excess_lwb2,ymax = rel_excess_upb2),
+              fill = "gray80", alpha = 0.3) +
+  geom_line(data = cum_df, aes(x = date, y = rel_excess_mean2),
+            color = "black", size = 0.7) +
+  # Phase estimates (scaled)
+  geom_pointrange(data = phase_df, aes(x = phase_mid,y = est_scaled,
+                                       ymin = lwb_scaled,ymax = upb_scaled, color = labels),
+                  position = position_dodge(width = 0.3),size = 0.8) +
+  # Vertical phase boundaries
+  geom_hline(yintercept=0,linetype=4)+
+  geom_vline(data = covid_phase2,
+             aes(xintercept = as.numeric(start_date)),
+             linetype = "dashed", color = "black") +
+  facet_wrap(~ cod_group, scales = "free_y") +
+  scale_y_continuous(name = "Cumulative excess deaths",
+                     labels = scales::percent_format(accuracy = 1),
+                     sec.axis = sec_axis(
+                       trans = ~ ./1,  # identity transform (already scaled)
+                       labels = scales::percent_format(accuracy = 1),
+                       name = "Relative excess mortality (per phase)")) +
+  scale_x_date(name = "Date") +
+  scale_color_viridis_d(name = "COVID Phase",option = "C") +
+  theme(axis.title.y.left = element_text(color = "black"),
+        axis.title.y.right = element_text(color = "black"),
+        legend.position = "bottom",
+        strip.text = element_text(size = 11))
 
 
 
+
+
+# Set number of causes per age group
+n_causes <- 5
+
+# Get top causes per age group in 2020
+top_causes <- cod_agg_pop_nuts_df %>%
+  filter(cod_group!="COVID-19",cod_group!="Other Causes") %>% 
+  filter(cal_year == 2020) %>%
+  group_by(age_class, cod_group) %>%
+  summarise(n = sum(n), .groups = "drop") %>%
+  semi_join(causes2_df, by = "cod_group") %>%
+  group_by(age_class) %>%
+  slice_max(order_by = n, n = n_causes, with_ties = FALSE) %>%
+  ungroup()
+
+cod_list <- top_causes %>%
+  group_by(age_class) %>%
+  summarise(causes = list(cod_group), .groups = "drop") %>%
+  deframe()
+
+# List of age classes
+age_classes <- unique(top_causes$age_class)
+
+# 1. Create plots with and without legends
+plots_with_legend <- lapply(age_classes, function(age) {
+  top_cod <- top_causes %>% filter(age_class == age)
+  
+  cum_df_sub <- cum_excess_pand_df %>%
+    filter(pred == "poisson", age_class == age,
+           cod_group %in% cod_list[[age]]) %>% 
+    mutate(cod_group = factor(cod_group,
+                              levels = causes2_df$cod_group,
+                              labels = causes2_df$cod_group_label))
+  
+  phase_df_sub <- excess_phase2_pand_df %>%
+    filter(covid_phase < 8,
+           variable == "rel_excess",
+           pred == "poisson",
+           age_class == age) %>%
+    semi_join(top_cod, by = c("age_class", "cod_group")) %>%
+    mutate(cod_group = factor(cod_group,
+                              levels = causes2_df$cod_group,
+                              labels = causes2_df$cod_group_label)) %>%
+    left_join(covid_phase2, by = c("covid_phase" = "phase")) %>%
+    mutate(phase_mid = start_date + (end_date - start_date)/2)
+  
+  labels_df <- cum_df_sub %>%
+    filter(week.id == max(week.id)) %>%
+    mutate(label = paste0("Cum. excess: ", round(excess_mean))) %>%
+    left_join(
+      cum_df_sub %>%
+        group_by(cod_group) %>%
+        summarise(rib_max = max(rel_excess_upb2, na.rm = TRUE), .groups = "drop") %>%
+        left_join(
+          phase_df_sub %>%
+            group_by(cod_group) %>%
+            summarise(point_max = max(upb, na.rm = TRUE), .groups = "drop"),
+          by = "cod_group") %>%
+        mutate(y_pos = pmax(rib_max, point_max, na.rm = TRUE) + 0.02) %>%
+        select(cod_group, y_pos),
+      by = "cod_group")
+  
+  p <- ggplot() +
+    geom_ribbon(data = cum_df_sub, aes(x = date, ymin = rel_excess_lwb2, ymax = rel_excess_upb2),
+                fill = "gray80", alpha = 0.3) +
+    geom_line(data = cum_df_sub, aes(x = date, y = rel_excess_mean2),
+              color = "black", size = 0.7) +
+    geom_pointrange(data = phase_df_sub,
+                    aes(x = phase_mid, y = est, ymin = lwb, ymax = upb, color = labels),
+                    position = position_dodge(width = 0.3), size = 0.8) +
+    geom_hline(yintercept = 0, linetype = 4) +
+    geom_vline(data = covid_phase2, aes(xintercept = as.numeric(start_date)),
+               linetype = "dashed", color = "black") +
+    geom_text(data = labels_df,
+              aes(x = date, y = y_pos, label = label),
+              inherit.aes = FALSE, size = 3.5, vjust = 0, hjust = 1, color = "black") +
+    facet_wrap(~ cod_group, scales = "free_y", nrow = 1) +
+    scale_y_continuous(name = "Relative excess mortality", labels = scales::percent_format(accuracy = 1)) +
+    scale_x_date(name = "Date") +
+    scale_color_viridis_d(name = "COVID Phase", option = "C") +
+    theme(
+      axis.title.y.left = element_text(color = "black"),
+      legend.position = "bottom",
+      strip.text = element_text(size = 11),
+      plot.title = element_text(face = "bold", hjust = 0.5)
+    )
+  
+  return(p)
+})
+
+
+
+
+
+##############################################################################################################################################
+#Correlation
+#aggregate
+corr_res_df = readRDS(paste0("results/",save.date,"/",mod,"_corr_res_df.RDS"))
+corr_res_df %>% 
+  filter(var!="(Intercept)",lag>=-8,lag<=8) %>% 
+  ggplot(aes(x=lag,y=est,ymin=lwb,ymax=upb,fill=var))+
+  geom_ribbon(alpha=0.1)+
+  geom_line(aes(col=var))+
+  geom_point(aes(col=var))+
+  geom_line(aes(y=pcor_est),linetype="dashed")+
+  geom_line(aes(y=r_squared),col="black",linetype="dashed")+
+  geom_hline(yintercept = 0,linetype="dashed") +
+  scale_y_continuous(limits=c(-1,1))+
+  facet_grid(age_class~y)
 
