@@ -1,25 +1,26 @@
-corr_resp_lag_combine = function(age_class="80+",chains=1:4,mod="mod8",save.date){
-  causes = c("Cardiovascular Diseases","Respiratory Diseases", "Mental and Neurological Disorders",
-             "Infectious and Parasitic Diseases",
-             "Neoplasms (Cancers)","Suicide","External Causes",
-             "Other Causes")
-  
+corr_resp_lag_post_cluster = function(age_class="80+", y, chains=1:4, mod="mod8", save.date){
   if(FALSE){#debugging
+    y = "Mental and Neurological Disorders"
     age_class = "80+"
     chains = 1:4
     mod = "mod8"
     save.date = "20241218"
   }
   
+  causes = c("Cardiovascular Diseases","Respiratory Diseases", "Mental and Neurological Disorders",
+             "Infectious and Parasitic Diseases",
+             "Neoplasms (Cancers)","Suicide","External Causes",
+             "Other Causes", "COVID-19")
+  
   #get data (reported deaths)
   cod_agg_pop_nuts_df = readRDS(paste0(code_root_path,"/savepoint/cod_agg_pop_nuts_df.RDS"))
   data = cod_agg_pop_nuts_df %>% 
     filter(age_class==.env$age_class) %>% 
-    filter(cod_group %in% c(causes,"COVID-19")) %>% 
+    filter(cod_group %in% causes) %>% 
     dplyr::mutate(sex = factor(sex,levels=c("M","F")),
                   sex_id = as.numeric(sex),
                   age_id = as.numeric(age_class),
-                  cod_group_id = as.numeric(factor(cod_group,levels=c(causes,"COVID-19"))),
+                  cod_group_id = as.numeric(factor(cod_group,levels=causes)),
                   date=ISOweek2date(paste0(cal_year,"-W",ifelse(cal_week<10,paste0("0",cal_week),cal_week),"-1")),
                   week.id = as.numeric(1+(date-min(date))/7)) %>% #week.id = dense_rank(date)) %>% 
     arrange(cod_group_id,week.id)
@@ -70,41 +71,43 @@ corr_resp_lag_combine = function(age_class="80+",chains=1:4,mod="mod8",save.date
     pivot_wider(names_from = cod_group, values_from = excess) %>% 
     arrange(iter,week.id)
   
-  df_res = rbindlist(lapply(setdiff(causes,c("Respiratory Diseases"))[1], function(y) {
-    print(y)
-    rbindlist(lapply(-1:1,function(l){
-      print(l)
-      rbindlist(lapply(1:n_iter,function(i){
-        corr_resp_lag(data=reshaped_df %>% filter(iter==i),x=c("COVID-19","Respiratory Diseases"),
-                      y=y,lag=l)
-      }))}))}))
+  
+  # df_res = rbindlist(lapply(setdiff(causes,c("Respiratory Diseases"))[1], function(y) {
+  #   print(y)
+  #   rbindlist(lapply(-1:1,function(l){
+  #     print(l)
+  #     rbindlist(lapply(1:n_iter,function(i){
+  #       corr_resp_lag(data=reshaped_df %>% filter(iter==i),x=c("COVID-19","Respiratory Diseases"),
+  #                     y=y,lag=l)
+  #     }))}))}))
   
   
   split_data <- split(reshaped_df, reshaped_df$iter)
   
   # Create all combinations
-  jobs <- CJ(y = setdiff(causes, "Respiratory Diseases"), 
-             lag = -8:8, 
+  jobs <- CJ(lag = -1:1, 
              i = seq_len(n_iter))
   
   pb <- progress_bar$new(total = nrow(jobs))
-  results <- lapply(seq_len(nrow(jobs)), function(j) {
+  df_res <- lapply(seq_len(nrow(jobs)), function(j) {
     pb$tick()
     row <- jobs[j]
-    corr_resp_lag(data = split_data[[row$i]], 
+    corr_resp_lag_noci(data = split_data[[row$i]], 
                   x = c("COVID-19", "Respiratory Diseases"), 
-                  y = row$y, 
+                  y = y, 
                   lag = row$lag)
-  })
+  }) %>% rbindlist() %>% 
+    dplyr::mutate(age_class=age_class) %>% 
+    group_by(var,lag,y,age_class) %>% 
+    dplyr::summarise(corr_mean = mean(pcor_est),
+                     corr_median = median(pcor_est),
+                     corr_lwb = quantile(pcor_est,probs = 0.025),
+                     corr_upb = quantile(pcor_est,probs = 0.975))
   
   
-  df_res = rbindlist(lapply(-15:15,function(x) corr_resp_lag(data=reshaped_df,x=c("COVID-19","Respiratory Diseases"),
-                                                             y="Cardiovascular Diseases",lag=x)))
-  df_res = rbindlist(lapply(-15:15,function(x) corr_resp_lag(data=reshaped_df,x=c("COVID-19","Respiratory Diseases"),
-                                                             y="Mental and Neurological Disorders",lag=x)))
-  
+  saveRDS(df_res,file=paste0("results/",save.date,"/",mod,"_","corr_resp_lag_post_",which(causes==y),"_",age_class,".RDS"))
   if(FALSE){
-    df_res %>% 
+    df_res  %>% 
       filter(var!="(Intercept)",lag>=-8,lag<=8) %>% 
       ggplot(aes(x=lag,y=est,ymin=lwb,ymax=upb,fill=var))+
       geom_ribbon(alpha=0.1)+
@@ -116,7 +119,5 @@ corr_resp_lag_combine = function(age_class="80+",chains=1:4,mod="mod8",save.date
       scale_y_continuous(limits=c(-1,1))+
       facet_wrap(.~y)
   }
-  return(df_res)
+  return("df_res")
 }
-
-
