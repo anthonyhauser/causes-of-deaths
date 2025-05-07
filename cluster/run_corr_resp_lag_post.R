@@ -32,10 +32,10 @@ causes_corr =  causes = c("Cardiovascular Diseases", "Mental and Neurological Di
                           "Neoplasms (Cancers)","Suicide","External Causes",
                           "Other Causes")
 
-corr_resp_lag_post_cluster = function(age_class=age_classes[args[1]],
-                                      y = causes_corr[args[2]],
-                                      chains=1:4,mod="mod8",
-                                      save.date)
+corr_resp_lag_post_cluster(age_class=age_classes[args[1]],
+                           y = causes_corr[args[2]],
+                           chains=1:4,mod="mod8",
+                           save.date)
 if(FALSE){
   age_class = age_classes[args[1]]
   y = causes_corr[args[2]]

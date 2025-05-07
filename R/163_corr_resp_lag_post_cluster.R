@@ -11,6 +11,7 @@ corr_resp_lag_post_cluster = function(age_class="80+", y, chains=1:4, mod="mod8"
              "Infectious and Parasitic Diseases",
              "Neoplasms (Cancers)","Suicide","External Causes",
              "Other Causes", "COVID-19")
+  print("Start")
   
   #get data (reported deaths)
   cod_agg_pop_nuts_df = readRDS(paste0(code_root_path,"/savepoint/cod_agg_pop_nuts_df.RDS"))
@@ -85,7 +86,7 @@ corr_resp_lag_post_cluster = function(age_class="80+", y, chains=1:4, mod="mod8"
   split_data <- split(reshaped_df, reshaped_df$iter)
   
   # Create all combinations
-  jobs <- CJ(lag = -1:1, 
+  jobs <- CJ(lag = -15:15, 
              i = seq_len(n_iter))
   
   pb <- progress_bar$new(total = nrow(jobs))
@@ -105,7 +106,7 @@ corr_resp_lag_post_cluster = function(age_class="80+", y, chains=1:4, mod="mod8"
                      corr_upb = quantile(pcor_est,probs = 0.975))
   
   
-  saveRDS(df_res,file=paste0("results/",save.date,"/",mod,"_","corr_resp_lag_post_",which(causes==y),"_",age_class,".RDS"))
+  saveRDS(df_res,file=paste0(code_root_path,"/results/",save.date,"/",mod,"_","corr_resp_lag_post_",which(causes==y),"_",age_class,".RDS"))
   if(FALSE){
     df_res  %>% 
       filter(var!="(Intercept)",lag>=-8,lag<=8) %>% 
