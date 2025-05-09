@@ -1,5 +1,6 @@
 observed_peak = function(cod_agg_pop_df){
   peak_date = cod_agg_pop_df %>% 
+    dplyr::mutate(date=ISOweek2date(paste0(cal_year,"-W",ifelse(cal_week<10,paste0("0",cal_week),cal_week),"-1"))) %>% 
     #smooth aggregated deaths
     dplyr::filter(cod_group!="COVID-19") %>% 
     dplyr::mutate(period_id = if_else(month(date) >= 7, year(date), year(date) - 1),
@@ -19,13 +20,12 @@ observed_peak = function(cod_agg_pop_df){
     dplyr::summarise(n_dates = n(),
                      rel_peak = mean(rel_peak),
                      interval = max(date)-min(date),
-                     date = if (n()[1] <= 3 && (max(date) - min(date)) <= 15) mean(date) else as.Date(NA),.groups = "drop") %>% 
+                     date = if ((max(date) - min(date)) <= 15) mean(date) else as.Date(NA), .groups = "drop") %>% #we only keep peak estimates when the maxium values are all within 2 weeks
     dplyr::mutate(shift_dir = case_when(date < as.Date("2019-07-01") ~ ceiling(as.numeric(as.Date("2019-07-01") - date) / 365.25),
                                         date > as.Date("2020-06-30") ~ -ceiling(as.numeric(date - as.Date("2020-06-30")) / 365.25),
                                         TRUE ~ 0)) %>%
     dplyr::mutate(across(c(date), ~ . + years(shift_dir))) %>%
-    select(-shift_dir)
+    dplyr::select(-shift_dir)
   return(peak_date)
 }
-  
   

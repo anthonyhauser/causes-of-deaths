@@ -67,29 +67,30 @@ corr_resp_lag_combine = function(age_class="80+",chains=1:4,mod="mod8",save.date
     pivot_wider(names_from = cod_group, values_from = excess_mean) %>% 
     arrange(week.id)
   
-  #jobs
-  jobs <- CJ(y = setdiff(causes, "Respiratory Diseases"),
-             lag = -8:8)
+  # #jobs
+  # jobs <- CJ(y = setdiff(causes, "Respiratory Diseases"),
+  #            lag = -8:8)
+  # 
+  # # Run the function across all combinations
+  # pb <- progress_bar$new(total = nrow(jobs))
+  # results <- lapply(seq_len(nrow(jobs)), function(j) {
+  #   pb$tick()
+  #   row <- jobs[j]
+  #   corr_resp_lag(
+  #     data = reshaped_df,
+  #     x = c("COVID-19", "Respiratory Diseases"),
+  #     y = row$y,
+  #     lag = row$lag)
+  #   })
+  # # Combine once
+  # df_res <- rbindlist(results)
   
-  # Run the function across all combinations
-  pb <- progress_bar$new(total = nrow(jobs))
-  results <- lapply(seq_len(nrow(jobs)), function(j) {
-    pb$tick()
-    row <- jobs[j]
-    corr_resp_lag_noci(
-      data = reshaped_df,
-      x = c("COVID-19", "Respiratory Diseases"),
-      y = row$y,
-      lag = row$lag)
-    })
-  # Combine once
-  df_res <- rbindlist(results)
-  
-  # df_res = rbindlist(lapply(setdiff(causes,c("Respiratory Diseases")), function(y) {
-  #   print(y)
-  #   rbindlist(lapply(-15:15,function(l) corr_resp_lag(data=reshaped_df,x=c("COVID-19","Respiratory Diseases"),
-  #                                                     y=y,lag=l)))
-  # }))
+  df_res = rbindlist(lapply(setdiff(causes,c("Respiratory Diseases")), function(y) {
+    print(y)
+    rbindlist(lapply(-15:15,function(l) corr_resp_lag(data=reshaped_df,x=c("COVID-19","Respiratory Diseases"),
+                                                      y=y,lag=l)))
+  })) %>% 
+    dplyr::mutate(age_class=age_class)
   
   if(FALSE){
     df_res %>% 

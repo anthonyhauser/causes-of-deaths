@@ -557,16 +557,17 @@ if(FALSE){
   saveRDS(observed_peak_date_df,file=paste0("results/","observed_peak_date_df.RDS"))
 }
 ################################################################################
-#Cumulative excess
+#Cumulative excess and excess by phase
 if(FALSE){
   mod="mod8"; save.date="20241218";
   cum_excess_pand_df = rbindlist(lapply(as.list(age_classes),function(x){
     print(x);
     cumulative_excess(age_class=x,chains=1:4,mod=mod,save.date=save.date)}))
   saveRDS(cum_excess_pand_df,file=paste0("results/",save.date,"/",mod,"_cum_excess_pand_df.RDS"))
+  
   excess_phase2_pand_df = rbindlist(lapply(as.list(age_classes),function(x){
     print(x);
-    aggregate_stan_group(age_class=x,chains=1:4,mod=mod,save.date=save.date,
+    aggregate_stan_group(age_class = x, chains=1:4, mod=mod, save.date=save.date,
                          groups=c("covid_phase","age_class","cod_group"))}))
   saveRDS(excess_phase2_pand_df,file=paste0("results/",save.date,"/",mod,"_excess_phase2_pand_df.RDS"))
 }
@@ -575,14 +576,28 @@ if(FALSE){
 ################################################################################
 #Correlation of excess mortality with respiratory causes
 if(FALSE){
+  #Correlation (both approximated by glm and estimated by the pcorr function)
+  #Note: for both functions we used the mean excess mortality and for glm we provide 95%CI of the correlation estimates -> NOT POSTERIOR ESTIMATES
   mod="mod8"; save.date="20241218";
   corr_res_df = rbindlist(lapply(age_classes,function(a){
     print(a)
     corr_resp_lag_combine(age_class=a,chains=1:4,mod=mod,save.date=save.date)
   }))
   saveRDS(corr_res_df,file=paste0("results/",save.date,"/",mod,"_corr_res_df.RDS"))
+  #2. Posterior estimates of the partial correlation between excess mortality samples
+  #combine posterior partial correlation that were computed in the cluster (would take too much time to run it locally)
+  files = list.files(pattern = paste0(mod, "_corr_resp_lag_post"),
+                     path = paste0(code_root_path, "/results/", save.date),full.names = TRUE)
+  corr_post_res_df = rbindlist(lapply(files,function(x) readRDS(x)))
+  saveRDS(corr_post_res_df,file=paste0("results/",save.date,"/",mod,"_corr_post_res_df.RDS"))
 }
 
+
+
+files = list.files(pattern = paste0(mod, "_corr_resp_lag_post"),
+  path = paste0(code_root_path, "/results/", save.date),full.names = TRUE)
+corr_post_res_df = rbindlist(lapply(files,function(x) readRDS(x)))
+saveRDS(corr_post_res_df,file=paste0("results/",save.date,"/",mod,"_corr_post_res_df.RDS"))
 ################################################################################################################################################################
 ################################################################################################################################################################
 #Plot

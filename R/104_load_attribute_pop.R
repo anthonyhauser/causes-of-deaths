@@ -21,8 +21,8 @@ load_attribute_pop = function(cod_agg_df){#pop = get_pop_by_age_sex_year_ctn()
     dplyr::summarise(n=sum(n),.groups="drop")
   
   #add a column with pop of the next year
-  pop = inner_join(pop %>% select(cal_year,age_class,sex,n_end = n),
-                   pop %>% dplyr::mutate(cal_year=cal_year+1) %>% select(cal_year,age_class,sex,n_start = n),
+  pop = inner_join(pop %>% dplyr::select(cal_year,age_class,sex,n_end = n),
+                   pop %>% dplyr::mutate(cal_year=cal_year+1) %>% dplyr::select(cal_year,age_class,sex,n_start = n),
                    by=c("cal_year","age_class","sex")) %>% 
     dplyr::select(cal_year,age_class,sex,n_start,n_end)
   

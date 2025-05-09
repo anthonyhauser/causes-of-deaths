@@ -59,6 +59,29 @@ causes2 = c("Cardiovascular Diseases","Infectious and Parasitic Diseases",
            "COVID-19",
            "Neoplasms (Cancers)","Suicide","External Causes")
 
+causes2_df = data.frame(cod_group=c("Cardiovascular Diseases","Infectious and Parasitic Diseases",
+                                    "Respiratory Diseases", "Mental and Neurological Disorders",
+                                    "COVID-19",
+                                    "Neoplasms (Cancers)","Suicide","External Causes","Other Causes"),
+                        cod_group_label=c("Cardiovascular","Infectious/Parasitic",
+                                    "Respiratory", "Mental/Neurological",
+                                    "COVID-19",
+                                    "Cancers","Suicide","External","Other"),
+                        order=c(1,7,4,3,9,2,6,5,8),
+                        example = c("Ischaemic heart disease, heart attack", "Sepsis",
+                                   "Pulmonary disease, pneumonia, influenza", "Dementia, Alzheimer, Parkinson",
+                                   "COVID-19",
+                                   "Lung, breast, prostate neoplasms","Intentional self-harm/poisoning","Fall, vehicule accident",
+                                   "Unspecified, diabetes, senility, organ disease")) %>%
+  #add chapter of cod-10
+  left_join(cod_ind_df %>% 
+              filter(outcome=="ENDG_U_CD_GES_T") %>% 
+              dplyr::select(cod_group,chapter) %>% unique() %>% 
+              arrange(cod_group,chapter) %>% 
+              group_by(cod_group) %>% 
+              dplyr::summarise(chapter=paste(chapter, collapse=", ")),by="cod_group") %>% 
+  arrange(order)
+
 cod_ind_df %>% 
   filter(cal_year>=2020) %>% 
   group_by(outcome,cod_group) %>% 
@@ -204,6 +227,60 @@ We only show fit for 65-79 and 80+, the two groups who gather most of the deaths
 The red dots represent the weekly number of deaths, the black lines the estimated mean number of deaths and the gray areas the 95% credibility intervals.
 
 ### By cause
+#### 0-17
+
+```{r,  fig.width=8,fig.height=12,echo = FALSE}
+res_list$data_pred_week_cause %>% 
+  filter(variable=="deaths") %>% 
+  left_join(res_list$data_pred_week_cause %>% 
+              filter(variable=="obs_deaths") %>% dplyr::select(obs_deaths=est,cal_year,cal_week,age_class,cod_group,pred),
+            by=c("cal_year","cal_week","age_class","cod_group","pred")) %>% 
+  filter(age_class=="0-17",pred=="poisson") %>% 
+  ggplot() +
+  geom_line(aes(x=date,y=est),col="black") +
+  geom_ribbon(aes(x=date,ymin=lwb,ymax=upb),fill="black",alpha=0.15) +
+  geom_point(aes(x=date,y=obs_deaths),col="red",alpha=0.5,size=0.8) +
+  geom_vline(aes(xintercept=ymd("2020-01-01")))+
+  facet_grid(cod_group~age_class,scales="free") +
+  theme_bw()
+```
+
+#### 18-39
+
+```{r,  fig.width=8,fig.height=12,echo = FALSE}
+res_list$data_pred_week_cause %>% 
+  filter(variable=="deaths") %>% 
+  left_join(res_list$data_pred_week_cause %>% 
+              filter(variable=="obs_deaths") %>% dplyr::select(obs_deaths=est,cal_year,cal_week,age_class,cod_group,pred),
+            by=c("cal_year","cal_week","age_class","cod_group","pred")) %>% 
+  filter(age_class=="18-39",pred=="poisson") %>% 
+  ggplot() +
+  geom_line(aes(x=date,y=est),col="black") +
+  geom_ribbon(aes(x=date,ymin=lwb,ymax=upb),fill="black",alpha=0.15) +
+  geom_point(aes(x=date,y=obs_deaths),col="red",alpha=0.5,size=0.8) +
+  geom_vline(aes(xintercept=ymd("2020-01-01")))+
+  facet_grid(cod_group~age_class,scales="free") +
+  theme_bw()
+```
+
+#### 40-64
+
+```{r,  fig.width=8,fig.height=12,echo = FALSE}
+res_list$data_pred_week_cause %>% 
+  filter(variable=="deaths") %>% 
+  left_join(res_list$data_pred_week_cause %>% 
+              filter(variable=="obs_deaths") %>% dplyr::select(obs_deaths=est,cal_year,cal_week,age_class,cod_group,pred),
+            by=c("cal_year","cal_week","age_class","cod_group","pred")) %>% 
+  filter(age_class=="40-64",pred=="poisson") %>% 
+  ggplot() +
+  geom_line(aes(x=date,y=est),col="black") +
+  geom_ribbon(aes(x=date,ymin=lwb,ymax=upb),fill="black",alpha=0.15) +
+  geom_point(aes(x=date,y=obs_deaths),col="red",alpha=0.5,size=0.8) +
+  geom_vline(aes(xintercept=ymd("2020-01-01")))+
+  facet_grid(cod_group~age_class,scales="free") +
+  theme_bw()
+```
+
 #### 65-79
 
 ```{r,  fig.width=8,fig.height=12,echo = FALSE}
@@ -603,10 +680,6 @@ df = cod_agg_pop_df %>%
 dplyr::mutate(cod_group = factor(cod_group,levels=causes2_df$cod_group,
                                    labels=causes2_df$cod_group_label))
 
-df %>% 
-  ggplot(aes(x=date,y=n))+
-  geom_point()+
-  facet_wrap()
 
 # Reshape the data so that each cod_group becomes a column
 reshaped_df <- pivot_wider(df, names_from = cod_group, values_from = n)
