@@ -240,9 +240,91 @@ d0_cardio %>% filter(outcome=="FOLGE_KRANK_GES_T",icd10Title_cat=="Pneumonia, un
 
 
 ################################################################################
+#Cancer
+principal_cause="Neoplasms (Cancers)"#principal_cause="COVID-19"
+secondary_cause=c("Respiratory Diseases","Cardiovascular Diseases","Mental and Neurological Disorders",
+                  "Neoplasms (Cancers)","Other Causes")
+#Number of deaths by month
+d %>% filter(ENDG_U_CD_GES_T==principal_cause,cal_year>=2020, age>=50) %>% 
+  dplyr::mutate(date=ISOweek2date(paste0(cal_year,"-W",ifelse(cal_week<10,paste0("0",cal_week),cal_week),"-1")),
+                year_month = floor_date(date, unit = "month"),
+                age_group=factor(as.numeric(age>=50)+as.numeric(age>=65)+as.numeric(age>=80))) %>% 
+  group_by(date,year_month,age_group) %>% 
+  dplyr::summarise(n=n(),.groups="drop") %>%
+  group_by(year_month,age_group) %>% 
+  dplyr::summarise(n=mean(n),.groups="drop") %>%
+  ggplot(aes(x=year_month,y=n,col=age_group))+
+  geom_point()+
+  facet_grid(age_group~.,scales="free")
+#Number of deaths by week
+d %>% filter(ENDG_U_CD_GES_T==principal_cause,cal_year>=2020, age>=50,
+             BEGLEIT_KRANK_A_GES_T %in% secondary_cause) %>% 
+  dplyr::mutate(date=ISOweek2date(paste0(cal_year,"-W",ifelse(cal_week<10,paste0("0",cal_week),cal_week),"-1")),
+                age_group=factor(as.numeric(age>=50)+as.numeric(age>=65)+as.numeric(age>=80))) %>% 
+  group_by(date,age_group,BEGLEIT_KRANK_A_GES_T) %>% 
+  dplyr::summarise(n=n(),.groups="drop") %>%
+  ggplot(aes(x=date,y=n,col=age_group))+
+  geom_point()+
+  facet_grid(age_group~BEGLEIT_KRANK_A_GES_T,scales="free")
+#Distribution of deaths according to secondary cause
+d %>% filter(ENDG_U_CD_GES_T==principal_cause,cal_year>=2020, age>=50,
+             is.na(BEGLEIT_KRANK_A_GES_T) |BEGLEIT_KRANK_A_GES_T %in% secondary_cause) %>% 
+  dplyr::mutate(date=ISOweek2date(paste0(cal_year,"-W",ifelse(cal_week<10,paste0("0",cal_week),cal_week),"-1")),
+                age_group=factor(as.numeric(age>=50)+as.numeric(age>=65)+as.numeric(age>=80))) %>% 
+  group_by(date,age_group,BEGLEIT_KRANK_A_GES_T) %>% 
+  dplyr::summarise(n=n(),.groups="drop_last") %>%
+  dplyr::mutate(n_covid = sum(n),
+                p=n/n_covid) %>% ungroup() %>% 
+  filter(n_covid>20,date>=as.Date("2020-07-01"),date<=as.Date("2021-06-01")) %>% 
+  ggplot(aes(x=date,y=p,col=age_group))+
+  geom_smooth(se = FALSE, method = "loess", span = 0.8,col="gray80") +
+  geom_point()+
+  scale_x_date(date_breaks = "1 month", labels = scales::label_date(format = "%b"))+
+  facet_grid(age_group~BEGLEIT_KRANK_A_GES_T,scales="free")
 
 
-principal_cause="Cardiovascular Diseases"
+d %>% filter(ENDG_U_CD_GES_T==principal_cause,cal_year>=2020, age>=50,
+             is.na(BEGLEIT_KRANK_A_GES_T) |BEGLEIT_KRANK_A_GES_T %in% secondary_cause) %>% 
+  dplyr::mutate(date=ISOweek2date(paste0(cal_year,"-W",ifelse(cal_week<10,paste0("0",cal_week),cal_week),"-1")),
+                year_month = floor_date(date, unit = "month"),
+                age_group=factor(as.numeric(age>=50)+as.numeric(age>=65)+as.numeric(age>=80))) %>% 
+  group_by(year_month,age_group,BEGLEIT_KRANK_A_GES_T) %>% 
+  dplyr::summarise(n=n(),.groups="drop_last") %>%
+  dplyr::mutate(n_covid = sum(n),
+                p=n/n_covid) %>% ungroup() %>% 
+  filter(n_covid>20,year_month>=as.Date("2020-08-01"),year_month<=as.Date("2021-06-01")) %>% 
+  ggplot(aes(x=year_month,y=p,col=age_group))+
+  geom_smooth(se = FALSE, method = "loess", span = 0.8,col="gray80") +
+  geom_point()+
+  scale_x_date(date_breaks = "1 month", labels = scales::label_date(format = "%b"))+
+  facet_grid(age_group~BEGLEIT_KRANK_A_GES_T,scales="free")
+
+#COVID-19
+
+
+#Respiratory disease 2011-2019
+principal_cause="Respiratory Diseases"
+secondary_cause=c("Cardiovascular Diseases","Mental and Neurological Disorders",
+                  "Neoplasms (Cancers)","Other Causes")
+
+#Number of deaths
+#overall
+d %>% filter(ENDG_U_CD_GES_T==principal_cause,cal_year %in% 2011:2019, age>=50,
+             BEGLEIT_KRANK_A_GES_T %in% secondary_cause,cal_week<=52) %>% 
+  dplyr::mutate(date=ISOweek2date(paste0(cal_year,"-W",ifelse(cal_week<10,paste0("0",cal_week),cal_week),"-1")),
+                age_group=factor(as.numeric(age>=50)+as.numeric(age>=65)+as.numeric(age>=80))) %>% 
+  group_by(cal_week,age_group,BEGLEIT_KRANK_A_GES_T) %>% 
+  dplyr::summarise(n=n(),.groups="drop_last") %>%
+  dplyr::mutate(n_resp = sum(n),
+                p=n/n_resp) %>% ungroup() %>% 
+  filter(n_resp>5) %>% 
+  ggplot(aes(x=cal_week,y=p,col=age_group))+
+  geom_smooth(se = FALSE, method = "loess", span = 0.8,col="gray80") +
+  geom_point()+
+  facet_grid(age_group~BEGLEIT_KRANK_A_GES_T,scales="free")
+
+################################################################################################################################################################
+principal_cause="COVID-19"
 principal_cause="Mental and Neurological Disorders"
 principal_cause="Respiratory Diseases"
 secondary_cause=c("Respiratory Diseases","Cardiovascular Diseases","Mental and Neurological Disorders",
@@ -263,7 +345,6 @@ d %>% filter(ENDG_U_CD_GES_T==principal_cause,cal_year<2020,cal_week<53) %>%
   dplyr::summarise(n=n(),.groups="drop") %>%
   ggplot(aes(x=cal_week,y=n,col=age_group))+geom_line()+
   facet_wrap(.~FOLGE_KRANK_GES_T)#+ylim(c(0,0.2))
-
 #Distribution of secondary cause for cardiovascular primary cause
 #absolute, by age over week
 d %>% filter(ENDG_U_CD_GES_T==principal_cause,cal_year<2020,cal_week<53,
@@ -560,10 +641,13 @@ if(FALSE){
 #Cumulative excess and excess by phase
 if(FALSE){
   mod="mod8"; save.date="20241218";
-  cum_excess_pand_df = rbindlist(lapply(as.list(age_classes),function(x){
+  list = lapply(as.list(age_classes),function(x){
     print(x);
-    cumulative_excess(age_class=x,chains=1:4,mod=mod,save.date=save.date)}))
+    cumulative_excess(age_class=x,chains=1:4,mod=mod,save.date=save.date)})
+  cum_excess_pand_df = rbindlist(lapply(list, `[[`, 1))
+  cum_excess_allcause_pand_df = rbindlist(lapply(list, `[[`, 2))
   saveRDS(cum_excess_pand_df,file=paste0("results/",save.date,"/",mod,"_cum_excess_pand_df.RDS"))
+  saveRDS(cum_excess_allcause_pand_df,file=paste0("results/",save.date,"/",mod,"_cum_excess_allcause_pand_df.RDS"))
   
   excess_phase2_pand_df = rbindlist(lapply(as.list(age_classes),function(x){
     print(x);

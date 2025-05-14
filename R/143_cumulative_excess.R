@@ -53,6 +53,8 @@ cumulative_excess = function(age_class="80+",chains=1:4,mod="mod8",save.date){
     dplyr::mutate(pred = factor(variable,levels=c("deaths_all_pred0","deaths_all_pred"),labels=c("poisson","dispersed poisson")))
   print("deaths_all_pred processed")
   
+  ##############################################################################
+  #cumulative excess mortality by cause
   cum_excess_pand_df = deaths_pred_sample %>% 
     dplyr::mutate(excess = n - values,
                   excess = replace_na(excess,0)) %>% #for covid 
@@ -74,16 +76,49 @@ cumulative_excess = function(age_class="80+",chains=1:4,mod="mod8",save.date){
                      rel_excess_upb = quantile2(rel_cum_excess,probs = 0.975),
                      rel_excess_mean2 = mean(excess_mean/cum_expected_mean),
                      rel_excess_lwb2 = quantile2(cum_excess/cum_expected_mean,probs = 0.025),
-                     rel_excess_upb2 = quantile2(cum_excess/cum_expected_mean,probs = 0.975))
+                     rel_excess_upb2 = quantile2(cum_excess/cum_expected_mean,probs = 0.975), .groups="drop")
   
-    # dplyr::mutate(covid_phase = map2_dbl(date, list(covid_phase), function(d, phases) {
-    #                                       phase <- phases %>%
-    #                                         filter(d >= start_date & d <= end_date) %>%
-    #                                         pull(phase)
-    #                                       if (length(phase) == 0) NA_real_ else phase
-    #                                            }),
-    #               week_id2 = week.id -min(week.id)+1,
-    #               month_id = (week_id2 -1) %/% 4) %>% 
+  ##############################################################################
+  #Cumulative all-cause excess mortality (with and without covid)
+  #aggregate deaths over all causes (without covid)
+  d_nocovid = deaths_pred_sample %>% 
+    filter(cod_group!="COVID-19",cal_year>=2020) %>% 
+    dplyr::mutate(cod_group="all",
+                  cod_group_id=1) %>% 
+    group_by(cal_year,cal_week,date,age_class,cod_group,cod_group_id,week.id,iter,variable,pred) %>% 
+    dplyr::summarise(n=sum(n),
+                     values = sum(values),.groups="drop") 
+  #Number of deaths due to COVID
+  d_covid = deaths_pred_sample %>% 
+    filter(cod_group=="COVID-19",cal_year>=2020) %>% 
+    group_by(cal_year,cal_week,date,age_class,week.id) %>% 
+    dplyr::summarise(n_covid=sum(n),.groups="drop")
+  
+  #Calculate all-cause excess with and without covid
+  cum_excess_allcause_pand_df = d_nocovid %>% 
+    left_join(d_covid,by=c("cal_year","cal_week","date","week.id","age_class")) %>% 
+    cross_join(data.frame(with_covid=c(0,1))) %>% 
+    dplyr::mutate(n=if_else(with_covid==1,n+n_covid,n),
+                  excess = n - values) %>% 
+    dplyr::select(-c(n_covid)) %>% 
+    arrange(cod_group_id,pred,iter,week.id,with_covid) %>% 
+    group_by(cod_group_id,pred,iter,with_covid) %>% 
+    dplyr::mutate(cum_excess = cumsum(excess),
+                  cum_deaths = cumsum(n),
+                  cum_expected = cumsum(values),
+                  rel_cum_excess = cum_excess/values[week.id==max(week.id)]) %>% ungroup() %>% 
+    group_by(age_class,cod_group,cod_group_id,pred,with_covid) %>% 
+    dplyr::mutate(cum_expected_mean = mean(cum_expected[week.id==max(week.id)])) %>% ungroup() %>% 
+    group_by(cal_year,cal_week,date,age_class,cod_group,cod_group_id,week.id,pred,with_covid) %>% 
+    dplyr::summarise(excess_mean = mean(cum_excess),
+                     excess_lwb = quantile(cum_excess,probs = 0.025),
+                     excess_upb = quantile(cum_excess,probs = 0.975),
+                     rel_excess_mean = mean(rel_cum_excess),
+                     rel_excess_lwb = quantile2(rel_cum_excess,probs = 0.025),
+                     rel_excess_upb = quantile2(rel_cum_excess,probs = 0.975),
+                     rel_excess_mean2 = mean(excess_mean/cum_expected_mean),
+                     rel_excess_lwb2 = quantile2(cum_excess/cum_expected_mean,probs = 0.025),
+                     rel_excess_upb2 = quantile2(cum_excess/cum_expected_mean,probs = 0.975), .groups="drop")
   
   if(FALSE){
     cum_excess_pand_df %>% 
@@ -104,7 +139,8 @@ cumulative_excess = function(age_class="80+",chains=1:4,mod="mod8",save.date){
       filter(pred=="poisson",cod_group=="External Causes")
   }
   
-  return(cum_excess_pand_df)
+  return(list(cum_excess_pand_df = cum_excess_pand_df,
+              cum_excess_allcause_pand_df = cum_excess_allcause_pand_df))
 }
 
 
