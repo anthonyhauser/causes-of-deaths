@@ -246,7 +246,7 @@ main_plot = res_list$data_pred_week %>%
   geom_vline(aes(xintercept = ymd("2020-01-01")), linetype = "dashed") +
   facet_grid(age_class ~ ., scales = "free_y") +
   scale_y_continuous(name = "Deaths") +
-  scale_x_date(name = "Time") +
+  scale_x_date(name = "") +
   theme(legend.position = "none")
 
 # Legend for Observed deaths
@@ -254,14 +254,16 @@ df_dummy <- data.frame(x = 1, y = 1)
 legend_red <- ggplot(df_dummy, aes(x, y, color = "Observed deaths")) +
   geom_point() +
   scale_color_manual(name = "", values = c("Observed deaths" = "darkred")) +
-  theme(legend.position = "bottom") +
+  theme(legend.position = "bottom",
+        legend.margin = margin(t = -20)) +
   guides(color = guide_legend(override.aes = list(shape = 16))) 
 legend_red <- get_legend2(legend_red)
 
 legend_orange <- ggplot(df_dummy, aes(x, y, color = "Observed deaths incl. COVID-19")) +
   geom_point() +
   scale_color_manual(name = "", values = c("Observed deaths incl. COVID-19" = "orange")) +
-  theme(legend.position = "bottom") +
+  theme(legend.position = "bottom",
+        legend.margin = margin(t = -20)) +
   guides(color = guide_legend(override.aes = list(shape = 16)))
 legend_orange <- get_legend2(legend_orange)
 
@@ -270,22 +272,13 @@ legend_black <- ggplot(df_dummy, aes(x, y)) +
   geom_line(aes(y = y, color = "Expected deaths (95% CrI)"), linewidth = 0.8) +
   scale_color_manual(name="",values = c("Expected deaths (95% CrI)" = "black")) +
   scale_fill_manual(name="",values = c("Expected deaths (95% CrI)" = "black")) +
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom",
+        legend.margin = margin(t = -20))
 legend_black <- get_legend2(legend_black)
 
-
-fig2 <- cowplot::plot_grid(main_plot,
-                           cowplot::plot_grid(legend_black, legend_red, legend_orange, nrow = 1),
-                           ncol = 1,  rel_heights = c(1, 0.04))
-
-pdf(file=paste0(code_root_path,"/manuscript/fig2.pdf"),width=10,height=8)
-print(fig2)
-dev.off()
-
-
+#Cumulative all-cause excess by age
 cum_excess_allcause_pand_df = readRDS(paste0("results/",save.date,"/",mod,"_cum_excess_allcause_pand_df.RDS"))
-
-cum_excess_allcause_pand_df %>% 
+p2 = cum_excess_allcause_pand_df %>% 
   dplyr::filter(pred == "poisson") %>% 
   ggplot(aes(group = with_covid)) +
   geom_ribbon(aes(x = date, ymin = excess_lwb, ymax = excess_upb,fill=factor(with_covid)),
@@ -293,21 +286,36 @@ cum_excess_allcause_pand_df %>%
   geom_line(aes(x = date, y = excess_mean, color = factor(with_covid)), size = 0.7) +
   geom_hline(yintercept = 0, linetype = 4) +
   facet_wrap(~ cod_group_age, scales = "free_y", nrow = 1) +
-  scale_y_continuous(name = "Number of deaths") +
-  scale_color_manual(name = "All-cause deaths",
-    breaks = c(0, 1),
-    values = c( "orange","darkred"),
-    labels=c("Without COVID-19","With COVID-19")) +
-  scale_fill_manual(name = "All-cause deaths",
+  scale_y_continuous(name = "Deaths") +
+  scale_color_manual(name = "All-cause excess mortality",
+                     breaks = c(0, 1),
+                     values = c("darkred","orange"),
+                     labels=c("Excluding COVID-19","Including COVID-19")) +
+  scale_fill_manual(name = "All-cause excess mortality",
                     breaks = c(0, 1),
-                    values = c( "orange","darkred"),
-                    labels=c("Without COVID-19","With COVID-19") ) +
+                    values =  c("darkred","orange"),
+                    labels=c("Excluding COVID-19","Including COVID-19") ) +
   scale_x_date(name = "Date") +
-  theme(legend.position = "bottom",
-    strip.text = element_text(size = 11)) +
+  theme(  legend.position = c(0.95, 0.05),  # bottom right
+          legend.justification = c("right", "bottom"),
+          strip.text = element_text(size = 11),
+          plot.margin = margin(5.5,14, 5.5, 5.5)) +
   facet_wrap(age_class ~ ., scales = "free")
 
-################################################################################################################################################################
+
+fig2 <- cowplot::plot_grid(main_plot,
+                           cowplot::plot_grid(legend_black, legend_red, legend_orange, nrow = 1),
+                           p2, labels=c("A.","","B."),
+                           ncol = 1,  rel_heights = c(1, 0.04,0.6))
+
+pdf(file=paste0(code_root_path,"/manuscript/fig2.pdf"),width=11,height=12)
+print(fig2)
+dev.off()
+
+
+
+
+  ################################################################################################################################################################
 #Figure 3: excess by age and cod
 
 #load Data

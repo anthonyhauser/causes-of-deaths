@@ -138,16 +138,20 @@ population size as an offset, log-linear model with poisson distribution
 multivariate random effect account for correlation between cause-specific excess mortality rates
 between 2011 and 2019
 
+## Excess mortality
+
 Define excess mortality
 By cause
 All-cause: aggregation of cause-specific excess
+by period
 
-Correlation during COVID-19: investigate the correlation between cause-specific excess mortality rates
+## Further analysis
 
-## Outcome
+Correlation
+Correlation during COVID-19: investigate the partial correlation between cause-specific excess mortality rates during covid-19 between different causes and respiratory disease, which 
 
-## Inference
 
+Q: where to describe covid-19 phase in switzerland?
 \newpage
 
 # Results
@@ -159,6 +163,12 @@ Correlation during COVID-19: investigate the correlation between cause-specific 
 ```
 
 
+
+Cancer : 
+Reclassification of deaths among cancer patients with COVID-19: Many cancer patients who contracted COVID-19 during the 2nd and 3rd waves likely died with contributions from both diseases, but their deaths were primarily attributed to COVID-19 (as per guidelines), reducing recorded cancer mortality. This effect was stronger in 65–79, who were more likely to be hospitalized and tested.
++ harvesting effect of cancer patients occured in wave 2 lead to decrease in deaths in wave 3 
++ absences of resp infections during wave 3
+
 ## Excess all-cause
   
 ## CV, cancer, dementia and infectious or respiratory diseases
@@ -168,6 +178,31 @@ Correlation during COVID-19: investigate the correlation between cause-specific 
 ```
 
 
+
+Reasons: 
+1) Undiagnosed COVID-19 case : -> increase during wave
+2) Long-term mortality displacement -> decrease after waves
+3) Absence of resp -> decrease in Jan/Feb
+4) Direct consequence of COVID-19: -> increase during wave
+5) Short-term mortality displacement -> decrease during wave
+
+Different to say the same
+1) Wrong ascertainment : considered as condition (low proportion of condition, among covid deaths) -> increase
+5) Wrong ascertainment : considered as covid (high proportion of condition, e.g., cancer, among covid deaths) -> decrease
+
+during wave: + 1), + 4), - 5)
+after wave: - 2), + 4) (as a long-term consequence of covid, but not really observed in the results)
+Winter: - 3)
+
+
+among 65-79: no correlation during covid between resp (or covid) and mental (as we observe before pandemic), likely because ascertainment of covid deaths changed over time  (e.g., through testing strategies), as shown by time-varying proportion of covid deaths with mental diseases$
+
+
+
+TO DO:
+look at overall mortality by cause accounting for principal cause, direct cause and underlying condition.
+Compare between covid and pre-covid, especially for cancer in order to see whether overall cancer mortality really decreased or whether it's only because of different attribution of cause of deaths.
+could inspire from : https://elifesciences.org/reviewed-preprints/93758?utm_source=chatgpt.com
 
 \newpage
 
