@@ -1,7 +1,8 @@
 source("R/000_setup.R")
 
 ###########################################################################################################################
-#Load encrypted data
+#1. Data load and first checks
+#1.1 Load CoD data (encrypted data)
 wd_ofsp = "L:/UNISANTE_DESS/S_SUMAC/OFSP_2023/"
 data_folder = paste0(wd_ofsp,"02_data/cause_of_death/")
 if(controls$load.encrypted.data){
@@ -25,9 +26,10 @@ if(controls$load.encrypted.data){
   colnames(cod) = cod_colnames
   saveRDS(cod,file=paste0(code_root_path,"/data/cause_of_death2.rds"))
 }
+cod_df0 = readRDS(paste0(code_root_path,"/data/cause_of_death2.rds"))
 
-###########################################################################################################################
-#load ICD10 data
+################################################################################
+#1.2 load ICD10 data
 list = get_icd10()
 icd10_chapter_block = list$icd10_chapter_block
 icd10_chapter = list$icd10_chapter
@@ -35,8 +37,7 @@ icd10_cat = list$icd10_cat
 icd10_chapter
 
 ################################################################################
-#load CoD data
-cod_df0 = readRDS(paste0(code_root_path,"/data/cause_of_death2.rds"))
+#1.3 Data checks
 
 #check which year variables to use: we will use the EREIGNIS_KJ_GES_N, as it corresponds to the iso calendar year of the event date
 d_sim = cod_df0 %>% 
@@ -80,14 +81,10 @@ d %>%
   arrange(-n) %>% head(n=14)
 
 
-# cod_df0 %>% 
-#   dplyr::select(GRUND_KRANK_GES_T, FOLGE_KRANK_GES_T, BEGLEIT_KRANK_A_GES_T, BEGLEIT_KRANK_B_GES_T, ENDG_U_CD_GES_T) %>% 
-#   pivot_longer(cols = everything(),
-#                names_to=c("variable","stat"),values_to ="n",names_sep = "\\.")
+################################################################################################################################################################
+#2. Combine CoD dataset with icd10 categorization
 
-################################################################################
-#Combine CoD dataset with icd10 categorization
-
+#2.1: combine
 #CoD: principal, primary and secondary 
 if(FALSE){
   cod_ind_df = combine_cod_icd10(cod_df0,icd10_chapter_block,icd10_cat,
@@ -98,15 +95,10 @@ if(FALSE){
 }
 cod_ind_df = readRDS(paste0(code_root_path,"savepoint/cod_ind_df.RDS"))
 
-
-causes = c("Cardiovascular Diseases","Infectious and Parasitic Diseases",
-           "Respiratory Diseases", "Mental and Neurological Disorders",
-           "COVID-19",
-           "Neoplasms (Cancers)","Suicide","External Causes","No Specific Causes")
 causes2 = c("Cardiovascular Diseases","Infectious and Parasitic Diseases",
            "Respiratory Diseases", "Mental and Neurological Disorders",
            "COVID-19",
-           "Neoplasms (Cancers)","Suicide","External Causes")
+           "Neoplasms (Cancers)","Suicide","External Causes") #"No Specific Causes" (previously used)
 
 causes2_df = data.frame(cod_group=c("Cardiovascular Diseases","Infectious and Parasitic Diseases",
                                     "Respiratory Diseases", "Mental and Neurological Disorders",
@@ -137,19 +129,24 @@ causes2_df %>%
   flextable::flextable() %>% 
   flextable::width(j=1:3, width=c(1,1,1)*2)
 
-#some data exploration
-d = cod_ind_df %>% dplyr::select(ind_id,age,sex,cal_week,cal_year,outcome,cod_group) %>% 
-  pivot_wider(id_cols=c(ind_id,age,sex,cal_week,cal_year),names_from="outcome",values_from="cod_group")
-d0_cardio = cod_ind_df %>% 
-  group_by(ind_id) %>% 
-  dplyr::mutate(is.cardio = cod_group[outcome=="ENDG_U_CD_GES_T"]=="Cardiovascular Diseases") %>% 
-  ungroup() %>% 
-  filter(is.cardio) %>% select(-is.cardio)
-d %>% filter(ENDG_U_CD_GES_T!="COVID-19",
-             (GRUND_KRANK_GES_T=="COVID-19"|FOLGE_KRANK_GES_T=="COVID-19"|
-                BEGLEIT_KRANK_A_GES_T=="COVID-19"))
+################################################################################
+#2.2 data checks
+#no missing title chapter or block
+cod_ind_df %>% filter(outcome=="ENDG_U_CD_GES_T",is.na(icd10Title_chapter)|is.na(icd10Title_block)) %>% dim()
+#check number of deaths for each chapter
+cod_ind_df %>%
+  group_by(icd10Chapter,icd10Title_chapter) %>% 
+  dplyr::summarise(n=n(),.groups="drop") %>% 
+  right_join(icd10_chapter,by=c("icd10Chapter"="icd10Chapter","icd10Title_chapter"="icd10Title")) %>%
+  mutate(n=replace_na(n,0)) %>% 
+  arrange(n) %>% head(n=10)
+#Check categories of deaths for Provisional assignment of new diseases (including COVID)
+cod_ind_df %>% filter(grepl("U",icd10)) %>% 
+  group_by(icd10Title_cat) %>% 
+  dplyr::summarise(n=n(),.groups="drop")
+#Check categories for suicides (intentional self-harm)
+cod_ind_df %>% filter(icd10Title_block=="Intentional self-harm") %>% head()
 
-d %>% filter(ENDG_U_CD_GES_T=="COVID-19",GRUND_KRANK_GES_T!="COVID-19") %>% View()
 
 ################################################################################
 #Number of deaths in 2020-2021 by chapter: ENDG_U_CD_GES_T
@@ -211,6 +208,8 @@ cod_ind_df %>%
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 #Proportion of missing secondary cause (NA) by principal cause, over year
+d = cod_ind_df %>% dplyr::select(ind_id,age,sex,cal_week,cal_year,outcome,cod_group) %>% 
+  pivot_wider(id_cols=c(ind_id,age,sex,cal_week,cal_year),names_from="outcome",values_from="cod_group")
 d %>%
   group_by(ENDG_U_CD_GES_T,cal_year) %>% 
   dplyr::summarise(p=sum(is.na(BEGLEIT_KRANK_A_GES_T))/n()) %>% ungroup() %>% 
@@ -218,219 +217,59 @@ d %>%
   ggplot(aes(x=cal_year,y=p,col=ENDG_U_CD_GES_T))+geom_line()+
   theme_bw()
 
-d0_cardio %>% filter(outcome=="FOLGE_KRANK_GES_T",cod_group=="Respiratory Diseases",
-                     age>80) %>% 
-  group_by(icd10Title_block) %>%
-  dplyr::summarise(n=n()) %>% 
-  arrange(-n)
+################################################################################################################################################################
+#Underlying cause and other conditions
+agg_underlying_comorb_df = aggregate_by_underlying_and_comorb(cod_ind_df, n_week_agg = 5)
 
-d0_cardio %>% filter(outcome=="FOLGE_KRANK_GES_T",cod_group=="Respiratory Diseases") %>% 
-  group_by(icd10Title_block,icd10Title_cat) %>%
-  dplyr::summarise(n=n()) %>% 
-  arrange(-n) %>%
-  filter(grepl("virus",icd10Title_cat))
-
-d0_cardio %>% filter(outcome=="FOLGE_KRANK_GES_T",cod_group=="Respiratory Diseases",
-                     icd10Title_block=="Influenza and pneumonia") %>% 
-  group_by(icd10Title_block,icd10Title_cat) %>%
-  dplyr::summarise(n=n()) %>% 
-  arrange(-n)
-
-d0_cardio %>% filter(outcome=="FOLGE_KRANK_GES_T",icd10Title_cat=="Pneumonia, unspecified") %>% View()
-
-
-################################################################################
-#Cancer
-principal_cause="Neoplasms (Cancers)"#principal_cause="COVID-19"
-secondary_cause=c("Respiratory Diseases","Cardiovascular Diseases","Mental and Neurological Disorders",
-                  "Neoplasms (Cancers)","Other Causes")
-#Number of deaths by month
-d %>% filter(ENDG_U_CD_GES_T==principal_cause,cal_year>=2020, age>=50) %>% 
-  dplyr::mutate(date=ISOweek2date(paste0(cal_year,"-W",ifelse(cal_week<10,paste0("0",cal_week),cal_week),"-1")),
-                year_month = floor_date(date, unit = "month"),
-                age_group=factor(as.numeric(age>=50)+as.numeric(age>=65)+as.numeric(age>=80))) %>% 
-  group_by(date,year_month,age_group) %>% 
-  dplyr::summarise(n=n(),.groups="drop") %>%
-  group_by(year_month,age_group) %>% 
-  dplyr::summarise(n=mean(n),.groups="drop") %>%
-  ggplot(aes(x=year_month,y=n,col=age_group))+
-  geom_point()+
-  facet_grid(age_group~.,scales="free")
-#Number of deaths by week
-d %>% filter(ENDG_U_CD_GES_T==principal_cause,cal_year>=2020, age>=50,
-             BEGLEIT_KRANK_A_GES_T %in% secondary_cause) %>% 
-  dplyr::mutate(date=ISOweek2date(paste0(cal_year,"-W",ifelse(cal_week<10,paste0("0",cal_week),cal_week),"-1")),
-                age_group=factor(as.numeric(age>=50)+as.numeric(age>=65)+as.numeric(age>=80))) %>% 
-  group_by(date,age_group,BEGLEIT_KRANK_A_GES_T) %>% 
-  dplyr::summarise(n=n(),.groups="drop") %>%
-  ggplot(aes(x=date,y=n,col=age_group))+
-  geom_point()+
-  facet_grid(age_group~BEGLEIT_KRANK_A_GES_T,scales="free")
-#Distribution of deaths according to secondary cause
-d %>% filter(ENDG_U_CD_GES_T==principal_cause,cal_year>=2020, age>=50,
-             is.na(BEGLEIT_KRANK_A_GES_T) |BEGLEIT_KRANK_A_GES_T %in% secondary_cause) %>% 
-  dplyr::mutate(date=ISOweek2date(paste0(cal_year,"-W",ifelse(cal_week<10,paste0("0",cal_week),cal_week),"-1")),
-                age_group=factor(as.numeric(age>=50)+as.numeric(age>=65)+as.numeric(age>=80))) %>% 
-  group_by(date,age_group,BEGLEIT_KRANK_A_GES_T) %>% 
-  dplyr::summarise(n=n(),.groups="drop_last") %>%
-  dplyr::mutate(n_covid = sum(n),
-                p=n/n_covid) %>% ungroup() %>% 
-  filter(n_covid>20,date>=as.Date("2020-07-01"),date<=as.Date("2021-06-01")) %>% 
-  ggplot(aes(x=date,y=p,col=age_group))+
+#Distribution of comorbidities among ppl died from covid (can sum up above 100% due to ppl with multiple comorbidities)
+agg_underlying_comorb_df %>% 
+  filter(mean_date>=as.Date("2020-01-01"),
+         mean_date<=as.Date("2021-06-01"),
+         ENDG_U_CD_GES_T=="COVID-19",age_class %in% c("40-64","65-79","80+")) %>% 
+  ggplot(aes(x = mean_date, y = prop_comorbid2, color = comorbid_cause)) +
   geom_smooth(se = FALSE, method = "loess", span = 0.8,col="gray80") +
   geom_point()+
-  scale_x_date(date_breaks = "1 month", labels = scales::label_date(format = "%b"))+
-  facet_grid(age_group~BEGLEIT_KRANK_A_GES_T,scales="free")
+  scale_x_date(date_breaks = "2 month", labels = scales::label_date(format = "%b"))+
+  facet_grid(age_class ~ comorbid_cause,scales="free") 
 
+#Proportion of deaths of a given cause conditioned on the conditions
+cod_by_cond <- final_summary %>%
+  group_by(comorbid_cause, mean_date, age_class) %>%
+  dplyr::summarise(n_comorbid = n_comorbid2[1],
+                   n_same = sum(n_underlying_comorbid2[ENDG_U_CD_GES_T == comorbid_cause], na.rm = TRUE),
+                   n_covid = sum(n_underlying_comorbid2[ENDG_U_CD_GES_T == "COVID-19"], na.rm = TRUE),
+                   n_other = sum(n_underlying_comorbid2[ ENDG_U_CD_GES_T != comorbid_cause & ENDG_U_CD_GES_T != "COVID-19"], na.rm = TRUE),
+                   .groups="drop") %>% 
+  dplyr::mutate(n_tot=n_comorbid) %>% 
+  pivot_longer(cols = c("n_same","n_covid","n_other","n_tot"),values_to = "n_underlying_comorbid",names_to = "underlying") %>% 
+  dplyr::mutate(proportion=n_underlying_comorbid/n_comorbid)
 
-d %>% filter(ENDG_U_CD_GES_T==principal_cause,cal_year>=2020, age>=50,
-             is.na(BEGLEIT_KRANK_A_GES_T) |BEGLEIT_KRANK_A_GES_T %in% secondary_cause) %>% 
-  dplyr::mutate(date=ISOweek2date(paste0(cal_year,"-W",ifelse(cal_week<10,paste0("0",cal_week),cal_week),"-1")),
-                year_month = floor_date(date, unit = "month"),
-                age_group=factor(as.numeric(age>=50)+as.numeric(age>=65)+as.numeric(age>=80))) %>% 
-  group_by(year_month,age_group,BEGLEIT_KRANK_A_GES_T) %>% 
-  dplyr::summarise(n=n(),.groups="drop_last") %>%
-  dplyr::mutate(n_covid = sum(n),
-                p=n/n_covid) %>% ungroup() %>% 
-  filter(n_covid>20,year_month>=as.Date("2020-08-01"),year_month<=as.Date("2021-06-01")) %>% 
-  ggplot(aes(x=year_month,y=p,col=age_group))+
-  geom_smooth(se = FALSE, method = "loess", span = 0.8,col="gray80") +
-  geom_point()+
-  scale_x_date(date_breaks = "1 month", labels = scales::label_date(format = "%b"))+
-  facet_grid(age_group~BEGLEIT_KRANK_A_GES_T,scales="free")
+cod_by_cond %>% 
+  dplyr::filter(year(mean_date)>=2019,
+                age_class %in% c("40-64","65-79","80+"),
+                comorbid_cause %in% c("Cardiovascular Diseases","Mental and Neurological Disorders","Neoplasms (Cancers)")) %>% 
+  ggplot(aes(x = mean_date, y = n_underlying_comorbid, color = underlying)) +
+  geom_line(size = 1) +
+  facet_grid(age_class ~ comorbid_cause,scales="free") +
+  #scale_y_continuous(labels = scales::percent_format()) +
+  scale_color_manual(name="Cause of death",
+                     values = c("n_same" = "#1f77b4", "n_covid" = "#d62728", "n_other" = "#2ca02c","n_tot"="gray80"),
+                     labels=c("Identical as condition","COVID-19","Other","Total")) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        strip.text = element_text(size = 9),
+        legend.position = "bottom" )
 
-#COVID-19
-
-
-#Respiratory disease 2011-2019
-principal_cause="Respiratory Diseases"
-secondary_cause=c("Cardiovascular Diseases","Mental and Neurological Disorders",
-                  "Neoplasms (Cancers)","Other Causes")
-
-#Number of deaths
-#overall
-d %>% filter(ENDG_U_CD_GES_T==principal_cause,cal_year %in% 2011:2019, age>=50,
-             BEGLEIT_KRANK_A_GES_T %in% secondary_cause,cal_week<=52) %>% 
-  dplyr::mutate(date=ISOweek2date(paste0(cal_year,"-W",ifelse(cal_week<10,paste0("0",cal_week),cal_week),"-1")),
-                age_group=factor(as.numeric(age>=50)+as.numeric(age>=65)+as.numeric(age>=80))) %>% 
-  group_by(cal_week,age_group,BEGLEIT_KRANK_A_GES_T) %>% 
-  dplyr::summarise(n=n(),.groups="drop_last") %>%
-  dplyr::mutate(n_resp = sum(n),
-                p=n/n_resp) %>% ungroup() %>% 
-  filter(n_resp>5) %>% 
-  ggplot(aes(x=cal_week,y=p,col=age_group))+
-  geom_smooth(se = FALSE, method = "loess", span = 0.8,col="gray80") +
-  geom_point()+
-  facet_grid(age_group~BEGLEIT_KRANK_A_GES_T,scales="free")
 
 ################################################################################################################################################################
-principal_cause="COVID-19"
-principal_cause="Mental and Neurological Disorders"
-principal_cause="Respiratory Diseases"
-secondary_cause=c("Respiratory Diseases","Cardiovascular Diseases","Mental and Neurological Disorders",
-                  "Other Causes")
-secondary_cause="Cardiovascular Diseases"
-
-#Number of deaths
-#overall
-d %>% filter(ENDG_U_CD_GES_T==principal_cause,cal_year<2020,cal_week<53) %>%
-  dplyr::mutate(age_group=factor(as.numeric(age>50)+as.numeric(age>70)+as.numeric(age>80))) %>% 
-  group_by(cal_week,age_group) %>% 
-  dplyr::summarise(n=n(),.groups="drop") %>%
-  ggplot(aes(x=cal_week,y=n,col=age_group))+geom_line()
-#by secondary cause
-d %>% filter(ENDG_U_CD_GES_T==principal_cause,cal_year<2020,cal_week<53) %>%
-  dplyr::mutate(age_group=factor(as.numeric(age>50)+as.numeric(age>70)+as.numeric(age>80))) %>% 
-  group_by(cal_week,age_group,FOLGE_KRANK_GES_T) %>% 
-  dplyr::summarise(n=n(),.groups="drop") %>%
-  ggplot(aes(x=cal_week,y=n,col=age_group))+geom_line()+
-  facet_wrap(.~FOLGE_KRANK_GES_T)#+ylim(c(0,0.2))
-#Distribution of secondary cause for cardiovascular primary cause
-#absolute, by age over week
-d %>% filter(ENDG_U_CD_GES_T==principal_cause,cal_year<2020,cal_week<53,
-             FOLGE_KRANK_GES_T %in% secondary_cause) %>%
-  dplyr::mutate(age_group=factor(as.numeric(age>50)+as.numeric(age>70)+as.numeric(age>80))) %>% 
-  group_by(cal_week,age_group,FOLGE_KRANK_GES_T) %>% 
-  dplyr::summarise(n=n(),.groups="drop_last") %>% 
-  ggplot(aes(x=cal_week,y=n,col=age_group))+geom_line()+
-  facet_wrap(.~FOLGE_KRANK_GES_T)+labs(title=principal_cause)#+ylim(c(0,0.2))
-#relative, by age over week
-d %>% filter(ENDG_U_CD_GES_T==principal_cause,cal_year<2020,cal_week<53,
-             FOLGE_KRANK_GES_T %in% secondary_cause) %>%
-  dplyr::mutate(age_group=factor(as.numeric(age>50)+as.numeric(age>70)+as.numeric(age>80))) %>% 
-  group_by(cal_week,age_group,FOLGE_KRANK_GES_T) %>% 
-  dplyr::summarise(n=n(),.groups="drop_last") %>% 
-  dplyr::mutate(p=n/sum(n)) %>% ungroup() %>% 
-  ggplot(aes(x=cal_week,y=p,col=age_group))+geom_line()+
-  facet_wrap(.~FOLGE_KRANK_GES_T)+labs(title=principal_cause)#+ylim(c(0,0.2))
-
-#distribution of respiratory disease over 5 calendar week groups, by year
-#relative
-d %>% filter(ENDG_U_CD_GES_T==principal_cause,cal_year>2010,cal_year<2022,cal_week<53,age>70) %>%
-  dplyr::mutate(cal_week=as.numeric(cut(cal_week,c(0,10,20,30,40,55)))) %>% 
-  group_by(cal_week,cal_year,FOLGE_KRANK_GES_T) %>% 
-  dplyr::summarise(n=n(),.groups="drop_last") %>% 
-  dplyr::mutate(p=n/sum(n)) %>% 
-  filter(FOLGE_KRANK_GES_T%in%secondary_cause) %>% 
-  dplyr::mutate(year_epi = as.factor(cal_year %in% c(2015,2017,2020,2021))) %>% 
-  ggplot(aes(x=cal_week,y=p,col=factor(cal_year),alpha=year_epi),group=cal_year)+
-  geom_point()+geom_line()+
-  annotate("text",x=1,y=0,label="")+
-  facet_wrap(.~FOLGE_KRANK_GES_T,scales="free")+
-  scale_alpha_manual(values=c(0.15,1))+labs(title=principal_cause)
-#absolute
-d %>% filter(FOLGE_KRANK_GES_T=="COVID-19") %>% 
-  group_by(ENDG_U_CD_GES_T) %>% dplyr::summarise(n())
-
-d %>% filter(ENDG_U_CD_GES_T==principal_cause,cal_year>2010,cal_year<2022,cal_week<53,age>70) %>% 
-  dplyr::mutate(cal_week=as.numeric(cut(cal_week,c(0,10,20,30,40,55)))) %>% 
-  group_by(cal_week,cal_year,FOLGE_KRANK_GES_T) %>% 
-  dplyr::summarise(n=n(),.groups="drop_last") %>% 
-  filter(FOLGE_KRANK_GES_T%in%secondary_cause | is.na(FOLGE_KRANK_GES_T)) %>% 
-  dplyr::mutate(year_epi = as.factor(cal_year %in% c(2015,2017,2020,2021))) %>% 
-  ggplot(aes(x=cal_week,y=n,col=factor(cal_year),alpha=year_epi),group=cal_year)+
-  geom_point()+geom_line()+
-  annotate("text",x=1,y=0,label="")+
-  facet_wrap(.~FOLGE_KRANK_GES_T,scales="free")+
-  scale_alpha_manual(values=c(0.15,1))+labs(title=principal_cause)
-
-################################################################################
-#Random forest: predict covid
-library(randomForest)
-library(caret)
-d1 = cod_ind_df %>%
-  filter(cal_year>=2020) %>% 
-  dplyr::select(ind_id,outcome,cod_group) %>% 
-  dplyr::mutate(cod_group=replace_na(cod_group,"missing")) %>% 
-  pivot_wider(id_cols=ind_id,names_from = "outcome",values_from="cod_group") %>% 
-  dplyr::mutate(covid=as.factor(ENDG_U_CD_GES_T=="COVID-19")) %>% 
-  dplyr::select(covid,GRUND_KRANK_GES_T,FOLGE_KRANK_GES_T,
-                BEGLEIT_KRANK_A_GES_T,BEGLEIT_KRANK_B_GES_T) %>% 
-  filter(GRUND_KRANK_GES_T!="COVID-19",
-         FOLGE_KRANK_GES_T!="COVID-19")
- 
-set.seed(123)  # For reproducibility
-train_index <- sample(seq_len(nrow(d1)), size = 0.7 * nrow(d1))  # 70% training
-train_data <- d1[train_index, ]
-test_data <- d1[-train_index, ]
-
-d1 %>% 
-  group_by(covid) %>% dplyr::summarise(n())
-
-rf_model <- randomForest(covid ~ .,
-                       data=train_data ,
-                       ntree=500, mtry=2,
-                       importance=TRUE)
-print(rf_model)
-predictions <- predict(rf_model, newdata = test_data, type = "response")
-table(predictions)
-confusionMatrix(predictions, test_data$covid)
-################################################################################
+################################################################################################################################################################
+#Heatmaps and alluvial plots between variables related to causes of deaths/conditions
 library(ggalluvial)
 cod_ind_df %>% 
   filter(cal_year>=2020) %>% 
   dplyr::mutate(outcome=factor(outcome,levels=c("GRUND_KRANK_GES_T","ENDG_U_CD_GES_T"),
                                labels=c("Primary cause (physician)","Principal cause (FSO)"))) %>% 
+  # dplyr::mutate(outcome=factor(outcome,levels=c("FOLGE_KRANK_GES_T","ENDG_U_CD_GES_T"),
+  #                              labels=c("Secondary cause (direct)","Principal cause (FSO)"))) %>% 
   dplyr::mutate(cod_group = factor(cod_group,levels=causes2_df$cod_group,
                                    labels=causes2_df$cod_group_label)) %>% 
   filter(!is.na(outcome)) %>% 
@@ -443,25 +282,9 @@ cod_ind_df %>%
   scale_y_continuous(name="Number of deaths (2020-2021)")+
   scale_x_discrete(name="")
 
-cod_ind_df %>% 
-  filter(cal_year>=2020) %>% 
-  dplyr::mutate(outcome=factor(outcome,levels=c("FOLGE_KRANK_GES_T","ENDG_U_CD_GES_T"),
-                               labels=c("Secondary cause (direct)","Principal cause (FSO)"))) %>% 
-  dplyr::mutate(cod_group = factor(cod_group,levels=causes2_df$cod_group,
-                                   labels=causes2_df$cod_group_label)) %>% 
-  filter(!is.na(outcome)) %>% 
-  dplyr::select(ind_id,outcome,cod_group) %>% 
-  ggplot(aes(x = outcome, stratum = cod_group, alluvium = ind_id,
-             fill = cod_group)) +
-  geom_flow(curve_type = "cubic")+
-  geom_stratum()+
-  scale_fill_discrete(name="Cause of death")+
-  scale_y_continuous(name="Number of deaths (2020-2021)")+
-  scale_x_discrete(name="")
-
 cod_ind_df %>%
   filter(cal_year>=2020,age>=65,age<80) %>% 
-  dplyr::mutate(outcome=factor(outcome,levels=c("ENDG_U_CD_GES_T","GRUND_KRANK_GES_T"),
+  dplyr::mutate(outcome=factor(outcome,levels=c("ENDG_U_CD_GES_T","GRUND_KRANK_GES_T"),#BEGLEIT_KRANK_A_GES_T, FOLGE_KRANK_GES_T
                                labels=c("outcome1","outcome2"))) %>% 
   filter(!is.na(outcome)) %>% 
   pivot_wider(id_cols=ind_id,names_from="outcome",values_from="cod_group") %>% 
@@ -480,83 +303,9 @@ cod_ind_df %>%
   theme(axis.text.x = element_text(angle = 45, hjust = 0))+
   scale_x_discrete(position = "top")
 
-cod_ind_df %>%
-  filter(cal_year==2021,age>=65,age<80) %>% 
-  dplyr::mutate(outcome=factor(outcome,levels=c("ENDG_U_CD_GES_T","BEGLEIT_KRANK_A_GES_T"),
-                               labels=c("outcome1","outcome2"))) %>% 
-  filter(!is.na(outcome)) %>% 
-  pivot_wider(id_cols=ind_id,names_from="outcome",values_from="cod_group") %>% 
-  group_by(outcome1,outcome2) %>% 
-  dplyr::summarise(n=n(),.groups="drop_last") %>%
-  dplyr::mutate(p=n/sum(n)) %>% ungroup() %>% 
-  dplyr::mutate_at(c("outcome1","outcome2"),function(x) factor(x,levels=c(causes2,"Other Causes"))) %>%
-  ggplot(aes(x = outcome2, y = fct_rev(outcome1), fill = p)) +
-  geom_tile() +                          # Creates the heatmap tiles
-  geom_text(aes(label = scales::percent(p, accuracy = 1)),  # Add percentage labels
-            color = "black", size = 2.5) +
-  scale_fill_gradient(low = "lightgreen", high = "lightblue",
-                      labels=scales::label_percent(accuracy = 1)) + # Adjust the color gradient
-  labs(x = "Primary (GRUND_KRANK_GES_T)", y = "Principal (ENDG_U_CD_GES_T)", fill = "Count") + # Axis and legend labels
-  theme_bw() +                      # Minimal theme for a clean look
-  theme(axis.text.x = element_text(angle = 45, hjust = 0))+
-  scale_x_discrete(position = "top")
-
-cod_ind_df %>%
-  dplyr::mutate(outcome=factor(outcome,levels=c("ENDG_U_CD_GES_T","FOLGE_KRANK_GES_T"),
-                               labels=c("outcome1","outcome2"))) %>% 
-  filter(!is.na(outcome)) %>% 
-  pivot_wider(id_cols=ind_id,names_from="outcome",values_from="cod_group") %>% 
-  group_by(outcome1,outcome2) %>% 
-  dplyr::summarise(n=n(),.groups="drop_last") %>%
-  dplyr::mutate(p=n/sum(n)) %>% ungroup() %>% 
-  dplyr::mutate_at(c("outcome1","outcome2"),function(x) factor(x,levels=c(causes2,"Other Causes"))) %>% 
-  ggplot(aes(x = outcome2, y = fct_rev(outcome1), fill = p)) +
-  geom_tile() +                          # Creates the heatmap tiles
-  geom_text(aes(label = scales::percent(p, accuracy = 1)),  # Add percentage labels
-            color = "black", size = 2.5) +
-  scale_fill_gradient(low = "lightgreen", high = "lightblue",
-                      labels=scales::label_percent(accuracy = 1)) + # Adjust the color gradient
-  labs(x = "Secondary (FOLGE_KRANK_GES_T)", y = "Principal (ENDG_U_CD_GES_T)", fill = "Count") + # Axis and legend labels
-  theme_bw() +                      # Minimal theme for a clean look
-  theme(axis.text.x = element_text(angle = 45, hjust = 0))+
-  scale_x_discrete(position = "top")
-#principal and secondary
-d %>% 
-  group_by(cod_group,cod_group_secondary) %>% 
-  dplyr::summarise(n=n(),.groups="drop_last") %>%
-  dplyr::mutate(p=n/sum(n)) %>% ungroup() %>% 
-  dplyr::mutate(cod_group=factor(cod_group,levels=c(causes,"Other Causes")),
-                cod_group_secondary=factor(cod_group_secondary,levels=c(causes,"Other Causes"))) %>% 
-  ggplot(aes(x = cod_group_secondary, y = fct_rev(cod_group), fill = p)) +
-  geom_tile() +
-  geom_text(aes(label = scales::percent(p, accuracy = 1)),
-            color = "black", size = 2.5) +
-  scale_fill_gradient(low = "lightyellow", high = "lightblue",
-                      labels=scales::label_percent(accuracy = 1)) +
-  labs(x = "Secondary", y = "Principal", fill = "Count") +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 0))+
-  scale_x_discrete(position = "top") 
-
-########################################
-#no missing title chapter or block
-cod_ind_df %>% filter(is.na(icd10Title_chapter)|is.na(icd10Title_block)) %>% dim()
-#check number of deaths for each chapter
-cod_ind_df %>%
-  group_by(icd10Chapter,icd10Title_chapter) %>% 
-  dplyr::summarise(n=n(),.groups="drop") %>% 
-  right_join(icd10_chapter,by=c("icd10Chapter"="icd10Chapter","icd10Title_chapter"="icd10Title")) %>%
-  mutate(n=replace_na(n,0)) %>% 
-  arrange(n) %>% head(n=10)
-#Check categories of deaths for Provisional assignment of new diseases (including COVID)
-cod_ind_df %>% filter(grepl("U",icd10)) %>% 
-  group_by(icd10Title_cat) %>% 
-  dplyr::summarise(n=n(),.groups="drop")
-#Check categories for suicides (intentional self-harm)
-cod_ind_df %>% filter(icd10Title_block=="Intentional self-harm") %>% head()
-
-################################################################################
-#Aggregate data by age, sex, calendar week, calendar year and cod group
+################################################################################################################################################################
+#3. Data aggregation for analysis
+#3.1 Aggregate data by age, sex, calendar week, calendar year and cod group
 cod_agg_df = aggregate_cod(cod_ind_df %>% filter(outcome=="ENDG_U_CD_GES_T"),agg_var=c("age_class","sex"))
 cod_agg_nuts_df = aggregate_cod(cod_ind_df %>% filter(outcome=="ENDG_U_CD_GES_T"),agg_var=c("age_class","sex","NUTS2_id","NUTS2_name"))
 
@@ -573,7 +322,7 @@ cod_agg_df %>%
       hjust = 1,vjust=1,size = 10))
 
 ################################################################################
-#Combine CoD and pop data
+#3.2 Combine CoD and pop data
 
 #load population data and interpolate for each week of the year
 pop = load_attribute_pop(cod_agg_df)
@@ -596,7 +345,7 @@ cod_agg_pop_nuts_df = inner_join(cod_agg_nuts_df,
 saveRDS(cod_agg_pop_nuts_df,file="savepoint/cod_agg_pop_nuts_df.RDS")
 
 ###########################################################################################################################
-#Run models: old as causes analysed simultaneously now
+#4. Run models: old as causes analysed simultaneously now
 cod_agg_pop_df = readRDS("savepoint/cod_agg_pop_df.RDS")
 
 #causes = cod_agg_pop_df$cod_group %>% unique() %>% setdiff(.,"COVID-19")
@@ -621,11 +370,13 @@ if(FALSE){
 }
 #ofsp_surveillance_101295-pr
 
+###########################################################################################################################
+#5. Post-analysis estimates
 deaths_pand_pred_sample = readRDS("results/deaths_pand_pred_sample.RDS")
 deaths_pred_sample = readRDS("results/deaths_pred_sample.RDS")
 
 ################################################################################
-#Peak estimates
+#5.1 Peak estimates
 if(FALSE){
   #expected peak: from model estimates of expected mortality (for mod8)
   mod="mod8"; save.date="20241218";
@@ -638,7 +389,7 @@ if(FALSE){
   saveRDS(observed_peak_date_df,file=paste0("results/","observed_peak_date_df.RDS"))
 }
 ################################################################################
-#Cumulative excess and excess by phase
+#5.2 Cumulative excess and excess by phase
 if(FALSE){
   mod="mod8"; save.date="20241218";
   list = lapply(as.list(age_classes),function(x){
@@ -676,15 +427,9 @@ if(FALSE){
   saveRDS(corr_post_res_df,file=paste0("results/",save.date,"/",mod,"_corr_post_res_df.RDS"))
 }
 
-
-
-files = list.files(pattern = paste0(mod, "_corr_resp_lag_post"),
-  path = paste0(code_root_path, "/results/", save.date),full.names = TRUE)
-corr_post_res_df = rbindlist(lapply(files,function(x) readRDS(x)))
-saveRDS(corr_post_res_df,file=paste0("results/",save.date,"/",mod,"_corr_post_res_df.RDS"))
 ################################################################################################################################################################
-################################################################################################################################################################
-#Plot
+#6. Plot
+#6.1 load data and posterior estimates
 cod_agg_pop_df = readRDS("savepoint/cod_agg_pop_df.RDS")
 age_classes = cod_agg_pop_df$age_class %>% unique()
 res_list=load_results_mod6(age_classes, save.date="20241218",mod="mod8")

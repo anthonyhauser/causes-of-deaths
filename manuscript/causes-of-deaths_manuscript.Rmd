@@ -204,6 +204,9 @@ look at overall mortality by cause accounting for principal cause, direct cause 
 Compare between covid and pre-covid, especially for cancer in order to see whether overall cancer mortality really decreased or whether it's only because of different attribution of cause of deaths.
 could inspire from : https://elifesciences.org/reviewed-preprints/93758?utm_source=chatgpt.com
 
+
+modest attribution shift of covid-cancer deaths
+
 \newpage
 
 # Discussion
