@@ -1,9 +1,14 @@
 #Data exploration
 
-#Check the distribution of conditions (comorbidities) by cause of deaths
-#Cancer
-principal_cause="Neoplasms (Cancers)"
-principal_cause="COVID-19"
+#Setup
+source("R/000_setup.R")
+cod_ind_df = readRDS(paste0(code_root_path,"savepoint/cod_ind_df.RDS"))
+
+################################################################################################################################################################
+#Distribution of conditions (comorbidities, only BEGLEIT_KRANK_A_GES_T), by cause of deaths (e.g., COVID-19) in 2020-21
+
+#COVID-19
+principal_cause="COVID-19" #"Neoplasms (Cancers)"
 secondary_cause=c("Respiratory Diseases","Cardiovascular Diseases","Mental and Neurological Disorders",
                   "Neoplasms (Cancers)","Other Causes")
 
@@ -65,7 +70,8 @@ d %>% filter(ENDG_U_CD_GES_T==principal_cause,cal_year>=2020, age>=50,
   scale_x_date(date_breaks = "1 month", labels = scales::label_date(format = "%b"))+
   facet_grid(age_group~BEGLEIT_KRANK_A_GES_T,scales="free")
 
-#Respiratory disease 2011-2019
+################################################################################
+#Distribution of conditions (comorbidities, only BEGLEIT_KRANK_A_GES_T) in deaths due to respiratory disease in 2011-2019, by week
 principal_cause="Respiratory Diseases"
 secondary_cause=c("Cardiovascular Diseases","Mental and Neurological Disorders",
                   "Neoplasms (Cancers)","Other Causes")
@@ -87,7 +93,8 @@ d %>% filter(ENDG_U_CD_GES_T==principal_cause,cal_year %in% 2011:2019, age>=50,
   facet_grid(age_group~BEGLEIT_KRANK_A_GES_T,scales="free")
 
 ################################################################################################################################################################
-principal_cause="COVID-19"
+#Distribution of secondary cause distribution for a given principal cause (e.g., cardiovascular diseases)
+principal_cause="Cardiovascular Diseases"
 secondary_cause=c("Respiratory Diseases","Cardiovascular Diseases","Mental and Neurological Disorders",
                   "Other Causes")
 
@@ -150,7 +157,6 @@ d %>% filter(ENDG_U_CD_GES_T==principal_cause,cal_year>2010,cal_year<2022,cal_we
   annotate("text",x=1,y=0,label="")+
   facet_wrap(.~FOLGE_KRANK_GES_T,scales="free")+
   scale_alpha_manual(values=c(0.15,1))+labs(title=principal_cause)
-
 
 ################################################################################################################################################################
 ################################################################################################################################################################

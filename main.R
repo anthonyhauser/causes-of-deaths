@@ -1,6 +1,17 @@
 source("R/000_setup.R")
 
-###########################################################################################################################
+#Sections:
+#1. Data load and first checks
+#2. Combine CoD dataset with icd10 categorization and data check (plots)
+#3. Data aggregation for analysis
+#4. Run models: old as causes analysed simultaneously now
+#5. Post-analysis estimates
+#6. Plot
+
+#See: 
+
+
+################################################################################################################################################################
 #1. Data load and first checks
 #1.1 Load CoD data (encrypted data)
 wd_ofsp = "L:/UNISANTE_DESS/S_SUMAC/OFSP_2023/"
@@ -82,7 +93,7 @@ d %>%
 
 
 ################################################################################################################################################################
-#2. Combine CoD dataset with icd10 categorization
+#2. Combine CoD dataset with icd10 categorization and data check (plots)
 
 #2.1: combine
 #CoD: principal, primary and secondary 
@@ -217,7 +228,7 @@ d %>%
   ggplot(aes(x=cal_year,y=p,col=ENDG_U_CD_GES_T))+geom_line()+
   theme_bw()
 
-################################################################################################################################################################
+################################################################################
 #Underlying cause and other conditions
 agg_underlying_comorb_df = aggregate_by_underlying_and_comorb(cod_ind_df, n_week_agg = 5)
 
@@ -260,8 +271,7 @@ cod_by_cond %>%
         legend.position = "bottom" )
 
 
-################################################################################################################################################################
-################################################################################################################################################################
+################################################################################
 #Heatmaps and alluvial plots between variables related to causes of deaths/conditions
 library(ggalluvial)
 cod_ind_df %>% 
@@ -344,7 +354,7 @@ cod_agg_pop_nuts_df = inner_join(cod_agg_nuts_df,
   arrange(cod_group,cal_year,cal_week,age_class,sex,NUTS2_id)
 saveRDS(cod_agg_pop_nuts_df,file="savepoint/cod_agg_pop_nuts_df.RDS")
 
-###########################################################################################################################
+################################################################################################################################################################
 #4. Run models: old as causes analysed simultaneously now
 cod_agg_pop_df = readRDS("savepoint/cod_agg_pop_df.RDS")
 
@@ -370,7 +380,7 @@ if(FALSE){
 }
 #ofsp_surveillance_101295-pr
 
-###########################################################################################################################
+################################################################################################################################################################
 #5. Post-analysis estimates
 deaths_pand_pred_sample = readRDS("results/deaths_pand_pred_sample.RDS")
 deaths_pred_sample = readRDS("results/deaths_pred_sample.RDS")

@@ -122,41 +122,96 @@ Objectives
 
 ## Data
 
-Mortality data:
-which causes we take
-how they were collected
-how we aggregated them (definition of groups)
-unit: geographical, age, sex, week
+We received individual-level data on cause-specific deaths for the years 2011–2021 from the Federal Statistical Office (FSO), which we aggregated by age group (0–17, 18–39, 40–64, 65–79, 80+), sex, NUTS-2 region, calendar week, and calendar year.
+The data include information recorded in the death certificate—such as the immediate, underlying, and contributing causes of death—as well as the official underlying cause of death, which is determined by the FSO based on the coding rules of the International Classification of Diseases, 10th Revision (ICD-10).
+All causes of death are coded using ICD-10 and were grouped into nine categories for analysis: Cardiovascular diseases (Chapter IX), Cancers (Chapter II), Mental and neurological disorders (Chapters V and VI), Respiratory diseases (Chapter X), External causes (Chapter XX), Suicide (Chapter XX), Infectious and parasitic diseases (Chapter I), Other causes (Chapters III, IV, VII, VIII, XI–XIX, XXI, XXII), and COVID-19 (Chapter XXII).
+Population data by sex, NUTS-2 region, and age group for the years 2011–2021 were also provided by the Federal Statistical Office (FSO). We applied linear interpolation to obtain weekly population estimates.
 
-Population data
+<!-- In Switzerland, the internal cause-specific mortality database records detailed information on the circumstances of each death and the characteristics of the deceased. -->
+<!-- For every death of a Swiss resident, a physician completes a death certificate specifying the immediate, underlying, and contributing causes of death. -->
+<!-- The death certificate is then transmitted to the Federal Statistical Office (FSO), where information is anonymized, coded, and entered into the national mortality database -->
+<!-- The official underlying cause of death is determined according to the coding rules of the International Classification of Diseases, 10th Revision (ICD-10). -->
+<!-- Additional variables — such as age, canton of residence, calendar week, and year of death — are also recorded. -->
+
 
 ## Model
 
-Infer expected mortality
-Model: for each age, time trend, seasonal and overall, effect of sex and region
-population size as an offset, log-linear model with poisson distribution
-multivariate random effect account for correlation between cause-specific excess mortality rates
-between 2011 and 2019
+<!-- We modeled the weekly number of deaths by cause for each age group using a Poisson distribution with a multivariate structure.   -->
+<!-- The model accounts for changes in population size $N$ over time via an offset term, and includes fixed effects $\beta$ and $\gamma$ for differences in mortality risk by sex and region, respectively. -->
+<!-- Temporal variation is captured by two components: a seasonal trend modeled with a periodic Gaussian Process (GP) $f(t)$, and a long-term trend modeled using a GP with an exponentiated quadratic (squared exponential) kernel $g(t)$.   -->
+<!-- To account for the correlation between mortality risks from different causes, the model incorporates a multivariate random effect $\epsilon$. -->
+<!-- The model reads as follow: -->
+<!-- $$y_{i}(t)\sim Poisson(\mu_{i}(t))$$ -->
+<!-- with, -->
+<!-- $$\log\mu_{irs}(t) = \alpha_i + \beta_{ir} + \gamma_{is} + f(t) + g(t) + \epsilon_i + \log N_{irst}$$ -->
+<!-- where $y_{irs}(t) $ is the observed number of deaths due to cause $i$ at week $t$ in region $r$ and sex $s$. -->
+<!-- The parameters $\alpha_i$ represents the baseline relative mortality risk. -->
 
-## Excess mortality
+We modeled the weekly number of deaths by cause for each age group using a Poisson distribution with a multivariate structure.  
+The model accounts for changes in population size $ N $ over time via an offset term, and includes fixed effects $ \beta $ and $ \gamma $ for differences in mortality risk by region and sex, respectively.  
+Temporal variation is captured by two components: a seasonal trend modeled with a periodic Gaussian Process (GP) $ f(t) $, and a long-term trend modeled using a GP with an exponentiated quadratic (squared exponential) kernel $ g(t) $.  
+To account for the correlation between mortality risks across causes, the model incorporates a multivariate random effect $ \epsilon \sim \mathcal{N}(0,\Sigma)$, where $\Sigma$ is the correlation matrix 
 
-Define excess mortality
-By cause
-All-cause: aggregation of cause-specific excess
-by period
+The model is specified as follows:
+$$
+y_i(t) \sim \text{Poisson}(\mu_i(t))
+$$
+with
+$$
+\log \mu_{irs}(t) = \alpha_i + \beta_{ir} + \gamma_{is} + f(t) + g(t) + \epsilon_i + \log N_{irst},
+$$
+where $ y_{irs}(t)$ denotes the observed number of deaths due to cause \( i \) in week \( t \), region \( r \), and sex \( s \), and \( N_{irst} \) is the corresponding population at risk.
+<!-- where $ y_{irs}(t) $ denotes the observed number of deaths due to cause $ i $ at week $ t $, in region $ r $ and sex $ s $; $ \alpha_i $ is the baseline log mortality risk for cause $ i $; $ \beta_{ir} $ and $ \gamma_{is} $ are age-specific fixed effects for region and sex, respectively; $ f(t) $ captures the seasonal variation; $ g(t) $ represents the long-term trend; $ \epsilon \sim \mathcal{N}(0,\Sigma)$ is a multivariate random effect capturing correlation across causes (with correlation matrix $\Sigma$); and $ N_{irst} $ is the population at risk, included as a log offset. -->
+
+
+The model was run independently for each age group and fitted to the weekly number of cause-specific deaths $y_{irs}(t)$ observed between 2011 and 2019.
+It was then used to estimate the weekly \textit{expected number of deaths}  $\tilde{y}_{irs}(t)$ through the end of 2021, defined as draws from the \textit{posterior predictive distribution} after removing the random effect $\epsilon$ from the log mortality risk $\mu_{irs}(t)$.  
+We excluded $\epsilon$ because it is designed to capture \textit{excess mortality}—that is, unexplained or anomalous variation beyond structured trends.  
+Excess mortality $E_{irs}(t)$ was then defined as the difference between observed and expected deaths:
+$$E_{irs}(t) := y_{irs}(t) - \tilde{y}_{irs}(t).$$
+where $y_{irs}(t)$ is the observed number of deaths and $\tilde{y}_{irs}(t)$ the predicted number under baseline conditions.  
+We also report aggregated estimates of excess mortality, such as \textit{all-cause excess mortality} (aggregated over causes of death) or aggregated over time period.
 
 ## Further analysis
+
+
 
 Correlation
 Correlation during COVID-19: investigate the partial correlation between cause-specific excess mortality rates during covid-19 between different causes and respiratory disease, which 
 
 
-Q: where to describe covid-19 phase in switzerland?
+Q: where to describe covid-19 phase in switzerland? Introduction?
 \newpage
 
 # Results
 
-## Before 2020
+## Distribution of deaths
+
+In Switzerland, deaths are heavily concentrated among older adults: 88% occurred in individuals aged 65 and over, while fewer than 2% were among those under 40 in 2020-21 (Fig 1A).
+Cardiovascular diseases were the leading cause of death overall, followed by cancers and mental or neurological disorders, though the distribution varied by age group  (Fig 1B).
+Among individuals aged 80 and above, cardiovascular disease accounted for XX% of all deaths.
+In contrast, for those aged 40–79, cancer was the predominant cause, responsible for approximately 40% of deaths.
+The relative impact of COVID-19 was greatest in older age groups, contributing to XX% of deaths among those aged 65–79 and XX% among those aged 80 and over.
+
+## Prepandemic mortality trends
+
+The model successfully captures both the seasonal and long-term trends in cause-specific mortality observed between 2011 and 2019 (Figure 2A for individuals aged 80+, and Figures SXX–SXX for other age groups).
+We observe notable similarities in mortality trends across different causes, both in the expected seasonal patterns and in intermittent episodes of excess mortality that often occur synchronously (e.g., during the winters of 2014/15 and 2016/17).
+For the 80+ age group, Figure 2B highlights this synchrony in timing, showing that the expected mean mortality peak (in black) occurs consistently across causes between January and February.
+During the pre-pandemic period (2011–2019), observed peak timings (colored circles) align closely with these expectations.
+However, during the pandemic years, we observe a marked shift: mortality peaks occur earlier than expected (colored squares).
+In addition, the model reveals strong positive correlations in cause-specific excess mortality, mostly among individuals aged 80 and over (Fig 2C).
+Specifically, excess deaths from respiratory diseases, mental or neurological disorders, and cardiovascular diseases are highly correlated, with pairwise correlations exceeding 80%.
+
+## COVID-19 mortality
+
+The model also captures all-cause mortality, obtained by aggregating deaths across causes.
+Among individuals aged 65 and over, the impact of the first two COVID-19 waves—-spring 2020 and fall/winter 2020–21—-clearly exceeded any episodes of excess mortality observed between 2011 and 2019 (Figure 3A).
+Cumulative excess mortality highlights the substantial increase in deaths during these waves, followed by a gradual mortality deficit in the subsequent weeks (Figure 3B).
+When excluding deaths attributed to COVID-19, we also observe that mortality from other causes was lower than expected in 2020–21 for people aged 65 and over.
+
+
+
 
 ```{r, include=FALSE}
 

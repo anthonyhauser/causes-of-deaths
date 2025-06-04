@@ -12,7 +12,7 @@ data_folder = paste0(wd_ofsp,"02_data/cause_of_death/")
 save.date="20241218"
 mod="mod8"
 
-col_age =viridisLite::viridis(5,begin = 0,end=0.95)[5:1]
+col_age = viridisLite::viridis(5,begin = 0,end=0.95)[5:1]
 col_cause = viridisLite::viridis(8,begin = 0,end=0.95, option = "C")#viridis() as in scale_color_viridis_d function
 show_col(col_age)
 
@@ -77,7 +77,7 @@ causes2_df_twolines = causes2_df %>%
                                          "Infectious/\nParasitic",cod_group_label))
 
 p1 = cod_agg_pop_nuts_df %>% 
-  filter(cal_year == 2020) %>% 
+  filter(cal_year %in% c(2020,2021)) %>% 
   group_by(age_class) %>% 
   dplyr::summarise(n = sum(n), .groups = "drop") %>% 
   dplyr::mutate(p = n / sum(n),
@@ -88,8 +88,9 @@ p1 = cod_agg_pop_nuts_df %>%
   scale_x_discrete(name = "Age class") +
   scale_y_continuous(name = "Deaths")
 
-p2 = cod_agg_pop_nuts_df %>%
-  filter(cal_year == 2020) %>% 
+p2 = rbind(cod_agg_pop_nuts_df %>% filter(cal_year %in% c(2020,2021)),
+          cod_agg_pop_nuts_df %>% filter(cal_year %in% c(2020,2021)) %>% 
+            dplyr::mutate(age_class="Total")) %>% 
   dplyr::mutate(cod_group = factor(cod_group,levels=causes2_df_twolines$cod_group[c(1:9)],#put in the right order
                                    labels=causes2_df_twolines$cod_group_label[c(1:9)]),
                 cod_group_id = as.numeric(cod_group)) %>% 
@@ -104,7 +105,7 @@ p2 = cod_agg_pop_nuts_df %>%
   scale_x_continuous(name="Causes of deaths",breaks=causes2_df_twolines$order,
                    labels=causes2_df_twolines$cod_group_label)+
   scale_y_continuous(name="Distribution of deaths", labels=scales::percent)+
-  scale_color_manual(name="Age class",values=col_age)
+  scale_color_manual(name="Age class",values=c(col_age,"gray"))
 
 fig1_1 = cowplot::plot_grid(p1,p2,
                    ncol=2,rel_widths = c(1,2),
