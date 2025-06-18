@@ -174,10 +174,11 @@ We also report aggregated estimates of excess mortality, such as \textit{all-cau
 
 ## Further analysis
 
-
-
-Correlation
-Correlation during COVID-19: investigate the partial correlation between cause-specific excess mortality rates during covid-19 between different causes and respiratory disease, which 
+We examined how excess deaths from specific causes were related over time to excess deaths from COVID-19 during 2020–21.
+To do this, we computed partial correlations between posterior samples of cause-specific excess deaths and COVID-19 deaths, while controlling for excess deaths from other respiratory diseases.
+This adjustment aimed to separate the association with COVID-19 from that with other circulating respiratory pathogens.
+We also explored the effect of time lags, by shifting the time series of cause-specific excess deaths up to 8 weeks forward and backward, to assess whether the strength of association varied depending on timing.
+We performed the same analysis to assess the relationship between cause-specific excess deaths and excess deaths due to (non-COVID) respiratory diseases, this time adjusting for COVID-19 mortality.
 
 
 Q: where to describe covid-19 phase in switzerland? Introduction?
@@ -210,6 +211,35 @@ Among individuals aged 65 and over, the impact of the first two COVID-19 waves�
 Cumulative excess mortality highlights the substantial increase in deaths during these waves, followed by a gradual mortality deficit in the subsequent weeks (Figure 3B).
 When excluding deaths attributed to COVID-19, we also observe that mortality from other causes was lower than expected in 2020–21 for people aged 65 and over.
 
+## Cause-specific excess mortality over time
+
+Among individuals aged below 64, almost all cause-specific mortality remained within expected levels, suggesting no evidence of excess mortality during 2020–21.
+A slight excess in suicides was observed among 0-17 (X [XX–XX], +XX%), but the small number of deaths (43) limits interpretation.
+In contrast, among individuals aged 65–79, a deficit in deaths due to cancers and mental or neurological disorders was observed in 2020–21, with approximately 5% fewer deaths than expected.
+The largest decrease occurred during the Alpha wave in January–February 2021.
+Mortality due to cardiovascular diseases in this group remained within the expected range, although a localized excess was noted during the autumn 2020 wave (+XX%).
+
+Similar patterns were seen in the 80+ age group.
+A marked decrease in mortality from mental and neurological disorders was observed in 2020–21 (−XX%), with levels below expectation in all phases except the autumn 2020 wave, when a slight increase occurred.
+The most pronounced decrease was again during the Alpha wave (−XX%).
+For cancer, the mortality deficit was concentrated almost entirely during the Alpha wave.
+Cumulative mortality due to cardiovascular diseases among the 80+ was within expected levels overall, but showed substantial variation across phases. Excess mortality was concentrated during COVID-19 waves, while mortality deficits were more common at the beginning of both 2020 and 2021.
+Finally, we observed a consistent deficit in deaths due to respiratory diseases (excluding COVID-19) across all age groups, with the magnitude of the deficit increasing with age.
+
+To better understand cancer-related mortality patterns, we examined deaths among individuals with a cancer diagnosis, stratified by cancer types grouped according to baseline survival.
+Unlike previous analyses based on the underlying cause of death, we also included individuals with cancer who died from other causes. The number of people dying with a cancer diagnosis did not decline during the pandemic and even increased among those aged 80 and over (Fig SXXA).
+The decrease in cancer-attributed deaths was concentrated among cancers with low baseline survival (Fig SXXB).
+Conversely, among individuals with cancer whose underlying cause of death was not cancer, the largest excess was observed in those with the most lethal cancer types (Fig SXXC).
+
+## Correlation with respiratory diseases in 2020-21
+
+We examined the temporal correlation between excess mortality from specific causes and excess mortality due to either COVID-19 or other respiratory diseases during 2020–21.
+For cardiovascular and mental/neurological diseases, we observed positive partial correlations with COVID-19 mortality, reaching nearly 50% among individuals aged 80 and over (Figure 5).
+Similar correlations were also found with other respiratory diseases, reflecting the high correlations inferred by the model for the prepandemic period 2011-2019.
+The strongest correlations with COVID-19 were seen at lags of 1 to 3 weeks, meaning that COVID-19-related excess deaths happened around the same time as, but slightly after, those from cardiovascular or mental/neurological causes.
+In contrast, we observed slightly negative correlations between cancer and COVID-19 mortality, particularly among those aged 65–79.
+
+-> undetected rather than long-term consequence of covid, as peaks occur simultaneously
 
 
 
@@ -234,6 +264,8 @@ Reclassification of deaths among cancer patients with COVID-19: Many cancer pati
 
 
 
+
+
 Reasons: 
 1) Undiagnosed COVID-19 case : -> increase during wave
 2) Long-term mortality displacement -> decrease after waves
@@ -255,7 +287,8 @@ among 65-79: no correlation during covid between resp (or covid) and mental (as 
 
 
 TO DO:
-look at overall mortality by cause accounting for principal cause, direct cause and underlying condition.
+- mention that excess deaths before 2020 coincides with episode of flu epidemic -> undiagnosed or consequence of infection
+- look at overall mortality by cause accounting for principal cause, direct cause and underlying condition.
 Compare between covid and pre-covid, especially for cancer in order to see whether overall cancer mortality really decreased or whether it's only because of different attribution of cause of deaths.
 could inspire from : https://elifesciences.org/reviewed-preprints/93758?utm_source=chatgpt.com
 
@@ -266,17 +299,49 @@ modest attribution shift of covid-cancer deaths
 
 # Discussion
 
-**Summary**
-  
-**Comparison with other studies**
+## Summary
 
-**Natural experiment: synchronicity between flu and CV/dementia**
+Aim
+disruption of mortality patterns: direct or indirect consequences of covid
+Resp diseases
+synchrony and correlation of excess deaths, observed before covid and after
+Overall excess but cause-specific sometimes lower than expected, covid-19 partly replaced deaths
 
-**Potential explanations for the observed patterns: 3 types of disruption**
+## Potential explanations for the observed patterns: 3 types of disruption
 
-**Strengths, limitations, perspectives**
+1) Hygiene measure: absence of mortality peak due to respiratory disease.
+Care disruption: unlikely, as shown by other study for cancer
 
-**Conclusion**
+2) Undetected COVID-19 deaths
+synchrony observed between cardiovascular excess and covid waves
+-> undetected covid, attributed to cvd, makes senses as covid directly alters cardiovascular system
+(-> could be also consequence of covid but less likely as occurs same time)
+mental/neurological among 80+
+
+3) Deficit in mortality in 2021 can be explained by also mortality displacement
+cvd in 2021, dementia
+peak in mortality observed in autumn 2020 (either due to covid-19 or other causes) means that some of the deaths would have occurred anyway, harvesting
+
+competitive risk in cancer -> more impact among 65-79, where mortality rate between cancer and covid are more similar
+
+4) Specific deficit in Jan-Feb explained by resp absence (short term)
+correlated with respiratory, suggesting an effect
+
+
+
+
+
+## Comparison with other studies
+
+
+
+## Natural experiment: synchronicity between flu and CV/dementia
+
+## Potential explanations for the observed patterns: 3 types of disruption
+
+## Strengths, limitations, perspectives
+
+## Conclusion
   
   
   

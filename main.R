@@ -232,6 +232,8 @@ d %>%
 #Underlying cause and other conditions
 agg_underlying_comorb_df = aggregate_by_underlying_and_comorb(cod_ind_df, n_week_agg = 5)
 
+cod_ind_df
+
 #Distribution of comorbidities among ppl died from covid (can sum up above 100% due to ppl with multiple comorbidities)
 agg_underlying_comorb_df %>% 
   filter(mean_date>=as.Date("2020-01-01"),
@@ -244,7 +246,7 @@ agg_underlying_comorb_df %>%
   facet_grid(age_class ~ comorbid_cause,scales="free") 
 
 #Proportion of deaths of a given cause conditioned on the conditions
-cod_by_cond <- final_summary %>%
+cod_by_cond <- agg_underlying_comorb_df %>%
   group_by(comorbid_cause, mean_date, age_class) %>%
   dplyr::summarise(n_comorbid = n_comorbid2[1],
                    n_same = sum(n_underlying_comorbid2[ENDG_U_CD_GES_T == comorbid_cause], na.rm = TRUE),
@@ -259,9 +261,10 @@ cod_by_cond %>%
   dplyr::filter(year(mean_date)>=2019,
                 age_class %in% c("40-64","65-79","80+"),
                 comorbid_cause %in% c("Cardiovascular Diseases","Mental and Neurological Disorders","Neoplasms (Cancers)")) %>% 
+  dplyr::mutate(cod_age = paste0(comorbid_cause,", ",age_class)) %>% 
   ggplot(aes(x = mean_date, y = n_underlying_comorbid, color = underlying)) +
   geom_line(size = 1) +
-  facet_grid(age_class ~ comorbid_cause,scales="free") +
+  facet_wrap(cod_age ~ .,scales="free_y") +
   #scale_y_continuous(labels = scales::percent_format()) +
   scale_color_manual(name="Cause of death",
                      values = c("n_same" = "#1f77b4", "n_covid" = "#d62728", "n_other" = "#2ca02c","n_tot"="gray80"),
@@ -416,6 +419,8 @@ if(FALSE){
                          groups=c("covid_phase","age_class","cod_group"))}))
   saveRDS(excess_phase2_pand_df,file=paste0("results/",save.date,"/",mod,"_excess_phase2_pand_df.RDS"))
 }
+
+excess_phase2_pand_df_v0 = readRDS(paste0("results/",save.date,"/",mod,"_excess_phase2_pand_df.RDS"))
 
 
 ################################################################################

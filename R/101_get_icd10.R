@@ -36,9 +36,11 @@ get_icd10 = function(){
   icd10_chapter_block = icd10_block_long %>% dplyr::rename(icd10Title_block=icd10Title) %>% 
     left_join(icd10_chapter %>% dplyr::rename(icd10Title_chapter=icd10Title),by="icd10Chapter") %>% 
     dplyr::select(icd10Chapter, icd10, icd10Title_chapter, icd10Title_block) %>% 
+    #add cat1
     left_join(icd10_df %>% filter(`10ClassKind`=="Category",`10DepthInKind`==1) %>% 
                 dplyr::select(icd10=icd10Code, icd10Title_cat1 = icd10Title))
   
+  #Add cat2 (more precise than cat1, e.g., A01.1 instead of A01)
   icd10_chapter_block_cat = icd10_chapter_block %>% 
     left_join(icd10_cat,by=c("icd10Chapter","icd10"))
   

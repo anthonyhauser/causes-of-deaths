@@ -76,6 +76,11 @@ causes2_df_twolines = causes2_df %>%
                 cod_group_label = ifelse(cod_group_label=="Infectious/Parasitic",
                                          "Infectious/\nParasitic",cod_group_label))
 
+cod_agg_pop_nuts_df %>% 
+  filter(cal_year %in% c(2020,2021),age_class=="0-17") %>% 
+  group_by(cod_group) %>% 
+  dplyr::summarise(n = sum(n), .groups = "drop")
+
 p1 = cod_agg_pop_nuts_df %>% 
   filter(cal_year %in% c(2020,2021)) %>% 
   group_by(age_class) %>% 
@@ -324,7 +329,7 @@ dev.off()
 #Adapt it. Why? Because before rel_excess was calculated for each iteration and then summarised. Problem: some expected deaths samples are 0 as it is sampled from a poisson distribution
 #Current method: summarise absolute excess from samples (by phase) and then divide by the summarised expected excess
 excess_phase2_pand_df = readRDS(paste0("results/",save.date,"/","mod8","_excess_phase2_pand_df.RDS"))
-excess_phase2_pand_df = excess_phase2_pand_df %>%
+rel_excess_phase2_pand_df = excess_phase2_pand_df %>%
   dplyr::filter(variable=="excess") %>%
   dplyr::mutate(variable="rel_excess") %>% 
   left_join(excess_phase2_pand_df %>% filter(variable=="deaths") %>% 
@@ -333,21 +338,34 @@ excess_phase2_pand_df = excess_phase2_pand_df %>%
   dplyr::mutate(est = est/exp_deaths_mean,
                 lwb = lwb/exp_deaths_mean,
                 upb = upb/exp_deaths_mean)
+#use the new definition of rel_excess and integrate it in the df in place of the old definition
+excess_phase2_pand_df = rbind(excess_phase2_pand_df %>% filter(variable!="rel_excess"),
+                              rel_excess_phase2_pand_df %>% 
+                                dplyr::select(variable,covid_phase,age_class,cod_group,pred,est,lwb,upb))
+
+excess_phase2_pand_df %>% filter(age_class=="")
+
 #Relative cumulative excess
 cum_excess_pand_df = readRDS(paste0("results/",save.date,"/","mod8","_cum_excess_pand_df.RDS"))
+#Cumulative excess deaths at the end of 2021
+cum_all_excess_pand_df = cum_excess_pand_df %>% filter(week.id==max(week.id),pred=="poisson") %>% 
+  left_join(res_list$data_pred_week_cause %>% dplyr::filter(variable=="obs_deaths",pred=="poisson",cal_year>=2020) %>% 
+              arrange(age_class,cod_group,date) %>% 
+              group_by(age_class,cod_group) %>% dplyr::mutate(obs_deaths=cumsum(est)) %>% ungroup() %>% 
+              dplyr::select(age_class,cod_group,date,obs_deaths) %>% 
+              filter(date==max(date)),
+            by=c("age_class","cod_group","date")) %>% 
+  dplyr::mutate(deaths_mean = obs_deaths-excess_mean,
+                deaths_lwb = obs_deaths-excess_upb,
+                deaths_upb = obs_deaths-excess_lwb) %>% 
+  dplyr::select(-c(rel_excess_mean,rel_excess_lwb,rel_excess_upb))
+  
+cum_all_excess_pand_df %>% filter(age_class=="0-17",cod_group=="Suicide")
 
-# Prepare data
-# Filter and prepare weekly cumulative excess data
-cum_df <- cum_excess_pand_df %>% 
-  dplyr::mutate(cod_group = factor(cod_group,
-                            levels = causes2_df$cod_group[c(1:5)],
-                            labels = causes2_df$cod_group_label[c(1:5)])) %>% 
-  filter(pred == "poisson",
-         age_class == "80+",
-         !is.na(cod_group))
+cum_all_excess_pand_df %>% filter(age_class=="18-39")
 
 # Filter and prepare phase-level data
-phase_df0 <- excess_phase2_pand_df %>%
+phase_df0 <- rel_excess_phase2_pand_df %>%
   dplyr::mutate(cod_group = factor(cod_group,
                             levels = causes2_df$cod_group[c(1:5)],
                             labels = causes2_df$cod_group_label[c(1:5)])) %>% 
@@ -375,7 +393,7 @@ plots <- purrr::pmap(sel_plot, ~{
   age <- ..1
   cause <- ..2
   p <- plot_excess(cum_excess_pand_df,
-                   excess_phase2_pand_df,
+                   rel_excess_phase2_pand_df,
                    covid_phase2,age, cause) +
     theme(
       legend.position = "none",
@@ -423,7 +441,7 @@ final_plot <- wrap_plots(plots, ncol = 3, byrow = TRUE) &
   theme(plot.margin = margin(-5, 4, 0, 1))
 
 fig3 = cowplot::plot_grid(final_plot,
-                          plot_grid(get_legend2(data.frame(x=1:2,y=1:2,ymin=1:2-1,ymax=2:5,col="1") %>% 
+                          cowplot::plot_grid(get_legend2(data.frame(x=1:2,y=1:2,ymin=1:2-1,ymax=2:5,col="1") %>% 
                                                   ggplot(aes(x=x,y=y,ymin=ymin,ymax=ymax,fill=col))+
                                                   geom_ribbon(alpha=0.3)+geom_line(aes(col=col))+
                                                   scale_color_manual(name = "", breaks = "1", labels = "Cumulative excess", values = "black")+
@@ -458,7 +476,7 @@ fig3_age = lapply(age_classes,function(age){
   plots <- purrr::pmap(sel_plot, ~{
     cause <- ..2
     p <- plot_excess(cum_excess_pand_df,
-                     excess_phase2_pand_df,
+                     rel_excess_phase2_pand_df,
                      covid_phase2,
                      age, cause) +
       theme(legend.position = "none",
@@ -508,10 +526,10 @@ fig3_age = lapply(age_classes,function(age){
     theme(plot.margin = margin(5, 4,5, 1))
   
   # Compose final plot with legend in bottom-left
-  fig <- ggdraw() +
-    draw_plot(final_plot, x = 0, y = 0, width = 1, height = 1) +
-    draw_grob(legend1, x = 0.45, y = 0.08, width = 0.25, height = 0.1) +  # bottom-left corner
-    draw_grob(legend2, x = 0.45, y = 0.2, width = 0.4, height = 0.07)     # optional second legend
+  fig <- cowplot::ggdraw() +
+    cowplot::draw_plot(final_plot, x = 0, y = 0, width = 1, height = 1) +
+    cowplot::draw_grob(legend1, x = 0.45, y = 0.08, width = 0.25, height = 0.1) +  # bottom-left corner
+    cowplot::draw_grob(legend2, x = 0.45, y = 0.2, width = 0.4, height = 0.07)     # optional second legend
   
   
   pdf(file=paste0(code_root_path,"/manuscript/fig3_",age,".pdf"),width=13.5,height=10.6)
@@ -606,12 +624,32 @@ pdf(file=paste0(code_root_path,"/manuscript/fig4.pdf"),width=10,height=10)
 print(fig4)
 dev.off()
 
-save(fig1, fig1_1, fig2, fig3, fig3_age, fig4, fig4_supp,
+save(fig1, fig1_1, fig2, fig3, fig3_age, fig4,
         file=paste0(code_root_path,"/manuscript/figures_data.RData"))
+
+##############################################################################################################################################
+#Supplementary figures
+
+#S1
+fig_s1 = cancer_deaths_plot(cod_ind_df, n_week_agg = 5)
+pdf(file=paste0(code_root_path,"/manuscript/fig_s1.pdf"),width=8,height=8)
+print(fig_s1)
+dev.off()
+  
+save(fig4_supp, fig_s1,
+       file=paste0(code_root_path,"/manuscript/figures_data.RData"))
 
 ##############################################################################################################################################
 ##############################################################################################################################################
 #Fig3: with labels
+# # Filter and prepare weekly cumulative excess data
+# cum_df <- cum_excess_pand_df %>% 
+#   dplyr::mutate(cod_group = factor(cod_group,
+#                                    levels = causes2_df$cod_group[c(1:5)],
+#                                    labels = causes2_df$cod_group_label[c(1:5)])) %>% 
+#   filter(pred == "poisson",
+#          age_class == "80+",
+#          !is.na(cod_group))
 # #Labels on the graphs indicating cumulative excess end of 2021
 # labels_df <- cum_df %>%
 #   filter(week.id == max(week.id)) %>%
