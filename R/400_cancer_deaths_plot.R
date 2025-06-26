@@ -26,7 +26,7 @@ cancer_deaths_plot = function(cod_ind_df, n_week_agg = 5){
       # dplyr::mutate(block_n = ifelse(nchar(block_n)==1,paste0("0",block_n),as.character(block_n))) %>% 
       # unite(icd10,c(letter,block_n),remove=FALSE,sep="") %>% 
       dplyr::select(icd10Chapter,icd10,icd10Title)
-    print(icd10_block_cancer_long[[i]])
+    #print(icd10_block_cancer_long[[i]])
     #print(i)
   }
   icd10_block_cancer_long <- do.call("rbind", icd10_block_cancer_long)
@@ -43,7 +43,7 @@ cancer_deaths_plot = function(cod_ind_df, n_week_agg = 5){
   #prepare data: add cancer type, time period etc
   d_prepped0 = d_prepped0 %>% 
     dplyr::select(ind_id,age,sex,cal_week,cal_year,outcome,cod_group) %>% 
-    left_join(d_prepped %>%  dplyr::select(ind_id,outcome,icd10),by=c("outcome","ind_id")) %>% 
+    left_join(d_prepped0 %>%  dplyr::select(ind_id,outcome,icd10),by=c("outcome","ind_id")) %>% 
     left_join(icd10_block_cancer_long %>% dplyr::select(icd10,icd10Title_block2 = icd10Title),by="icd10") %>% 
     dplyr::mutate(icd10Title_block2 = replace_na(icd10Title_block2,"No cancer")) %>%
     dplyr::filter(!is.na(cod_group)) %>% #remove rows with missing cod_group, which is due to the fact that they have only 0 or 1 comorbidity
@@ -186,7 +186,7 @@ cancer_deaths_plot = function(cod_ind_df, n_week_agg = 5){
     annotate("text",label="",x=as.Date("2020-01-01"),y=0)+
     facet_wrap(.~age_class)+
     scale_x_date(name="",date_labels = "%b %y")+
-    scale_y_continuous(name="Number of individuals\ndying with cancer")+
+    scale_y_continuous(name="Number of individuals\ndying from cancer")+
     scale_color_manual(name="Cause of death",values=c("red","orange","forestgreen","blue"),
                        breaks = c("Low","Medium","High","No cancer"),
                        labels = c("Low-survival cancer","Medium-survival cancer","High-survival cancer","No cancer"))+

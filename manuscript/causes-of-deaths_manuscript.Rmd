@@ -229,7 +229,7 @@ Finally, we observed a consistent deficit in deaths due to respiratory diseases 
 To better understand cancer-related mortality patterns, we examined deaths among individuals with a cancer diagnosis, stratified by cancer types grouped according to baseline survival.
 Unlike previous analyses based on the underlying cause of death, we also included individuals with cancer who died from other causes. The number of people dying with a cancer diagnosis did not decline during the pandemic and even increased among those aged 80 and over (Fig SXXA).
 The decrease in cancer-attributed deaths was concentrated among cancers with low baseline survival (Fig SXXB).
-Conversely, among individuals with cancer whose underlying cause of death was not cancer, the largest excess was observed in those with the most lethal cancer types (Fig SXXC).
+Conversely, among individuals with cancer whose underlying cause of death was not cancer, the largest excess was observed in those with the least lethal cancer types (Fig SXXC).
 
 ## Correlation with respiratory diseases in 2020-21
 
@@ -243,6 +243,9 @@ In contrast, we observed slightly negative correlations between cancer and COVID
 
 
 
+
+
+
 ```{r, include=FALSE}
 
 ```
@@ -253,14 +256,12 @@ Cancer :
 Reclassification of deaths among cancer patients with COVID-19: Many cancer patients who contracted COVID-19 during the 2nd and 3rd waves likely died with contributions from both diseases, but their deaths were primarily attributed to COVID-19 (as per guidelines), reducing recorded cancer mortality. This effect was stronger in 65–79, who were more likely to be hospitalized and tested.
 + harvesting effect of cancer patients occured in wave 2 lead to decrease in deaths in wave 3 
 + absences of resp infections during wave 3
-
-## Excess all-cause
-  
-## CV, cancer, dementia and infectious or respiratory diseases
   
 ```{r, include=FALSE}
 
 ```
+
+
 
 
 
@@ -301,45 +302,231 @@ modest attribution shift of covid-cancer deaths
 
 ## Summary
 
-Aim
-disruption of mortality patterns: direct or indirect consequences of covid
-Resp diseases
-synchrony and correlation of excess deaths, observed before covid and after
-Overall excess but cause-specific sometimes lower than expected, covid-19 partly replaced deaths
+We modeled cause-specific mortality trends in Switzerland (2011–2019) to assess excess mortality during the COVID-19 pandemic (2020–2021).
+Compared to the pre-pandemic period, we observed several disruptions in mortality patterns.
+Cardiovascular deaths increased temporarily during COVID-19 waves, particularly among those aged 65 and older.
+In contrast, respiratory disease mortality declined consistently throughout the pandemic.
+For mental/neurological, and cancer-related causes in older adults, mortality deficits were mostly limited to 2021.
+These deficits were offset by COVID-19 deaths, resulting in persistent all-cause excess mortality.
+These shifts likely reflect a combination of mechanisms—such as mortality displacement, competing risks and reduced circulation of other pathogens due to control measures—that are explored in more detail below.
+<!-- synchrony and correlation of excess deaths, observed before covid and after -->
 
-## Potential explanations for the observed patterns: 3 types of disruption
+## Potential explanations for the observed patterns: 4 types of disruption
 
-1) Hygiene measure: absence of mortality peak due to respiratory disease.
-Care disruption: unlikely, as shown by other study for cancer
 
-2) Undetected COVID-19 deaths
+
+There are four types of disruptions that could serve as potential explanations for the observed patterns.
+First, the under-ascertainment of COVID-19 mortality lead to an artificial inflation of the deaths due to other causes.
+In Switzerland, Riou et al. estimated that only 72% of COVID-19 related deaths were reported as such in 2020-21, with even lower proportion during epidemic waves.
+As SARS-CoV-2 can contribute to cardiovascular death through pathways involving inflammation, thrombosis, and direct cardiac injury, misclassified COVID-19 deaths might have been considered as due to cardiovascular causes.
+This might indeed explain the excess mortalities due to cardiovascular diseases observed during both covid wave in fall 2020 and fall 2021.
+<!-- ascertainment of cases: Bouman -->
+<!-- Riou: only 72% of COVID-19 were reported, modelling work, even lower among 80+, where we estimated more pronounced fluctuation of excess mortality during covid waves. -->
+
+A second type of disruption concerns the sequelae following SARS-CoV-2 infection that might affect cause-specific mortality.
+Several studies have emphasized the increased risk of developing a certain number of sequela or symptoms after SARS-CoV-2 infections.
+This could lead to an excess mortality, as found by Cai et al. in the US.
+For example, as this sequelas often affects the cardiovascular system, we might experience excess mortality due to cardiovascular diseases after a covid-19 wave.
+This effect occurs with delays and is potentially long-lasting, is quite limited, so that it is might be hard to identify in the Swiss population, which is healthier than the US.
+It might as well be concurrent with other type of disruption, which might blurr the interpretation of the results.
+
+Third, mortality displacement, i.e., when deaths occur earlier than they would have in the absence of the COVID-19 pandemic, partly explains the deficit in mortality observed during the first part of 2021.
+This was mostly apparent for mental/neurological diseases, where we observe a strong deficit of mortality of 65+ during the period following COVID-19 waves in Fall 2020 and winter 2020-21.
+Such undermortality has already been observed in other countries, e.g., in Nordic countries, attributing it to displacement from dementia deaths to COVID-19 deaths.
+
+While mortality displacement might affect mortality over year, it has a more immediate effect on causes with low life prognosis, such as certain type of cancers.
+Additional analyses showed that the apparent decrease in cancer mortality observed end of 2020 was compensated by an increase in the number of individuals with cancer dying from other causes (such as COVID-19).
+It also showed that this decrease was mostly visible in cancers with low prognosis, where competing risk was highest.
+<!-- ADD sentence to justify this in more details, citing the paper about modelling competing risk -->
+<!-- ADD harvesting -->
+The deficit in mortality observed almost simultaneously as the covid-19 wave among 65-79 could therefore be explained by mortality displacement over causes.
+This also explains the negative correlation calculated between COVID-19 deaths and excess mortality due to cancer.
+<!-- cite paper us about correlation over states -->
+
+Finally, the pandemic response measures, whether mandated through control measures or voluntary behavioural changes, have affected mortality in various ways.
+Non-pharmaceutical interventions (NPIs) have reduced the circulation of many respiratory pathogens (e.g., flu), leading to a deficit in mortality caused by respiratory diseases.
+<!-- mask wearing, social distancing  -->
+This deficit is stricking in January-February 2021, as it is a period of the years usually marked by intense circulation of respiratory pathogens but not in 2021 where strict control measures were implemented.
+In addition to the direct effect on respiratory disease mortality, the absence of circulation of respiratory pathogens is likely to have affected other causes of deaths, especially among 80+, e.g., due to the dependencies with neurological/mental or cardiovascular diseases.
+This could partly explain the deficit in mortality due to mental/neurological diseases observed in the beginning of 2021 in the 65-79 and 80+ age groups.
+Alternatively, the restrictions imposed during COVID-19 had some repercussions on the standard of care.
+This has been used to justify the lower number of cancer deaths as a result of the underdiagnosis.
+However, Switzerland, by implementing moderate control measures, was able to keep a high standard of care throughout the pandemic, making this explanation unrealistic.
+
+The multivariate structure of our model identified two levels of correlation/association between cause-specific mortality before 2020.
+First, most of the causes have mortality peak at the same time during winter in multiple age groups.
+But our model also shows that, for respiratory, cardiovascular and mental/neurological diseases, the excesses remain strongly correlated after adjusting for seasonal variation.
+The correlation is highest in winters with the largest influenza epidemics, implying that a substantial share of the apparent cardiovascular excess is actually infection-related (either biologically triggered events or misclassified deaths).
+While extreme weather or pollution could still contribute, previous studies indicate it explains only a minor fraction of the residual synchrony that we observe.
+This is validated by the correlations between either cardiovascular or mental/neurological and both covid-19 and other respiratory excesses during 2020-21, a period where traditional mortality patterns were disrupted.
+In this context, covid disruption serves as a natural experiment, as covid wave occurred at unusual periods for a respiratory disease and flu wave was almost inexistant in winter 2020-21.
+While the mechanisms still need to be investigated in more depth, this strongly suggests that the impact of respiratory pathogens on mortality are likely underestimated.
+
+- multivariate (cross-cause random effect) + seasonality + long-term trend + population change
+- posterior propagation of uncertainty
+- complete coverage of deaths, while we use underlying deaths, other variables could be used for in-depth investigation (e.g., cancer)
+
+- mortality displacement: needs further investigation but difficult with only deaths data
+  - competing risk not properly handled: mortality displacement
+  - frailty model : account for heterogeneity inside group
+- misclassification (as we use underlying deaths):
+  - we acknowledge and try to interpret
+  - we run in depth investigation using other variable to look at this impact
+- broad age groups; static regional and sex effect
+- ecological level: difficult to interpret correlations
+- analysis stops at 2021: no long-term effect
+
+- apply same approach to other countries to validate correlation
+- investigate this by socio-economic status: level of vulnerabilities
+- more recent years
+
+cause of death data analysis is important because:
+- understanding mechanisms and depedencies
+- predict all-cause mortality, Huynh
+- explain differences observed by countries
+
+
+model: able to correct for trend while propagating uncertainty which is key as excess mortality is about prediction and conterfactuals,
+accounting for population change and for correlation between cause
+data: accurate information, with clear and consistent over time guidelines to code deaths, and with other variables available to dig about conditions (e.g., for cancer, competing risks)
+weekly data -> granulate temporal information
+
+
+main cause of deaths: difficult to assess in some deaths with multiple comorbidities
+difficult to interpret numbers in young population (suicide) as deaths concentrate in older
+same for effect of regions
+aggregation by cause is arbitrary
+separate by age/aggregation by age (i.e, ppl within same age group have identical risk)
+
+competing risk models might be useful to account for mortality displacement over causes
+
+
+
+
+1) Undetected COVID-19 deaths
 synchrony observed between cardiovascular excess and covid waves
 -> undetected covid, attributed to cvd, makes senses as covid directly alters cardiovascular system
 (-> could be also consequence of covid but less likely as occurs same time)
 mental/neurological among 80+
 
+2) Effect of covid-19 infection (indistinguishable from undetected covid-19 deaths if the effect is short-term)
+Cai et al.
+post-acute sequelae condition with CVD symptoms higher after infection, mental/neurological incidence rate  higher, short-term
+also higher all-cause excess deaths after adjusting for potential confounders
+
+Fares
+Warren-Gash
+Han
+
 3) Deficit in mortality in 2021 can be explained by also mortality displacement
+long-term: cvd, dementia (harvesting), died from covid instead of cancer
+shorter term: cancer (due to competive risks), die
 cvd in 2021, dementia
 peak in mortality observed in autumn 2020 (either due to covid-19 or other causes) means that some of the deaths would have occurred anyway, harvesting
 
-competitive risk in cancer -> more impact among 65-79, where mortality rate between cancer and covid are more similar
+competing risk in cancer -> more impact among 65-79, where mortality rate between cancer and covid are more similar
 
-4) Specific deficit in Jan-Feb explained by resp absence (short term)
+4) Impact of control measures (indirect impact of covid)
+4b) Care disruption: unlikely, as shown by other study for cancer
+or underdiagnosis -> leading to undetected cancer deaths
+4a) Specific deficit in Jan-Feb explained by resp absence (short term)
 correlated with respiratory, suggesting an effect
+Hygiene measure: absence of mortality peak due to respiratory disease.
 
+
+
+Correlation
+
+Two levels : 1) Mortality, 2) Excess mortality, exceptional event
+first level could be due to confounders, shared drivers (cold, winter -> confinement inside)
+second level makes it more difficult to believe confounder, as they stay constant
+
+some mechanisms (undetected covid-19 deaths, short-term effect) also explains the correlation of cause of deaths during covid
+positive for cvd and 
+negative for cancer: also observed by Luck
+same with other respiratory diseases (maybe don't mention it because difficult to explain)
+same as in prepandemic, high correlation with resp mortality (cvd and mental/neurological diseases): 2 levels of correlation (seasonality and excess)
+synchrony excess deaths
+-> natural experiment during covid (link btw resp and cvd/)
+mechanisms/pathways: Fares, Warren-Gash
 
 
 
 
 ## Comparison with other studies
 
+1) Nilsson, excess mortality by cause in scandinavia
+Title: Cause-specific excess mortality in Denmark, Finland, Norway, and Sweden during the COVID-19 pandemic 2020–2022: a study using nationwide population data
+model: linear regression
+results: excess mortality for cvd
+
+1) C‑MOR Consortium (~12 countries): Beeks, Achilleos
+Title: Cause-Specific Excess Mortality During the COVID-19 Pandemic (2020–2021) in 12 Countries of the C-MOR Consortium
+model: two methods, sinusoidal curve to model seasonality or 5 years before pandemic as baseline (Beeks or Achilleos)
+multilevel (mixed-effects)
+results: conflicting results (btw countries) for cancer, increased mortality for cvd
+positive association between covid incidence and cvd excess
+negative association between stringency of control measures and cvd (in 2021)
+
+2) Paglino, SOA
+Title: Cause-Specific Excess Mortality During the COVID-19 Pandemic
+model: SARIMA often underestimates long-term uncertainty
+results: strong correlation between covid-19 deaths and excess from cvd
+but it's US, so difficult to compare, still interesting to see that long-term effect (scarring effect) exists there in contrast to CH.
+comment: GP more suitable with sudden deviations from seasonal norms
+
+3) Zhang: in Italy
+Title: Bayesian Poisson Regression and Tensor Train Decomposition Model for Learning Mortality Pattern Changes during COVID-19 Pandemic
+model: tensor train decomposition, captures latent structure and dependencies in the high dimensional resiudals
+regional temporal clustering, cause of deaths patterns
+comment: mostly used to identify similar temporal or geographical patterns, difficult to identify association between causes
+
+4) Han:
+Title: Excess cardiovascular mortality across multiple COVID-19 waves in the United States from March 2020 to March 2022
+model: log-linear model with linear temporal trend and periodic spline
+results: excess mortality for cvd, due to cardiovascular complication after sars-cov-2 infection and long-term elevated cvd risk, and to reduced cvd care services.
+
+5) Huynh: 
+Title: Joint models for cause-of-death mortality in multiple populations
+model: joint modelling age-specific rates of various causes of deaths, Multi-Output Gaussian Processes (MOGP)
+results: cannot use them, show how all-cause forecasts benefit from modeling cause interdependencies
+comments: very theoretical, no results
+
+8) Pizzato: correlation between covid and cause-specific excess mortality in 16 countries 2020-23.
+Title: Relationship between COVID-19 cases and monthly mortality from all causes, cancer, cardiovascular diseases and diabetes in 16 countries, 2020–21
+model: generalized linear regression with linear trend and seasonal trend with splines, spline also for age
+results: positive correlation btw cvd and covid in most countries, no excess for cancer (sometimes lower than expected)
+
+6) Luck: age-standardize deaths
+Title: Associations between mortality from COVID-19 and other causes: A state-level analysis
+model: correlation across states between cause of deaths with covid
+results: negative correlation for cancer
+
+7) Carollo
+Title: Competing risks models with two time scales
+comments: only interesting for competing risk not for cause correlation
 
 
-## Natural experiment: synchronicity between flu and CV/dementia
+## Natural experiment: synchrony between flu and CV/dementia
 
 ## Potential explanations for the observed patterns: 3 types of disruption
 
 ## Strengths, limitations, perspectives
+
+model: able to correct for trend while propagating uncertainty which is key as excess mortality is about prediction and conterfactuals,
+accounting for population change and for correlation between cause
+data: accurate information, with clear and consistent over time guidelines to code deaths, and with other variables available to dig about conditions (e.g., for cancer, competing risks)
+weekly data -> granulate temporal information
+
+
+main cause of deaths: difficult to assess in some deaths with multiple comorbidities
+difficult to interpret numbers in young population (suicide) as deaths concentrate in older
+same for effect of regions
+aggregation by cause is arbitrary
+separate by age/aggregation by age (i.e, ppl within same age group have identical risk)
+
+competing risk models might be useful to account for mortality displacement over causes
+
 
 ## Conclusion
   

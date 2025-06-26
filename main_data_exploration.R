@@ -281,3 +281,20 @@ print(rf_model)
 predictions <- predict(rf_model, newdata = test_data, type = "response")
 table(predictions)
 confusionMatrix(predictions, test_data$covid)
+
+################################################################################################################################################################
+################################################################################################################################################################
+#Cause of deaths distribution among 80+ over age groups
+cod_ind_df %>% 
+  filter(age>=80,outcome=="ENDG_U_CD_GES_T",cal_year<=2021,cal_year>=2015) %>% 
+  dplyr::select(ind_id,age,cal_year,outcome,cod_group) %>% 
+  dplyr::mutate(age_group=factor(as.numeric(age>=85)+as.numeric(age>=90)+as.numeric(age>=95))) %>% 
+  group_by(age_group,cal_year,cod_group) %>% 
+  dplyr::summarise(n=n(),.groups="drop_last") %>% 
+  dplyr::mutate(p=n/sum(n)) %>% ungroup() %>%
+  group_by(cod_group) %>% dplyr::mutate(p_max=max(p)) %>% ungroup() %>% 
+  filter(p_max>0.1) %>% 
+  ggplot(aes(x=as.numeric(age_group),y=p,col=cod_group))+
+  geom_point()+
+  geom_line()+
+  facet_wrap(.~cal_year)

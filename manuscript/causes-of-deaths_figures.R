@@ -319,6 +319,8 @@ print(fig2)
 dev.off()
 
 
+cum_excess_allcause_pand_df %>% filter(age_class=="80+",date==ymd("2021-12-20"),pred=="poisson",with_covid==1)
+
 
 
   ################################################################################################################################################################
@@ -343,7 +345,8 @@ excess_phase2_pand_df = rbind(excess_phase2_pand_df %>% filter(variable!="rel_ex
                               rel_excess_phase2_pand_df %>% 
                                 dplyr::select(variable,covid_phase,age_class,cod_group,pred,est,lwb,upb))
 
-excess_phase2_pand_df %>% filter(age_class=="")
+excess_phase2_pand_df %>% filter(age_class %in% c("65-79","80+"),covid_phase==4,cod_group=="Cardiovascular Diseases",
+                                 pred=="poisson")
 
 #Relative cumulative excess
 cum_excess_pand_df = readRDS(paste0("results/",save.date,"/","mod8","_cum_excess_pand_df.RDS"))
@@ -362,7 +365,8 @@ cum_all_excess_pand_df = cum_excess_pand_df %>% filter(week.id==max(week.id),pre
   
 cum_all_excess_pand_df %>% filter(age_class=="0-17",cod_group=="Suicide")
 
-cum_all_excess_pand_df %>% filter(age_class=="18-39")
+cum_excess_pand_df %>% filter(date==as.Date("2021-12-20"),pred=="poisson",
+                              age_class=="80+",cod_group %in% c("Respiratory Diseases","Mental and Neurological Disorders"))
 
 # Filter and prepare phase-level data
 phase_df0 <- rel_excess_phase2_pand_df %>%
