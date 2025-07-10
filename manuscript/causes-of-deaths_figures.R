@@ -347,6 +347,8 @@ excess_phase2_pand_df = rbind(excess_phase2_pand_df %>% filter(variable!="rel_ex
 
 excess_phase2_pand_df %>% filter(age_class %in% c("65-79","80+"),covid_phase==4,cod_group=="Cardiovascular Diseases",
                                  pred=="poisson")
+excess_phase2_pand_df %>% filter(age_class %in% c("80+"),covid_phase==5,cod_group=="Mental and Neurological Disorders",
+                                 pred=="poisson")
 
 #Relative cumulative excess
 cum_excess_pand_df = readRDS(paste0("results/",save.date,"/","mod8","_cum_excess_pand_df.RDS"))
@@ -640,8 +642,9 @@ pdf(file=paste0(code_root_path,"/manuscript/fig_s1.pdf"),width=8,height=8)
 print(fig_s1)
 dev.off()
   
-save(fig4_supp, fig_s1,
-       file=paste0(code_root_path,"/manuscript/figures_data.RData"))
+save(fig1, fig3_age, fig4_supp, fig_s1,
+       file=paste0(code_root_path,"/manuscript/supp_figures_data.RData"))
+
 
 ##############################################################################################################################################
 ##############################################################################################################################################
