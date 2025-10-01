@@ -1,7 +1,7 @@
 ---
 title: "COVID-19 disrupted patterns of cause-specific mortality in Switzerland"
 date: "`r format(Sys.time(), 'Report generated on Date: %Y-%m-%d Time: %H:%M')`"
-author: "Anthony Hauser* (1), Julien Riou (1)"
+author: "Anthony Hauser* (1),  Moritz Wagner (2), Carla Grolimund (2), Katharina Fehst (3), Karim Abawi (3), Anna Fesser (XX), Katrin Schneider (2), Anne Laube (2), Julien Riou (1)"
 output:
     word_document: 
       reference_docx: template.docx
@@ -11,10 +11,9 @@ bibliography: bib1.bib
 csl: ieee.csl
 ---
 
-<!-- "Anthony Hauser* (1), Moritz Wagner (2), Anne Laube (2), Julien Riou (1), TO BE COMPLETED" -->
-
 (1) Department of Epidemiology and Health Systems, Unisanté, Center for Primary Care and Public Health and University of Lausanne, Lausanne, Switzerland;<w:br/>
-<!-- (2) Federal Office of Public Health, Bern, Switzerland;<w:br/> -->
+(2) Federal Office of Public Health, Bern, Switzerland;<w:br/>
+(3) Federal Statistical Office, Neuchâtel, Switzerland;<w:br/>
 (*) Corresponding author: anthony.hauser@unisante.ch
 
 ```{r setup, include=FALSE}
@@ -93,13 +92,13 @@ cod_agg_pop_df = cod_agg_pop_df %>%
 
 
 The COVID-19 pandemic has disrupted mortality patterns far beyond deaths directly attributed to SARS-CoV-2 infection.
-To disentangle these disruptions, we analysed Swiss weekly deaths (2011-2021) aggregated by age, sex, region and nine ICD-10 groups. 
+To understand these disruptions, we analysed Swiss weekly deaths (2011-2021) aggregated by age, sex, region and nine ICD-10 groups. 
 For each age group, we fitted a Bayesian multivariate Poisson model to 2011–2019 data, including seasonality, long-term trends, and a multivariate random effect capturing cross-cause dependence.
-We then compared these predictions with observed 2020–2021 counts to derive age- and cause-specific excesses.
-Cardiovascular deaths spiked only during the autumn 2020 wave, whereas no cause showed sustained excess over 2020-2021.
-In those ≥80 years, non-COVID respiratory (–25 %) and mental/neurological (–12 %) deaths fell, largely offset by recorded COVID-19 deaths, leaving a modest +4.5 % all-cause excess.
-Cardiovascular and mental/neurological excesses correlated positively with COVID-19 and other respiratory excess mortality, echoing strong pre-pandemic cross-cause correlations ($\rho > 0.80$).
-These findings suggest that mortality disruption during the pandemic likely reflects three overlapping mechanisms—reduced circulation of non-COVID respiratory pathogens, misclassification of COVID-19 deaths (especially as cardiovascular), and mortality displacement- and indicate that the true respiratory burden remains underestimated.
+We then compared these predictions with observed 2020–2021 counts to derive age- and cause-specific death excesses.
+Cardiovascular deaths spiked during the autumn 2020 wave, whereas none of the studied causes showed sustained excess over 2020-2021.
+In those ≥80 years, non-COVID respiratory (–25 %) and mental/neurological (–12 %) deaths decreased, largely offset by recorded COVID-19 deaths, leaving a modest +4.5 % all-cause excess.
+Cardiovascular and mental/neurological excesses correlated positively with excess mortality attributed to COVID-19 and other respiratory, echoing strong pre-pandemic cross-cause correlations ($\rho > 0.80$).
+These findings suggest that mortality disruptions during the pandemic likely reflect three overlapping mechanisms: reduced circulation of non-COVID respiratory pathogens, misclassification of COVID-19 deaths (especially as cardiovascular), and mortality displacement; and indicate that the true respiratory burden remains underestimated.
 
 
 <!-- The COVID-19 pandemic has disrupted mortality in many aspects, its effects extending well beyond the direct mortality occuring after SARS-CoV-2 infection. -->
@@ -133,37 +132,53 @@ These findings suggest that mortality disruption during the pandemic likely refl
 <!-- **Conclusion** -->
 
 <!-- Cause-specific data reveal how multiple mechanisms acted simultaneously: (1) reduced spread of non-COVID respiratory pathogens, (2) under-ascertained COVID-19 deaths, particularly misclassified as cardiovascular deaths, and (3) mortality displacement affecting mental and neurological causes. Persistent cross-cause correlations—before and during the pandemic—indicate that the burden of respiratory infections is likely underestimated. -->
-  
-  
+
+
 \newpage
 
 # Introduction
 
-The COVID-19 pandemic has had a profound impact on mortality around the world.
+The COVID-19 pandemic has had a profound impact on mortality worldwide.
 While much attention has focused on deaths directly attributed to SARS-CoV-2 infection, mortality burden during the pandemic extends well beyond these immediate effects, disrupting mortality patterns in many ways.
 Control measures considerably reduced deaths from respiratory diseases by limiting the circulation of seasonal viruses [@olsen_decreased_2020].
-Changes in mobility and social behavior affected deaths from external causes, including accidents and suicides [@lantos_impact_2024].
-In some countries, healthcare disruptions delayed diagnoses and treatment—particularly for cancer—potentially increasing mortality from certain chronic illnesses [@maringe_impact_2020].
+Changes in mobility and social behavior affected deaths from external causes, such as accidents and suicides [@lantos_impact_2024].
+In some countries, healthcare disruptions delayed diagnoses and treatment — particularly for cancer — potentially increasing mortality from certain chronic illnesses [@maringe_impact_2020].
 SARS-CoV-2 infection itself may have contributed indirectly to other deaths, especially from cardiovascular causes, either through undiagnosed infection at the time of death or long-term complications following recovery [@han_excess_2023].
 Finally, mortality displacement—over time or across causes—likely influenced patterns among frail individuals, such as the very elderly or those with poor prognoses [@holleyman_adjusting_2023].
-This broader impact is supported by studies showing that, after excluding COVID-19 deaths, mortality from other causes fell below expected levels—highlighting the indirect effects of the pandemic on mortality [@riou_direct_2023].
+Studies excluding COVID-19 deaths have shown that mortality from other causes sometimes fell below expected levels, highlighting these indirect effects [@riou_direct_2023].
 
 <!-- In this context, understanding how overall mortality evolved—and how it was distributed across causes—is essential for assessing the full toll of the pandemic. -->
 
-To monitor mortality during COVID-19 pandemic, several metrics have been used.
-COVID-19-related mortality provides an immediate but often incomplete picture, as it only considered direct deaths due to COVID-19, which is subject to underascertainment [@riou_direct_2023].
-All-cause excess mortality, as the difference between observed deaths and the number that would have been expected in the absence of pandemic - is more robust, as it does not rely on cause-of-death classification capturing the total mortality impact.
-However, as it is a composite measure, it cannot assess whether apparent increases in some causes might be offset by decreases in others.
-A natural extension is to estimate cause-specific excess mortality, which allows for several advantages.
-First, it helps decompose the overall mortality impact into its underlying components, clarifying change in relative contributions over time.
-Second, when aggregated, cause-specific estimates can improve the accuracy of total excess mortality estimates [@huynh_joint_2024].
-However, most studies estimating cause-specific excess mortality analyse each cause independently and do not account for correlations across causes [@han_excess_2023; @pizzato_relationship_2025;@paglino_cause-specific_2024;@beeks_cause-specific_2024;@nilsson_cause-specific_2024].
-This limits interpretability, as understanding these dependencies—both before and during the pandemic—is key to identifying the mechanisms driving disrupted mortality patterns .
+<!-- To monitor mortality during COVID-19 pandemic, several metrics have been used. -->
+<!-- COVID-19-related mortality provides an immediate but often incomplete picture, as it only considered direct deaths due to COVID-19, which is subject to underascertainment [@riou_direct_2023]. -->
 
-In this study, we aim to fill this gap by estimating cause-specific excess mortality in Switzerland from 2011 to 2021, with a particular focus on cross-cause correlations.
+Given the limitations COVID-19-attributed mortality, which is subject to underascertainment and only captures immediate consequences of infection, other metrics have been used [@riou_direct_2023].
+All-cause excess mortality, defined as the difference between observed deaths and the number that would have been expected in the absence of pandemic - is more robust, as it does not rely on cause-of-death classification and captures the total mortality impact.
+However, as a composite measure, it cannot identify whether apparent increases in some causes are offset by decreases in others.
+A natural extension is to estimate cause-specific excess mortality, which allows quantifying the contributions of individual causes over time and, when aggregated, provide more accurate assessment of total excess mortality [@huynh_joint_2024].
+
+Previous studies on cause-specific excess mortality during COVID-19 have documented important shifts, such as increases in cardiovascular deaths alongside declines in respiratory or dementia mortality, often varying across countries [@han_excess_2023; @pizzato_relationship_2025; @paglino_cause-specific_2024; @beeks_cause-specific_2024; @nilsson_cause-specific_2024].
+However, most of these works focused on one or a limited set of causes, making interpretation difficult given that mortality processes are inherently interdependent.
+Add sentence about the fact that some work presents correlation (temporal or geographical), but specific to some causes and limited to covid.
+Comprehensive assessments accounting for cross-cause correlations are lacking, limiting understanding of the indirect effects of the pandemic.
+<!-- when available these comparisons focused on covid period, ignoring pre-pandemic preventing from understanding disruptions -->
+
+<!-- In particular, correlations between causes arise in two distinct ways: shared temporal synchrony, where causes rise and fall together due to common seasonal or long-term patterns (e.g., higher winter mortality across many causes), and structural cross-cause dependencies, where mortality from one cause directly interacts with another through mechanisms such as misclassification or mortality displacement. -->
+<!-- Understanding the impact of the pandemic requires situating cause-specific excess mortality within both of these correlation structures, rather than considering each cause in isolation. -->
+
+Switzerland provides high-quality mortality data through a thorough process of reviewing each death certificate, yielding rich information on underlying, immediate, and concomitant causes suitable for detailed epidemiological analyses [@weitkunat_mortality_2021].
+Leveraging these data, we aim to fill this gap by estimating cause-specific excess mortality in Switzerland from 2011 to 2021, with a particular focus on cross-cause correlations.
 We use a Bayesian multivariate model that captures seasonal and long-term trends, accounts for population dynamics, and models correlation across causes through a shared random structure.
 By examining both the pre-pandemic synchrony in cause-specific mortality and its disruption during the pandemic, we aim to identify signals of misclassification, mortality displacement, and indirect effects of COVID-19.
 This approach, by highlighting the interdependence of mortality processes— offers new insight into the mechanisms by which the pandemic and its response have disrupted mortality patterns.
+
+
+
+<!-- A natural extension is to estimate cause-specific excess mortality, which allows for several advantages. -->
+<!-- First, it helps decompose the overall mortality impact into its underlying components, clarifying change in relative contributions over time. -->
+<!-- Second, when aggregated, cause-specific estimates can improve the accuracy of total excess mortality estimates [@huynh_joint_2024]. -->
+<!-- However, most studies estimating cause-specific excess mortality analyse each cause independently and do not account for correlations across causes [@han_excess_2023; @pizzato_relationship_2025;@paglino_cause-specific_2024;@beeks_cause-specific_2024;@nilsson_cause-specific_2024]. -->
+<!-- This limits interpretability, as understanding these dependencies—both before and during the pandemic—is key to identifying the mechanisms driving disrupted mortality patterns. -->
 
 <!-- Link between covid and other causes -->
 <!-- direct:  -->
@@ -184,7 +199,7 @@ This approach, by highlighting the interdependence of mortality processes— off
 ## Data
 
 We received individual-level data on cause-specific deaths for the years 2011–2021 from the Federal Statistical Office (FSO), which we aggregated by age group (0–17, 18–39, 40–64, 65–79, 80+), sex, NUTS-2 region, calendar week, and calendar year.
-The data include information recorded in the death certificate—such as the immediate, underlying, and contributing causes of death—as well as the official underlying cause of death, which is determined by the FSO based on the coding rules of the International Classification of Diseases, 10th Revision (ICD-10) [@world_health_organization_classification_2009].
+The data include information recorded in the death certificate—such as the immediate, underlying, and contributing (concomitant) causes of death—as well as the official underlying cause of death, which is determined by the FSO based on the coding rules of the International Classification of Diseases, 10th Revision (ICD-10) [@world_health_organization_classification_2009].
 All causes of death are coded using ICD-10 and were grouped into nine categories for analysis: cardiovascular diseases (Chapter IX), cancers (Chapter II), mental and neurological disorders (Chapters V and VI), respiratory diseases (Chapter X), External causes (Chapter XX), suicide (Chapter XX), infectious and parasitic diseases (Chapter I), other causes (Chapters III, IV, VII, VIII, XI–XIX, XXI, XXII), and COVID-19 (Chapter XXII).
 Population data by sex, NUTS-2 region, and age group for the years 2011–2021 were also provided by the Federal Statistical Office (FSO).
 We applied linear interpolation to obtain weekly population estimates.
@@ -209,10 +224,11 @@ We applied linear interpolation to obtain weekly population estimates.
 <!-- where $y_{irs}(t) $ is the observed number of deaths due to cause $i$ at week $t$ in region $r$ and sex $s$. -->
 <!-- The parameters $\alpha_i$ represents the baseline relative mortality risk. -->
 
-We modeled the weekly number of deaths by cause for each age group using a Poisson distribution with a multivariate structure under a Bayesian framework.  
-The model accounts for changes in population size $N$ over time via an offset term, and includes fixed effects $\beta$ and $\gamma$ for differences in mortality risk by region and sex, respectively.  
-Temporal variation is captured by two components: a seasonal trend modeled with a periodic Gaussian Process (GP) $f(t)$, and a long-term trend modeled using a GP with an exponentiated quadratic (squared exponential) kernel $g(t)$ [@riutort-mayol_practical_2022].  
-To account for the correlation between mortality risks across causes, the model incorporates a multivariate random effect $\epsilon \sim \mathcal{N}(0,\Sigma)$, where $\Sigma$ is the covariance matrix.
+We modeled the weekly number of deaths by cause for each age group using a Poisson distribution with a multivariate structure under a Bayesian framework.
+The model accounts for changes in population size $N$ over time via an offset term, and includes fixed effects $\beta$ and $\gamma$ for differences in cause-specific mortality risk by region and sex, respectively.
+Temporal variation is captured by two components: a seasonal trend modeled with a periodic Gaussian Process (GP) $f(t)$, and a long-term trend modeled using a GP with an exponentiated quadratic (squared exponential) kernel $g(t)$ [@riutort-mayol_practical_2022], with $t$ representing calendar weeks.
+To account for the correlation between mortality risks across causes, the model incorporates a multivariate random effect $\epsilon(t) \sim \mathcal{N}(0,\Sigma)$, where $\Sigma$ is the covariance matrix.
+Correlations between causes were modeled with a Cholesky LKJ(1) prior, which imposes no a priori preference on the strength or direction of the correlations.
 
 The model is specified as follows:
 $$
@@ -220,15 +236,15 @@ y_{irs}(t) \sim \text{Poisson}(\mu_{irs}(t))
 $$
 with
 $$
-\log \mu_{irs}(t) = \alpha_i + \beta_{ir} + \gamma_{is} + f(t) + g(t) + \epsilon_i + \log N_{irst},
+\log \mu_{irs}(t) = \alpha_i + \beta_{ir} + \gamma_{is} + f_{i}(t) + g_{i}(t) + \epsilon_i(t) + \log N_{irst},
 $$
 where $y_{irs}(t)$ denotes the observed number of deaths due to cause $i$ in week $t$, region $r$, and sex $s$, and $\alpha_i$ is the baseline log-transformed mortality risk.
 <!-- where $ y_{irs}(t) $ denotes the observed number of deaths due to cause $ i $ at week $ t $, in region $ r $ and sex $ s $; $ \alpha_i $ is the baseline log mortality risk for cause $ i $; $ \beta_{ir} $ and $ \gamma_{is} $ are age-specific fixed effects for region and sex, respectively; $ f(t) $ captures the seasonal variation; $ g(t) $ represents the long-term trend; $ \epsilon \sim \mathcal{N}(0,\Sigma)$ is a multivariate random effect capturing correlation across causes (with correlation matrix $\Sigma$); and $ N_{irst} $ is the population at risk, included as a log offset. -->
 
 
 The model was run independently for each age group and fitted to the weekly number of cause-specific deaths $y_{irs}(t)$ observed between 2011 and 2019.
-It was then used to estimate the weekly *expected number of deaths* $\tilde{y}_{irs}(t)$ through the end of 2021, defined as the *posterior predictive distribution* after removing the random effect $\epsilon$ from the log mortality risk $\mu_{irs}(t)$.  
-We excluded $\epsilon$ because it is designed to capture *excess mortality*—that is, unexplained or anomalous variation beyond structured trends.  
+It was then used to estimate the weekly *expected number of deaths* $\tilde{y}_{irs}(t)$ through the end of 2021, defined as the *posterior predictive distribution* after removing the random effect $\epsilon(t)$ from the log mortality risk $\mu_{irs}(t)$.
+We excluded $\epsilon(t)$ because it is designed to capture *excess mortality*—that is, unexplained or anomalous variation beyond structured trends.
 Excess mortality $E_{irs}(t)$ was then defined as the difference between observed and expected deaths:
 $$E_{irs}(t) := y_{irs}(t) - \tilde{y}_{irs}(t).$$
 <!-- where $y_{irs}(t)$ is the observed number of deaths and $\tilde{y}_{irs}(t)$ the predicted number under baseline conditions.   -->
@@ -261,12 +277,12 @@ The relative impact of COVID-19 was greatest in older age groups, contributing t
 
 ## Prepandemic mortality trends
 
-The model successfully captures both the seasonal and long-term trends in cause-specific mortality observed between 2011 and 2019 (Fig 2A for individuals aged 80+, and Fig S1–S4 for other age groups).
-We observe notable similarities in mortality trends across different causes, both in the expected seasonal patterns and in intermittent episodes of excess mortality that often occur synchronously (e.g., during the winters of 2014/15 and 2016/17).
-For the 80+ age group, Fig 2B highlights this synchrony in timing, showing that the expected mean mortality peak (in black) occurs consistently across causes between January and February.
+The model captures the seasonal and long-term trends in cause-specific mortality between 2011 and 2019 (Fig 2A for individuals aged 80+, and Fig S1–S4 for other age groups), while rare episodes of excess mortality, such as in the winters of 2014/15 and 2016/17, are not captured, as the model represents expected mortality.
+We observe notable similarities in mortality trends across different causes, both in the expected seasonal patterns and in intermittent episodes of excess mortality that often occur synchronously.
+For the 80+ age group, Fig 2C highlights this synchrony in timing, showing that the expected mean mortality peak (in black) occurs consistently across causes between January and February.
 During the pre-pandemic period (2011–2019), observed peak timings (colored circles) align closely with these expectations.
 However, during the pandemic years, we observe a marked shift: mortality peaks occur earlier than expected (colored squares).
-In addition, the model reveals strong positive correlations in cause-specific excess mortality, mostly among individuals aged 80 and over (Fig 2C).
+In addition, the model reveals strong positive correlations in cause-specific excess mortality, mostly among individuals aged 80 and over (Fig 2B).
 Specifically, excess deaths from respiratory diseases, mental or neurological disorders, and cardiovascular diseases are highly correlated, with pairwise correlations exceeding 80%.
 
 ## COVID-19 mortality
@@ -318,7 +334,7 @@ In contrast, we observed slightly negative correlations between cancer and COVID
 ```
 
 
-  
+
 ```{r, include=FALSE}
 
 ```
@@ -621,9 +637,9 @@ Finally, extending the series through 2023 and 2024 will clarify whether the dif
 <!-- separate by age/aggregation by age (i.e, ppl within same age group have identical risk) -->
 
 <!-- competing risk models might be useful to account for mortality displacement over causes -->
-  
-  
-  
+
+
+
 \newpage
 
 # Figures
@@ -649,7 +665,7 @@ fig1[[5]]
 fig2
 ```
 
-**Figure 3.** All-cause mortality. A. Number of weekly all-cause deaths (i.e., aggregated over all causes of deaths) for each age group. The red points correspond to the observed mortality without COVID-19 and the yellow ones with COVID-19. Black lines and shaded areas corresponds to the model posterior mean (i.e., expected mortality) with 95\% CrI. B. Cumulative number of excess deaths with (in yellow) or without (in red) COVID-19 deaths, for each age group.
+**Figure 3.** All-cause mortality. A. Number of weekly all-cause deaths (i.e., aggregated over all causes of deaths) for each age group. The red points correspond to the observed mortality without COVID-19 and the yellow ones with COVID-19. Black lines and shaded areas correspond to the model posterior mean (i.e., expected mortality) with 95\% CrI. B. Cumulative number of excess deaths with (in yellow) or without (in red) COVID-19 deaths, for each age group.
 
 
 ```{r, fig.width=13.5,fig.height=10.6}
@@ -657,13 +673,13 @@ fig3
 ```
 
 
-**Figure 4.** Cause-specific excess mortality by phase. Black lines and gray area correspond to posterior mean and 95\% CrI of the cumulative (relative and absolute) excess mortality over 2020-21, respectively. The colored points and vertical lines corresponds to posterior mean and 95\% CrI of the relative excess mortality by phase, respectively. The phases are delimited  by the dashed vertical lines. Panels A to D represents the different age groups. See Fig S5-S9 for the excess mortality by phase for each cause and each age group.
+**Figure 4.** Cause-specific excess mortality by phase. Black lines and gray area correspond to posterior mean and 95\% CrI of the cumulative (relative and absolute) excess mortality over 2020-21, respectively. The colored points and vertical lines correspond to posterior mean and 95\% CrI of the relative excess mortality by phase, respectively. The phases are delimited  by the dashed vertical lines. Panels A to D represent the different age groups. See Fig S5-S9 for the excess mortality by phase for each cause and each age group.
 
 ```{r, fig.width=10,fig.height=10}
 fig4
 ```
 
-**Figure 5.** Partial correlation between excess mortality due to either COVID-19 (red) or to other respiratory diseases (blue, tagged as "Respiratory Diseases") and excess mortality due to cardiovascular diseases, cancers or mental/neurological diseases, for 65-79 and 80+ age groups, considering different lags (in weeks). Solid color lines correspond to the posterior mean and shaded colored area to the 95\% CrI. A positive lag corresponds to the situation where either excess mortality due to respiratory diseases (either COVID-19 or other respiratory diseases) occurs slightly after excess mortality due to considered cause.
+**Figure 5.** Partial correlation between excess mortality due to either COVID-19 (red) or to other respiratory diseases (blue, tagged as "Respiratory Diseases") and excess mortality due to cardiovascular diseases, cancers or mental/neurological diseases, for 65-79 and 80+ age groups, considering different lags (in weeks). Solid color lines correspond to the posterior mean and shaded colored area to the 95\% CrI. A positive lag corresponds to the situation where excess mortality due to respiratory diseases (either COVID-19 or other respiratory diseases) occurs slightly after excess mortality due to the considered cause.
 
 \newpage
 
