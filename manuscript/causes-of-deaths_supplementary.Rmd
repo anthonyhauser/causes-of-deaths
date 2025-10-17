@@ -2,7 +2,7 @@
 title: "Supplementary material: COVID-19 disrupted patterns of cause-specific mortality in Switzerland"
 
 date: "`r format(Sys.time(), 'Report generated on Date: %Y-%m-%d Time: %H:%M')`"
-author: "Anthony Hauser* (1), Julien Riou (1)"
+author: "Anthony Hauser* (1), Karim Abawi (3), Anna Fesser† (2), Anne Laube (2), Julien Riou (1)"
 output:
     word_document: 
       reference_docx: template.docx
@@ -12,8 +12,12 @@ bibliography: bib1.bib
 csl: ieee.csl
 ---
 
-(1) Department of Epidemiology and Health Systems, Unisanté, Center for Primary Care and Public Health and University of Lausanne, Lausanne, Switzerland;<w:br/>
+(1) Department of Epidemiology and Health Systems, Unisanté, Center for Primary Care and Public Health and University of Lausanne, Lausanne, Switzerland;<br/>
+(2) Federal Office of Public Health, Communicable Diseases Division, Bern, Switzerland;<br/>
+(3) Federal Statistical Office, Neuchâtel, Switzerland;<br/>
+
 (*) Corresponding author: anthony.hauser@unisante.ch
+(†) former affiliation
 
 
 
@@ -83,14 +87,14 @@ fig3_age[[5]]
 
 **Figure S9.** Cause-specific excess mortality by phase for 80+ age group. Black lines and gray area correspond to posterior mean and 95\% CrI of the cumulative (relative and absolute) excess mortality over 2020-21, respectively. The colored points and vertical lines corresponds to posterior mean and 95\% CrI of the relative excess mortality by phase, respectively. The phases are delimited  by the dashed vertical lines.
 
-```{r, fig.width=10,fig.height=10}
-fig_s1
+```{r, fig.width=8,fig.height=8}
+fig_s1_2
 ```
 
-**Figure S10.** Additional analysis of cancer mortality during COVID-19 pandemic. A. Number of individuals dying with cancer over time in 2020-21, stratified by the underlying cause of deaths. B. Number of individuals dying from cancer, stratified by cancer survival (low, medium and high). C. Number of individuals with cancer dying from other causes, stratified by cancer survival (low, medium and high). For visualization purpose, deaths were aggregated over 5-week periods.
+**Figure S10.** Additional analysis of cancer mortality during COVID-19 pandemic. A. Number of individuals dying with cancer over time in 2020-21, stratified by the underlying cause of deaths and age groups (65-79 and 80+). The pink lines represent the number of deaths from cancer (i.e., whose underlying cause is cancer), either observed (straight lines) or expected (dashed lines), the blue lines represent the number individuals with cancer dying from other causes and the black lines represent the total number of individuals dying with cancer. The gray area denotes the period where a deficit in cancer mortality was observed. For better visualisation, a moving average of 9 weeks was applied to the weekly numbers. B. Relative change in total number of individuals dying with cancer, stratified by cancer survival (low, medium and high) and age groups (65-79 and 80+). The change was calculated relative to the mean number of deaths during 2020-21 for each age group and survival group. For ages 65–79, cancers with high survival included breast, male genital, thyroid/endocrine, skin (melanoma), and benign or in situ neoplasms; medium survival included digestive, urinary, female genital, oral/pharyngeal, lymphoid/haematopoietic (except myeloma and leukaemias), and uncertain/unknown neoplasms; low survival included respiratory, mesothelial/soft tissue, CNS, bone, and ill-defined cancers. For ages 80+, high survival included breast, male genital, benign, and in situ neoplasms; medium survival included colorectal, thyroid/endocrine, urinary, skin (melanoma), and uncertain/unknown neoplasms; and low survival included respiratory, other digestive (e.g., oesophagus, stomach, pancreas, liver), lymphoid/haematopoietic, female genital, mesothelial/soft tissue, CNS, bone, and ill-defined cancers.
 
 
-```{r, fig.width=10,fig.height=10}
+```{r, fig.width=8,fig.height=8}
 fig4_supp
 ```
 

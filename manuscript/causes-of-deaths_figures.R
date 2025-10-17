@@ -323,7 +323,7 @@ cum_excess_allcause_pand_df %>% filter(age_class=="80+",date==ymd("2021-12-20"),
 
 
 
-  ################################################################################################################################################################
+################################################################################################################################################################
 #Figure 3: excess by age and cod
 
 #load Data
@@ -636,15 +636,19 @@ save(fig1, fig1_1, fig2, fig3, fig3_age, fig4,
 ##############################################################################################################################################
 #Supplementary figures
 
-#S1
+#S10
 fig_s1 = cancer_deaths_plot(cod_ind_df, n_week_agg = 5)
 pdf(file=paste0(code_root_path,"/manuscript/fig_s1.pdf"),width=8,height=8)
 print(fig_s1)
 dev.off()
-  
-save(fig1, fig3_age, fig4_supp, fig_s1,
-       file=paste0(code_root_path,"/manuscript/supp_figures_data.RData"))
 
+fig_s1_2 = cancer_deaths_plot2(cod_ind_df, n_week_agg = 1,k=9)
+pdf(file=paste0(code_root_path,"/manuscript/fig_s1_2.pdf"),width=8,height=6)
+print(fig_s1_2)
+dev.off()
+  
+save(fig1, fig3_age, fig4_supp, fig_s1, fig_s1_2,
+       file=paste0(code_root_path,"/manuscript/supp_figures_data.RData"))
 
 ##############################################################################################################################################
 ##############################################################################################################################################
