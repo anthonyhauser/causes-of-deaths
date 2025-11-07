@@ -349,6 +349,7 @@ excess_phase2_pand_df %>% filter(age_class %in% c("65-79","80+"),covid_phase==4,
                                  pred=="poisson")
 excess_phase2_pand_df %>% filter(age_class %in% c("80+"),covid_phase==5,cod_group=="Mental and Neurological Disorders",
                                  pred=="poisson")
+excess_phase2_pand_df %>% filter(age_class %in% c("0-17"),covid_phase==1,pred=="poisson")
 
 #Relative cumulative excess
 cum_excess_pand_df = readRDS(paste0("results/",save.date,"/","mod8","_cum_excess_pand_df.RDS"))
@@ -602,8 +603,7 @@ fig4_supp = corr_post_res_df %>%
   geom_hline(yintercept=0,linetype="dashed")+
   geom_vline(aes(xintercept=lag_peak,col=var),linetype=2,alpha=0.4)+
   scale_y_continuous(name="Partial correlation",
-                     limits=c(-1,1),
-                     labels=scales::percent)+
+                     limits=c(-1,1))+
   facet_grid(y~age_class)
 
 pdf(file=paste0(code_root_path,"/manuscript/fig4_supp.pdf"),width=10,height=12)
@@ -622,8 +622,7 @@ fig4 = corr_post_res_df %>%
   geom_hline(yintercept=0,linetype="dashed")+
   geom_vline(aes(xintercept=lag_peak,col=var),linetype=2,alpha=0.8)+
   scale_y_continuous(name="Partial correlation",
-                     limits=c(-1,1),
-                     labels=scales::percent)+
+                     limits=c(-1,1))+
   facet_grid(y~age_class)
 
 pdf(file=paste0(code_root_path,"/manuscript/fig4.pdf"),width=10,height=10)

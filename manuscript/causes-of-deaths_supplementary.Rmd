@@ -1,8 +1,8 @@
 ---
 title: "Supplementary material: COVID-19 disrupted patterns of cause-specific mortality in Switzerland"
 
-date: "`r format(Sys.time(), 'Report generated on Date: %Y-%m-%d Time: %H:%M')`"
-author: "Anthony Hauser* (1), Karim Abawi (3), Anna Fesser† (2), Anne Laube (2), Julien Riou (1)"
+# date: "`r format(Sys.time(), 'Report generated on Date: %Y-%m-%d Time: %H:%M')`"
+author: "Anthony Hauser* (1), Moritz Wagner (2), Anna Fesser† (2), Karim Abawi (3), Anne Laube (2), Garyfallos Konstantinoudis (4), Julien Riou (1)"
 output:
     word_document: 
       reference_docx: template.docx
@@ -13,15 +13,14 @@ csl: ieee.csl
 ---
 
 (1) Department of Epidemiology and Health Systems, Unisanté, Center for Primary Care and Public Health and University of Lausanne, Lausanne, Switzerland;<br/>
-(2) Federal Office of Public Health, Communicable Diseases Division, Bern, Switzerland;<br/>
-(3) Federal Statistical Office, Neuchâtel, Switzerland;<br/>
+(2) Federal Statistical Office, Neuchâtel, Switzerland;<br/>
+(3) Federal Office of Public Health, Communicable Diseases Division, Bern, Switzerland;<br/>
+(4)	Grantham Institute for Climate Change and the Environment, Imperial College London, London, UK;<br/>
 
 (*) Corresponding author: anthony.hauser@unisante.ch
 (†) former affiliation
 
-
-
-# Figures
+# Table
 
 ```{r, include=FALSE}
 Sys.setlocale("LC_TIME", "C")
@@ -32,6 +31,50 @@ source(paste0(code_root_path,"R/000_setup.R"))
 knitr::opts_chunk$set(echo = FALSE, warning =FALSE, message=FALSE)
 load(paste0(code_root_path,"/manuscript/supp_figures_data.RData"))
 ```
+
+**Table S1.** Description of the nine categories used to group the causes of deaths. Chapters correspond to the International Classification of Diseases, 10th Revision (ICD-10).
+
+```{r, include=TRUE}
+cod_ind_df = readRDS(paste0(code_root_path,"savepoint/cod_ind_df.RDS"))
+
+causes2 = c("Cardiovascular Diseases","Infectious and Parasitic Diseases",
+           "Respiratory Diseases", "Mental and Neurological Disorders",
+           "COVID-19",
+           "Neoplasms (Cancers)","Suicide","External Causes") #"No Specific Causes" (previously used)
+
+causes2_df = data.frame(cod_group=c("Cardiovascular Diseases","Infectious and Parasitic Diseases",
+                                    "Respiratory Diseases", "Mental and Neurological Disorders",
+                                    "COVID-19",
+                                    "Neoplasms (Cancers)","Suicide","External Causes","Other Causes"),
+                        cod_group_label=c("Cardiovascular","Infectious/Parasitic",
+                                    "Respiratory", "Mental/Neurological",
+                                    "COVID-19",
+                                    "Cancers","Suicide","External","Other"),
+                        order=c(1,7,4,3,9,2,6,5,8),
+                        example = c("Ischaemic heart disease, heart attack", "Sepsis",
+                                   "Pulmonary disease, pneumonia, influenza", "Dementia, Alzheimer, Parkinson",
+                                   "COVID-19",
+                                   "Lung, breast, prostate neoplasms","Intentional self-harm/poisoning","Fall, vehicule accident",
+                                   "Unspecified, diabetes, senility, organ disease")) %>%
+  #add chapter of cod-10
+  left_join(cod_ind_df %>% 
+              filter(outcome=="ENDG_U_CD_GES_T") %>% 
+              dplyr::select(cod_group,chapter) %>% unique() %>% 
+              arrange(cod_group,chapter) %>% 
+              group_by(cod_group) %>% 
+              dplyr::summarise(chapter=paste(chapter, collapse=", ")),by="cod_group") %>% 
+  arrange(order)
+
+#Tables with categories and causes
+causes2_df %>% 
+  dplyr::select(`Cause`=cod_group,Examples=example,Chapters=chapter) %>% 
+  flextable::flextable() %>% 
+  flextable::width(j=1:3, width=c(1,1,1)*2)
+
+```
+
+
+# Figures
 
 ```{r, fig.width=10,fig.height=14}
 fig1[[1]]
@@ -98,4 +141,4 @@ fig_s1_2
 fig4_supp
 ```
 
-**Figure S11.** Partial correlation between excess mortality due to either COVID-19 (red) or to other respiratory diseases (blue, tagged as "Respiratory Diseases") and excess mortality due to specific causes of deaths for each age group, considering different lags (in weeks). Solid color lines correspond to the posterior mean and shaded colored area to the 95\% CrI. A positive lag corresponds to the situation where either excess mortality due to respiratory diseases (either COVID-19 or other respiratory diseases) occurs slightly after excess mortality due to considered cause.
+**Figure S11.** Partial correlation between excess mortality due to either COVID-19 (red) or to other respiratory diseases (blue, tagged as "Respiratory Diseases") and excess mortality due to specific causes of deaths for each age group, considering different lags (in weeks). Solid color lines correspond to the posterior mean and shaded colored area to the 95\% CrI. The vertical dashed lines indicate the lag with the highest absolute partial correlation. A positive lag corresponds to the situation where either excess mortality due to respiratory diseases (either COVID-19 or other respiratory diseases) occurs slightly after excess mortality due to considered cause.
