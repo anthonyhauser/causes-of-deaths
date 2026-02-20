@@ -225,7 +225,7 @@ For the 80+ age group, Fig 2C highlights this synchrony in timing, showing that 
 During the pre-pandemic period (2011–2019), observed peak timings align closely with these expectations.
 However, during the pandemic years, we observe a marked shift: mortality peaks occur earlier than expected.
 In addition, the model reveals strong positive correlations in cause-specific excess mortality, mostly among individuals aged 80 and over (Fig 2B).
-Specifically, excess deaths from respiratory diseases, mental or neurological disorders, and cardiovascular diseases are highly correlated, with pairwise correlations exceeding 80%.
+Specifically, excess deaths from respiratory diseases, mental or neurological disorders, and cardiovascular diseases are highly correlated, with pairwise correlations exceeding 0.8.
 
 ## COVID-19 mortality
 

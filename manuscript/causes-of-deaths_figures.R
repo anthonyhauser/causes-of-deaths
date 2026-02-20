@@ -650,6 +650,260 @@ save(fig1, fig3_age, fig4_supp, fig_s1, fig_s1_2,
        file=paste0(code_root_path,"/manuscript/supp_figures_data.RData"))
 
 ##############################################################################################################################################
+#Poster
+
+
+#Fig 1--------------------------------------------------------------------------
+#adapt CVD naming for poster
+causes2_df_twolines = causes2_df_twolines %>% dplyr::mutate(cod_group_label=ifelse(cod_group=="Cardiovascular Diseases","CVD",cod_group_label))
+
+
+fig1a = res_list$data_pred_week_cause %>% 
+  filter(variable=="deaths") %>% 
+  left_join(res_list$data_pred_week_cause %>% 
+              filter(variable=="obs_deaths") %>% dplyr::select(obs_deaths=est,cal_year,cal_week,age_class,cod_group,pred),
+            by=c("cal_year","cal_week","age_class","cod_group","pred")) %>% 
+  filter(age_class=="80+",pred=="poisson",cod_group %in% c("Respiratory Diseases","Cardiovascular Diseases")) %>% 
+  dplyr::mutate(cod_group = factor(cod_group,levels=causes2_df_twolines$cod_group[c(1:5,7)],
+                                   labels=causes2_df_twolines$cod_group_label[c(1:5,7)])) %>% 
+  filter(!is.na(cod_group)) %>% 
+  ggplot() +
+  geom_line(aes(x=date,y=est),col="black") +
+  geom_ribbon(aes(x=date,ymin=lwb,ymax=upb),fill="black",alpha=0.15) +
+  geom_point(aes(x=date,y=obs_deaths),col="darkred",alpha=0.5,size=1) +
+  geom_vline(aes(xintercept=ymd("2020-01-01")),linetype="dashed")+
+  facet_grid(cod_group~.,scales="free") +
+  scale_y_continuous(name="Deaths")+
+  scale_x_date(name="Time")+
+  theme_bw()
+
+#Panel B
+fig1b = res_list$Sigma_mat %>% 
+  dplyr::mutate(cod_group = factor(cod_group,levels=causes2_df_twolines$cod_group[c(1:5,7)],
+                                   labels=causes2_df_twolines$cod_group_label[c(1:5,7)]),
+                cod_group2 = factor(cod_group2,levels=causes2_df_twolines$cod_group[c(1:5,7)],
+                                    labels=causes2_df_twolines$cod_group_label[c(1:5,7)]),
+                cod_group_id=as.numeric(cod_group),
+                cod_group_id2=as.numeric(cod_group2)) %>% 
+  filter(!is.na(cod_group),!is.na(cod_group2)) %>% 
+  rowwise() %>% 
+  dplyr::mutate(est_cri = paste0(round(est,2),"\n",
+                                 "[",round(lwb,  2),",",
+                                 round(upb, 2),"]")) %>% 
+  filter(cod_group_id<cod_group_id2,age_class=="80+") %>% 
+  ggplot(aes(x = cod_group, y = fct_rev(cod_group2), fill = abs(est))) +
+  geom_tile() +
+  geom_text(aes(label = est_cri),
+            color = "black", size = 2.5) +
+  scale_fill_gradient(low = "lightyellow", high = "darkred",limits=c(0,1),
+                      name="Correlation") +
+  labs(x = "", y = "", fill = "Count") +
+  theme_bw() +
+  theme(legend.position = "bottom")
+#Panel C
+d1 =readRDS(paste0("results/",save.date,"/","mod8","_peak_dates_summary_df.RDS")) %>%
+  filter(age_class == "80+")  %>% 
+  dplyr::mutate(cod_group = factor(cod_group,levels=causes2_df_twolines$cod_group[c(1:5,7)],
+                                   labels=causes2_df_twolines$cod_group_label[c(1:5,7)])) %>% 
+  filter(!is.na(cod_group))
+d2 = readRDS(paste0("results/","observed_peak_date_df.RDS")) %>%
+  filter(age_class == "80+") %>% 
+  dplyr::mutate(is_2020 = period_name %in% c("2019/20","2020/21","2021/22")) %>% 
+  dplyr::mutate(cod_group = factor(cod_group,levels=causes2_df_twolines$cod_group[c(1:5,7)],
+                                   labels=causes2_df_twolines$cod_group_label[c(1:5,7)])) %>% 
+  filter(!is.na(cod_group)) %>% 
+  filter(period_id!=2021) #we remove 2021-22 as we only have date up to end of 2021
+year_df = d2 %>% dplyr::select(period_id,period_name) %>% unique()
+
+fig1c = d1 %>%
+  ggplot(aes(y = cod_group)) +
+  geom_vline(xintercept = as.Date("2020-01-01"),linetype="dashed",alpha=0.5)+
+  geom_point(aes(x = mean_date),size=5) +
+  geom_linerange(aes(xmin = p5_date, xmax = p95_date),linewidth=1.5) +
+  geom_point(aes(x=date,color = period_id,size=rel_peak,shape=is_2020),alpha=0.5,
+             data = d2)+
+  scale_x_date(name="Timing of the mortality peak",
+               limits = c(as.Date("2019-07-01"), as.Date("2020-06-30")),
+               breaks = seq(as.Date("2019-07-01"), as.Date("2020-06-01"), by = "1 month"),
+               labels = scales::label_date("%b")) +
+  scale_y_discrete(name="",limits = rev)+
+  scale_shape_manual(name="",values=c(16,15),breaks=c(FALSE,TRUE),labels=c("Before pandemic","During pandemic"))+
+  scale_color_gradientn(name = "Period",
+                        colours = c("yellow", "red", "darkviolet"),  # blue → white → red
+                        values = scales::rescale(c(2012, 2019.5, 2021)),  # period_ids or numeric range
+                        breaks = year_df$period_id[c(1, 4, 8, 11)],
+                        labels = year_df$period_name[c(1, 4, 8, 11)] )+
+  scale_size_continuous(name="Relative peak size",breaks=c(1.5,2))+
+  theme(legend.position = "bottom",
+        axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1) )+
+  guides(shape = guide_legend(ncol = 1),
+         color = guide_colourbar(title = "Period", label.theme = element_text(angle = 90)))
+
+fig1 = cowplot::plot_grid(fig1a,
+                          cowplot::plot_grid(fig1c + theme(legend.position = "none"),
+                                             fig1b + theme(legend.position = "none"),
+                                             ncol=2, rel_widths = c(1,1.1),labels = c("B.","C.")),
+                          cowplot::plot_grid(get_legend2(fig1c),
+                                             get_legend2(fig1b),
+                                             ncol=2,rel_widths=c(3,1.2)),
+                          labels=c("A.","",""),ncol=1,rel_heights = c(1.2,1,0.25))
+
+fig1
+ggsave("poster/fig1_v4.pdf",width=22,height=20,units="cm")
+
+
+#Fig 2--------------------------------------------------------------------------
+p1 = cod_agg_pop_df %>% 
+  filter(age_class=="80+",cal_year>=2020,cod_group=="COVID-19") %>% 
+  dplyr::mutate(iso_week = sprintf("%04d-W%02d-1", cal_year, cal_week),  # ISO week format: YYYY-Www-d (d=day of week)
+                date = ISOweek2date(iso_week)) %>%
+  group_by(date) %>% 
+  dplyr::summarise(n_covid=sum(n),.groups="drop") %>% 
+  ggplot(aes(x=date,y=n_covid)) +
+  geom_point(col="black")+
+  scale_x_date(name="")+
+  scale_y_continuous("COVID-19 deaths")
+
+cum_excess_allcause_pand_df = readRDS(paste0("results/",save.date,"/",mod,"_cum_excess_allcause_pand_df.RDS"))
+p2 = cum_excess_allcause_pand_df %>% 
+  dplyr::filter(pred == "poisson",age_class=="80+") %>% 
+  ggplot(aes(group = with_covid)) +
+  geom_ribbon(aes(x = date, ymin = excess_lwb, ymax = excess_upb,fill=factor(with_covid)),
+              alpha = 0.1) +
+  geom_line(aes(x = date, y = excess_mean, color = factor(with_covid)), size = 0.7) +
+  geom_hline(yintercept = 0, linetype = 4) +
+  scale_y_continuous(name = "All-cause excess mortality") +
+  scale_color_manual(name = "",
+                     breaks = c(0, 1),
+                     values = c("darkred","orange"),
+                     labels=c("Excluding COVID-19","Including COVID-19")) +
+  scale_fill_manual(name = "",
+                    breaks = c(0, 1),
+                    values =  c("darkred","orange"),
+                    labels=c("Excluding COVID-19","Including COVID-19") ) +
+  scale_x_date(name = "") +
+  theme(  legend.position = "right",
+          strip.text = element_text(size = 11),
+          plot.margin = margin(5.5,14, 5.5, 5.5)) 
+
+legend_plot = get_legend2(p2)
+
+fig2 = cowplot::plot_grid(cowplot::plot_grid(p1 + theme(legend.position = "none",
+                                                        plot.margin = unit(c(0.2,0.5,-0.2,0.2), "cm")),
+                                      p2 + theme(legend.position = "none",
+                                                 plot.margin = unit(c(0.2,0.2,-0.2,0.2), "cm")),
+                                      legend_plot,
+                                      ncol=3, rel_widths = c(1,1,0.4),labels = c("A.","B.","")))
+fig2
+ggsave("poster/fig2_v2.pdf",width=26,height=8,units="cm")
+
+
+#Fig 3--------------------------------------------------------------------------
+nrow=4
+ncol=3
+labels = rep("",nrow*ncol)
+labels[c(1,7,2,3)] = c("A.","B.","C.","D.")
+
+sel_plot2 = sel_plot %>% filter(age_class=="80+") %>% 
+  dplyr::mutate(cause2 = case_when(
+    cause == "Cardiovascular Diseases" ~ "CVD",
+    cause == "Respiratory Diseases" ~ "Respiratory",
+    cause == "Mental and Neurological Disorders" ~ "Mental/Neurological",
+    cause == "Neoplasms (Cancers)" ~ "Cancers",
+    TRUE ~ cause  # keep other values unchanged
+  ))
+plots <- purrr::pmap(sel_plot2[c(1,3,4,2),], function(age_class, cause, rowwise_index, plot_position,cause2) {
+  # Add a temporary column for facet label
+  temp_data <- cum_excess_pand_df %>%
+    dplyr::mutate(cause_label = cause2)  # same as your cause string
+  # Create plot
+  p <- plot_excess(temp_data,
+                   rel_excess_phase2_pand_df,
+                   covid_phase2,
+                   "80+",
+                   cause) +
+    theme(
+      legend.position = "none",
+      axis.title.y.left = element_blank(),
+      axis.title.y.right = element_blank(),
+      axis.title.x = element_blank(),
+      axis.text.x = element_blank()
+    ) +
+    facet_wrap(~cause_label)  # facet by the new column
+  
+  return(p)
+})
+# Customize plots for axis titles and ticks
+for (i in seq_along(plots)) {
+  # Add left y-axis title for plots 1, 2, 3, 4 (column 1)
+  if (i %in% c(1,3)) {
+    plots[[i]] <- plots[[i]] +
+      theme(axis.title.y.left = element_text())
+  }
+  # Add right y-axis title for plots 9–12 (column 3)
+  if (i %in% c(2,4)) {
+    plots[[i]] <- plots[[i]] +
+      theme(axis.title.y.right = element_text(color = scales::alpha("black", 0.5)))
+  }
+  # Add x-axis title and ticks only for bottom row (4, 8, 12)
+  if (i %in% 3:4) {
+    plots[[i]] <- plots[[i]] +
+      theme(axis.text.x = element_text())
+  }
+}
+
+# Wrap them with patchwork — use guides = 'collect' to remove repeated legends
+final_plot <- wrap_plots(plots, ncol = 2, byrow = TRUE) &
+  theme(legend.position = "none") &
+  theme(plot.margin = margin(2, 4, 8, 2))
+
+fig3 = cowplot::plot_grid(final_plot,
+                          cowplot::plot_grid(get_legend2(data.frame(x=1:2,y=1:2,ymin=1:2-1,ymax=2:5,col="1") %>% 
+                                                           ggplot(aes(x=x,y=y,ymin=ymin,ymax=ymax,fill=col))+
+                                                           geom_ribbon(alpha=0.3)+geom_line(aes(col=col))+
+                                                           scale_color_manual(name = "", breaks = "1", labels = "Cumulative excess", values = "black")+
+                                                           scale_fill_manual(name = "", breaks = "1", labels = "Cumulative excess", values =  "gray80")),
+                                             get_legend2(plots[[1]]+guides(color = guide_legend(title = ""),
+                                                                           fill  = guide_legend(title = ""))+theme(legend.position="bottom")),
+                                             rel_widths=c(1,4)),
+                          rel_heights=c(8,1),ncol=1)
+fig3
+ggsave("poster/fig3_v2.pdf",width=30,height=18,units="cm")
+
+#Fig 4--------------------------------------------------------------------------
+#posterior partial correlation (i.e., calculated from posterior samples)
+corr_post_res_df = readRDS(paste0("results/",save.date,"/",mod,"_corr_post_res_df.RDS")) %>% 
+  dplyr::filter(lag>=-8,lag<=8) %>% 
+  group_by(age_class,y,var) %>% 
+  dplyr::mutate(not_cross0 = any(corr_lwb>0 | corr_upb<0),
+                lag_peak = if_else(not_cross0,lag[which.max(abs(corr_mean))],NA),
+                peak = if_else(not_cross0,corr_mean[which.max(abs(corr_mean))],NA)) %>% ungroup()
+
+#80+ and some causes
+fig4 = corr_post_res_df %>%
+  dplyr::mutate(y = factor(y,levels=causes2_df_twolines$cod_group[c(1,2,3)],#put in the right order
+                           labels=causes2_df_twolines$cod_group_label[c(1,2,3)])) %>% 
+  dplyr::filter(!is.na(y),
+                age_class %in% c("80+")) %>% 
+  ggplot(aes(x=lag,y=corr_mean,ymin=corr_lwb,ymax=corr_upb))+
+  geom_ribbon(aes(fill=var),alpha=0.1)+
+  geom_line(aes(col=var))+
+  geom_point(aes(col=var))+
+  geom_hline(yintercept=0,linetype="dashed")+
+  geom_vline(aes(xintercept=lag_peak,col=var),linetype=2,alpha=0.8)+
+  scale_color_discrete(name="")+
+  scale_fill_discrete(name="")+
+  scale_x_continuous(name="Lag (in weeks)")+
+  scale_y_continuous(name="Partial correlation",
+                     limits=c(-1,1))+
+  facet_grid(.~y)+
+  theme(legend.position = "right",
+        legend.margin = margin(t = -5),         # pull legend upward
+        axis.title.x = element_text(margin = margin(t = 2)))
+fig4
+ggsave("poster/fig4_v2.pdf",width=30,height=11,units="cm")
+
+##############################################################################################################################################
 ##############################################################################################################################################
 #Fig3: with labels
 # # Filter and prepare weekly cumulative excess data

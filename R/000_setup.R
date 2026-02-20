@@ -17,6 +17,7 @@ if(!grepl("ahauser6",getwd())){
   library(officer)
   library(readxl)
   library(scales)
+  library(sf)
 }
 
 if(FALSE){#check cmdstan
