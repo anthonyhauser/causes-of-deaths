@@ -1,8 +1,8 @@
 ---
-title: "Supplementary material: COVID-19 disrupted patterns of cause-specific mortality in Switzerland"
+title: "Supplementary File 1: COVID-19 disrupted patterns of cause-specific mortality in Switzerland"
 
 # date: "`r format(Sys.time(), 'Report generated on Date: %Y-%m-%d Time: %H:%M')`"
-author: "Anthony Hauser* (1), Moritz Wagner (2), Anna Fesser† (2), Karim Abawi (3), Anne Laube (2), Garyfallos Konstantinoudis (4), Julien Riou (1)"
+author: ""# "Anthony Hauser* (1), Moritz Wagner (2), Anna Fesser† (2), Karim Abawi (3), Anne Laube (2), Garyfallos Konstantinoudis (4), Julien Riou (1)"
 output:
     word_document: 
       reference_docx: template.docx
@@ -12,13 +12,13 @@ bibliography: bib1.bib
 csl: ieee.csl
 ---
 
-(1) Department of Epidemiology and Health Systems, Unisanté, Center for Primary Care and Public Health and University of Lausanne, Lausanne, Switzerland;<br/>
-(2) Federal Statistical Office, Neuchâtel, Switzerland;<br/>
-(3) Federal Office of Public Health, Communicable Diseases Division, Bern, Switzerland;<br/>
-(4)	Grantham Institute for Climate Change and the Environment, Imperial College London, London, UK;<br/>
+<!-- (1) Department of Epidemiology and Health Systems, Unisanté, University Center for Primary Care and Public Health and University of Lausanne, Lausanne, Switzerland;<br/> -->
+<!-- (2) Federal Office of Public Health, Communicable Diseases Division, Bern, Switzerland;<br/> -->
+<!-- (3) Federal Statistical Office, Neuchâtel, Switzerland;<br/> -->
+<!-- (4)	Grantham Institute for Climate Change and the Environment, Imperial College London, London, UK;<br/> -->
 
-(*) Corresponding author: anthony.hauser@unisante.ch
-(†) former affiliation
+<!-- (*) Corresponding author: anthony.hauser@unisante.ch -->
+<!-- (†) former affiliation -->
 
 # Table
 
@@ -80,55 +80,55 @@ causes2_df %>%
 fig1[[1]]
 ```
 
-**Figure S1.** Model fit and cross-cause dependencies for the 0-17 age group. A. Model fit. Number of weekly deaths observed in 2011-21 (red points) and model estimates (before 2020) and predictions (2020-21) (black line) with 95\% credibility intervals (95\% CrI, gray area), for the six main causes of deaths for the 80+ age group. B. Cross-cause correlation matrix of the excess mortality for 0-17 age group. C. Timing of the mortality peak. The color points and squares correspond to observed peak for each winter (we considered the period from July to June of the next year as peak usually occured during winter). The black points and lines represent the posterior estimate of the peak with 95\% CrI.
+**Figure S1.** Model fit and cross-cause dependencies for the 0-17 age group. A. Model fit. Number of weekly deaths observed in 2011-21 (red points) and model estimates (before 2020) and predictions (2020-21) (black line) with 95\% credibility intervals (gray area), for the six main causes of deaths for the 80+ age group. B. Cross-cause correlation matrix of the excess mortality for 0-17 age group. C. Timing of the mortality peak. The color points and squares correspond to observed peak for each winter (we considered the period from July to June of the next year as peak usually occured during winter). The black points and lines represent the posterior estimate of the peak with 95\% credibility intervals.
 
 ```{r, fig.width=10,fig.height=14}
 fig1[[2]]
 ```
 
-**Figure S2.** Model fit and cross-cause dependencies for the 18-39 age group. A. Model fit. Number of weekly deaths observed in 2011-21 (red points) and model estimates (before 2020) and predictions (2020-21) (black line) with 95\% credibility intervals (95\% CrI, gray area), for the six main causes of deaths for the 80+ age group. B. Cross-cause correlation matrix of the excess mortality for 18-39 age group. C. Timing of the mortality peak. The color points and squares correspond to observed peak for each winter (we considered the period from July to June of the next year as peak usually occured during winter). The black points and lines represent the posterior estimate of the peak with 95\% CrI.
+**Figure S2.** Model fit and cross-cause dependencies for the 18-39 age group. A. Model fit. Number of weekly deaths observed in 2011-21 (red points) and model estimates (before 2020) and predictions (2020-21) (black line) with 95\% credibility intervals (gray area), for the six main causes of deaths for the 80+ age group. B. Cross-cause correlation matrix of the excess mortality for 18-39 age group. C. Timing of the mortality peak. The color points and squares correspond to observed peak for each winter (we considered the period from July to June of the next year as peak usually occured during winter). The black points and lines represent the posterior estimate of the peak with 95\% credibility intervals.
 
 ```{r, fig.width=10,fig.height=14}
 fig1[[3]]
 ```
 
-**Figure S3.** Model fit and cross-cause dependencies for the 40-64 age group. A. Model fit. Number of weekly deaths observed in 2011-21 (red points) and model estimates (before 2020) and predictions (2020-21) (black line) with 95\% credibility intervals (95\% CrI, gray area), for the six main causes of deaths for the 80+ age group. B. Cross-cause correlation matrix of the excess mortality for 40-64 age group. C. Timing of the mortality peak. The color points and squares correspond to observed peak for each winter (we considered the period from July to June of the next year as peak usually occured during winter). The black points and lines represent the posterior estimate of the peak with 95\% CrI.
+**Figure S3.** Model fit and cross-cause dependencies for the 40-64 age group. A. Model fit. Number of weekly deaths observed in 2011-21 (red points) and model estimates (before 2020) and predictions (2020-21) (black line) with 95\% credibility intervals (gray area), for the six main causes of deaths for the 80+ age group. B. Cross-cause correlation matrix of the excess mortality for 40-64 age group. C. Timing of the mortality peak. The color points and squares correspond to observed peak for each winter (we considered the period from July to June of the next year as peak usually occured during winter). The black points and lines represent the posterior estimate of the peak with 95\% credibility intervals.
 
 ```{r, fig.width=10,fig.height=14}
 fig1[[4]]
 ```
 
-**Figure S4.** Model fit and cross-cause dependencies for the 65-79 age group. A. Model fit. Number of weekly deaths observed in 2011-21 (red points) and model estimates (before 2020) and predictions (2020-21) (black line) with 95\% credibility intervals (95\% CrI, gray area), for the six main causes of deaths for the 80+ age group. B. Cross-cause correlation matrix of the excess mortality for 65-79 age group. C. Timing of the mortality peak. The color points and squares correspond to observed peak for each winter (we considered the period from July to June of the next year as peak usually occured during winter). The black points and lines represent the posterior estimate of the peak with 95\% CrI.
+**Figure S4.** Model fit and cross-cause dependencies for the 65-79 age group. A. Model fit. Number of weekly deaths observed in 2011-21 (red points) and model estimates (before 2020) and predictions (2020-21) (black line) with 95\% credibility intervals (gray area), for the six main causes of deaths for the 80+ age group. B. Cross-cause correlation matrix of the excess mortality for 65-79 age group. C. Timing of the mortality peak. The color points and squares correspond to observed peak for each winter (we considered the period from July to June of the next year as peak usually occured during winter). The black points and lines represent the posterior estimate of the peak with 95\% credibility intervals.
 
 ```{r, fig.width=13.5,fig.height=10}
 fig3_age[[1]]
 ```
 
-**Figure S5.** Cause-specific excess mortality by phase for 0-17 age group. Black lines and gray area correspond to posterior mean and 95\% CrI of the cumulative (relative and absolute) excess mortality over 2020-21, respectively. The colored points and vertical lines corresponds to posterior mean and 95\% CrI of the relative excess mortality by phase, respectively. The phases are delimited  by the dashed vertical lines.
+**Figure S5.** Cause-specific excess mortality by phase for 0-17 age group. Black lines and gray area correspond to posterior mean and 95\% credibility intervals of the cumulative (relative and absolute) excess mortality over 2020-21, respectively. The colored points and vertical lines corresponds to posterior mean and 95\% credibility intervals of the relative excess mortality by phase, respectively. The phases are delimited  by the dashed vertical lines.
 
 ```{r, fig.width=13.5,fig.height=10}
 fig3_age[[2]]
 ```
 
-**Figure S6.** Cause-specific excess mortality by phase for 18-39 age group. Black lines and gray area correspond to posterior mean and 95\% CrI of the cumulative (relative and absolute) excess mortality over 2020-21, respectively. The colored points and vertical lines corresponds to posterior mean and 95\% CrI of the relative excess mortality by phase, respectively. The phases are delimited  by the dashed vertical lines.
+**Figure S6.** Cause-specific excess mortality by phase for 18-39 age group. Black lines and gray area correspond to posterior mean and 95\% credibility intervals of the cumulative (relative and absolute) excess mortality over 2020-21, respectively. The colored points and vertical lines corresponds to posterior mean and 95\% credibility intervals of the relative excess mortality by phase, respectively. The phases are delimited  by the dashed vertical lines.
 
 ```{r, fig.width=13.5,fig.height=10}
 fig3_age[[3]]
 ```
 
-**Figure S7.** Cause-specific excess mortality by phase for 40-64 age group. Black lines and gray area correspond to posterior mean and 95\% CrI of the cumulative (relative and absolute) excess mortality over 2020-21, respectively. The colored points and vertical lines corresponds to posterior mean and 95\% CrI of the relative excess mortality by phase, respectively. The phases are delimited  by the dashed vertical lines.
+**Figure S7.** Cause-specific excess mortality by phase for 40-64 age group. Black lines and gray area correspond to posterior mean and 95\% credibility intervals of the cumulative (relative and absolute) excess mortality over 2020-21, respectively. The colored points and vertical lines corresponds to posterior mean and 95\% credibility intervals of the relative excess mortality by phase, respectively. The phases are delimited  by the dashed vertical lines.
 
 ```{r, fig.width=13.5,fig.height=10}
 fig3_age[[4]]
 ```
 
-**Figure S8.** Cause-specific excess mortality by phase for 65-79 age group. Black lines and gray area correspond to posterior mean and 95\% CrI of the cumulative (relative and absolute) excess mortality over 2020-21, respectively. The colored points and vertical lines corresponds to posterior mean and 95\% CrI of the relative excess mortality by phase, respectively. The phases are delimited  by the dashed vertical lines.
+**Figure S8.** Cause-specific excess mortality by phase for 65-79 age group. Black lines and gray area correspond to posterior mean and 95\% credibility intervals of the cumulative (relative and absolute) excess mortality over 2020-21, respectively. The colored points and vertical lines corresponds to posterior mean and 95\% credibility intervals of the relative excess mortality by phase, respectively. The phases are delimited  by the dashed vertical lines.
 
 ```{r, fig.width=13.5,fig.height=10}
 fig3_age[[5]]
 ```
 
-**Figure S9.** Cause-specific excess mortality by phase for 80+ age group. Black lines and gray area correspond to posterior mean and 95\% CrI of the cumulative (relative and absolute) excess mortality over 2020-21, respectively. The colored points and vertical lines corresponds to posterior mean and 95\% CrI of the relative excess mortality by phase, respectively. The phases are delimited  by the dashed vertical lines.
+**Figure S9.** Cause-specific excess mortality by phase for 80+ age group. Black lines and gray area correspond to posterior mean and 95\% credibility intervals of the cumulative (relative and absolute) excess mortality over 2020-21, respectively. The colored points and vertical lines corresponds to posterior mean and 95\% credibility intervals of the relative excess mortality by phase, respectively. The phases are delimited  by the dashed vertical lines.
 
 ```{r, fig.width=8,fig.height=8}
 fig_s1_2
@@ -137,8 +137,8 @@ fig_s1_2
 **Figure S10.** Additional analysis of cancer mortality during COVID-19 pandemic. A. Number of individuals dying with cancer over time in 2020-21, stratified by the underlying cause of deaths and age groups (65-79 and 80+). The pink lines represent the number of deaths from cancer (i.e., whose underlying cause is cancer), either observed (straight lines) or expected (dashed lines), the blue lines represent the number individuals with cancer dying from other causes and the black lines represent the total number of individuals dying with cancer. The gray area denotes the period where a deficit in cancer mortality was observed. For better visualisation, a moving average of 9 weeks was applied to the weekly numbers. B. Relative change in total number of individuals dying with cancer, stratified by cancer survival (low, medium and high) and age groups (65-79 and 80+). The change was calculated relative to the mean number of deaths during 2020-21 for each age group and survival group. For ages 65–79, cancers with high survival included breast, male genital, thyroid/endocrine, skin (melanoma), and benign or in situ neoplasms; medium survival included digestive, urinary, female genital, oral/pharyngeal, lymphoid/haematopoietic (except myeloma and leukaemias), and uncertain/unknown neoplasms; low survival included respiratory, mesothelial/soft tissue, CNS, bone, and ill-defined cancers. For ages 80+, high survival included breast, male genital, benign, and in situ neoplasms; medium survival included colorectal, thyroid/endocrine, urinary, skin (melanoma), and uncertain/unknown neoplasms; and low survival included respiratory, other digestive (e.g., oesophagus, stomach, pancreas, liver), lymphoid/haematopoietic, female genital, mesothelial/soft tissue, CNS, bone, and ill-defined cancers.
 
 
-```{r, fig.width=8,fig.height=8}
+```{r, fig.width=9,fig.height=12}
 fig4_supp
 ```
 
-**Figure S11.** Partial correlation between excess mortality due to either COVID-19 (red) or to other respiratory diseases (blue, tagged as "Respiratory Diseases") and excess mortality due to specific causes of deaths for each age group, considering different lags (in weeks). Solid color lines correspond to the posterior mean and shaded colored area to the 95\% CrI. The vertical dashed lines indicate the lag with the highest absolute partial correlation. A positive lag corresponds to the situation where either excess mortality due to respiratory diseases (either COVID-19 or other respiratory diseases) occurs slightly after excess mortality due to considered cause.
+**Figure S11.** Partial correlation between excess mortality due to either COVID-19 (red) or to other respiratory diseases (blue, tagged as "Respiratory Diseases") and excess mortality due to specific causes of deaths for each age group, considering different lags (in weeks), i.e. different time shifts  between changes in excess mortality due to respiratory diseases and changes in excess mortality due to the considered cause. Solid color lines correspond to the posterior mean and shaded colored area to the 95\% credibility intervals. The vertical dashed lines indicate the lag with the highest absolute partial correlation. A positive lag corresponds to the situation where either excess mortality due to respiratory diseases (either COVID-19 or other respiratory diseases) occurs slightly after excess mortality due to considered cause.

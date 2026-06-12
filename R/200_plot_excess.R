@@ -35,7 +35,7 @@ plot_excess = function(cum_excess_pand_df=cum_excess_pand_df,
                     aes(x = phase_mid, y = est, ymin = lwb, ymax = upb, color = labels),
                     position = position_dodge(width = 0.3), size = 0.8) +
     geom_hline(yintercept = 0, linetype = 4) +
-    geom_vline(data = covid_phase2, aes(xintercept = as.numeric(start_date)),
+    geom_vline(data = covid_phase2 %>% filter(phase>=min(phase_df_sub$covid_phase)), aes(xintercept = start_date),
                linetype = "dashed", color = "black") +
     facet_wrap(~ cod_group_age, scales = "free_y", nrow = 1) +
     scale_y_continuous(name = "Rel. excess by phase",

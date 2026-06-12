@@ -293,7 +293,7 @@ cancer_deaths_plot2 = function(cod_ind_df, n_week_agg = 1, k=9){
     geom_line(linewidth=1)+
     annotate("text",label="",x=as.Date("2020-01-01"),y=0)+
     facet_wrap(.~age_class)+
-    scale_x_date(name="",date_labels = "%b %y")+
+    scale_x_date(name="",date_labels = "%b %Y")+
     scale_y_continuous(name="Number of individuals dying with cancer")+
     scale_color_manual(name="Underlying cause of death",values=c("blue","violet","black","violet"),
                        breaks = c(0,1,2,3),
@@ -316,7 +316,7 @@ cancer_deaths_plot2 = function(cod_ind_df, n_week_agg = 1, k=9){
              ymin = -Inf, ymax = Inf, alpha = 0.2, fill = "gray") +
     geom_line(linewidth=1)+
     facet_wrap(.~age_class)+
-    scale_x_date(name="",date_labels = "%b %y")+
+    scale_x_date(name="",date_labels = "%b %Y")+
     scale_y_continuous(name="Relative change in total mortality with cancer",
                        limits=c(0.5,1.5),
                        labels = scales::percent)+

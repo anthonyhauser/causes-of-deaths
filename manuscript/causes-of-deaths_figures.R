@@ -167,7 +167,8 @@ fig1 = lapply(age_classes,function(age){
                         labels=scales::label_percent(accuracy = 1)) +
     labs(x = "", y = "", fill = "Count") +
     theme_bw() +
-    theme(legend.position = "bottom")
+    theme(legend.position = "bottom",
+          axis.text.x = element_text(angle = 45, hjust = 1))
     # theme(axis.text.x = element_text(angle = 45, hjust = 0,size=11),
     #       axis.text.y = element_text(size=11),
     #       plot.margin = margin(t = -10, r = 5, b = 5, l = 5))+
@@ -301,7 +302,7 @@ p2 = cum_excess_allcause_pand_df %>%
                     breaks = c(0, 1),
                     values =  c("darkred","orange"),
                     labels=c("Excluding COVID-19","Including COVID-19") ) +
-  scale_x_date(name = "Date") +
+  scale_x_date(name = "",date_labels = "%b %Y")+ 
   theme(  legend.position = c(0.95, 0.05),  # bottom right
           legend.justification = c("right", "bottom"),
           strip.text = element_text(size = 11),
@@ -434,6 +435,7 @@ for (i in seq_along(plots)) {
       theme(axis.title.x = element_text())
   }
   plots[[i]] = plots[[i]] +
+    scale_x_date(name = "",date_labels = "%b %Y")+ 
     ggtitle(labels[i]) +
     theme(plot.title = element_text(face = "bold",
                                     hjust = 0,          # Align left (0 = far left, 1 = far right)
@@ -486,6 +488,7 @@ fig3_age = lapply(age_classes,function(age){
                      rel_excess_phase2_pand_df,
                      covid_phase2,
                      age, cause) +
+      scale_x_date(name = "",date_labels = "%b %Y")+ 
       theme(legend.position = "none",
             axis.title.y.left = element_blank(),
             axis.title.y.right = element_blank(),
@@ -596,15 +599,21 @@ corr_post_res_df = readRDS(paste0("results/",save.date,"/",mod,"_corr_post_res_d
                 peak = if_else(not_cross0,corr_mean[which.max(abs(corr_mean))],NA)) %>% ungroup()
 #all causes and all age groups
 fig4_supp = corr_post_res_df %>% 
+  dplyr::mutate(y = factor(y,levels=causes2_df_twolines$cod_group,#put in the right order
+                           labels=causes2_df_twolines$cod_group_label)) %>% 
   ggplot(aes(x=lag,y=corr_mean,ymin=corr_lwb,ymax=corr_upb))+
   geom_ribbon(aes(fill=var),alpha=0.1)+
   geom_line(aes(col=var))+
   geom_point(aes(col=var))+
   geom_hline(yintercept=0,linetype="dashed")+
   geom_vline(aes(xintercept=lag_peak,col=var),linetype=2,alpha=0.4)+
+  scale_x_continuous(name="Lag (week)")+
   scale_y_continuous(name="Partial correlation",
                      limits=c(-1,1))+
-  facet_grid(y~age_class)
+  scale_color_discrete(name="Cause")+
+  scale_fill_discrete(name="Cause")+
+  facet_grid(y~age_class)+
+  theme(legend.position = "bottom")
 
 pdf(file=paste0(code_root_path,"/manuscript/fig4_supp.pdf"),width=10,height=12)
 print(fig4_supp)
@@ -621,8 +630,11 @@ fig4 = corr_post_res_df %>%
   geom_point(aes(col=var))+
   geom_hline(yintercept=0,linetype="dashed")+
   geom_vline(aes(xintercept=lag_peak,col=var),linetype=2,alpha=0.8)+
+  scale_x_continuous(name="Lag (week)")+
   scale_y_continuous(name="Partial correlation",
                      limits=c(-1,1))+
+  scale_color_discrete(name="Cause")+
+  scale_fill_discrete(name="Cause")+
   facet_grid(y~age_class)
 
 pdf(file=paste0(code_root_path,"/manuscript/fig4.pdf"),width=10,height=10)

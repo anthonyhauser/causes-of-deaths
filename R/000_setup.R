@@ -67,13 +67,13 @@ covid_phase2 <- data.frame(start_date = as.Date(c("1995-01-02",  # Arbitrary ear
                                                  "2021-12-27")),   # Phase 8: delta wave resurgence
                           phase = 0:8,
                           labels = c("0. Before 2020",
-                                     "1. Jan–Feb 20\nPre-pandemic",
-                                     "2. Feb–May 20\n1st wave",
-                                     "3. May–Sep 20\nSummer low",
-                                     "4. Oct–Dec 20\nAutumn wave",
-                                     "5. Jan–Feb 21\nWinter (Alpha)",
-                                     "6. Mar–Sep 21\nVaccination rollout",
-                                     "7. Oct–Dec 21\nDelta wave resurgence",
+                                     "1. Jan-Feb 20\nPre-pandemic",
+                                     "2. Feb-May 20\n1st wave",
+                                     "3. May-Sep 20\nSummer low",
+                                     "4. Oct-Dec 20\nAutumn wave",
+                                     "5. Jan-Feb 21\nWinter (Alpha)",
+                                     "6. Mar-Sep 21\nVaccination rollout",
+                                     "7. Oct-Dec 21\nDelta wave resurgence",
                                      "8. Dec21-Jan22, incomplete week to delete")) %>%
   arrange(start_date) %>%
   dplyr::mutate(end_date = lead(start_date, default = as.Date("2022-01-03")) - 1,
