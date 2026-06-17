@@ -1,7 +1,7 @@
 ---
 title: "COVID-19 disrupted patterns of cause-specific mortality in Switzerland"
 # date: "`r format(Sys.time(), 'Report generated on Date: %Y-%m-%d Time: %H:%M')`"
-author: ""# "Anthony Hauser* (1), Moritz Wagner (2), Anna Fesser† (2), Karim Abawi (3), Anne Laube (2), Garyfallos Konstantinoudis (4), Julien Riou (1)" # "Anthony Hauser* (1),  Moritz Wagner (2), Carla Grolimund (2), Katharina Fehst (3), Karim Abawi (3), Anna Fesser (XX), Katrin Schneider (2), Anne Laube (2), Julien Riou (1)"
+author: ""# "Anthony Hauser* (1), Moritz Wagner (2), Anna Fesser† (2), Karim Abawi (3), Anne Laube (2), Garyfallos Konstantinoudis (4), Julien Riou (1)" # "Anthony Hauser* (1),  Moritz Wagner (2), Carla Grolimund (2), Katharina Fehst (3), Karim Abawi (3), Anna Fesser (2), Katrin Schneider (2), Anne Laube (2), Julien Riou (1)"
 output:
     word_document: 
       reference_docx: template.docx
@@ -285,8 +285,7 @@ We performed the same analysis to assess the relationship between cause-specific
 To better understand the observed trends in deaths with cancer as the underlying cause, we conducted an additional analysis including all individuals who died *with* cancer, i.e., where cancer was reported either as the underlying (referred to as *deaths from cancer*) or the immediate cause of death.
 We computed the number of deaths from cancer to the total number of deaths with cancer over time and examined their distribution by cancer survival rate to assess whether competing risks with COVID-19 might explain some of the observed patterns.
 We performed all the analyses in R version 4.4.1 and Stan version 2.35.0 [@carpenter_stan_2017].
-All code is available from <https://github.com/XX/causes-of-deaths>. 
-<!-- <https://github.com/anthonyhauser/causes-of-deaths>. -->
+All code is available from <https://github.com/anthonyhauser/causes-of-deaths>.
 
 \newpage
 
@@ -410,7 +409,7 @@ However, this effect is unlikely in Switzerland, where oncology care remained ac
 Our multivariate model revealed two layers of pre-2020 cause-specific mortality correlation: first, most causes share a winter peak across age groups; second, even after removing this seasonal component, excess deaths from respiratory, cardiovascular, and mental-neurological diseases remain tightly coupled.
 Modelling these correlations jointly made it possible to distinguish between competing explanations for cause-specific mortality patterns (i.e., misclassification, mortality displacement, and indirect effects) which cannot be disentangled when causes are analysed in isolation.
 The correlation was highest in winters with the largest influenza epidemics, implying that a substantial share of the apparent cardiovascular excess was infection-related (either through biologically triggered events or misclassification) [@fares_winter_2013; @warren-gash_influenza_2009].
-While extreme weather or pollution could still contribute, previous studies have suggested that they only explain a minor fraction of the observed excess mortality [@andrews_estimating_2025, @nielsen_excess_2011].
+While extreme weather or pollution could still contribute, previous studies have suggested that they only explain a minor fraction of the observed excess mortality [@andrews_estimating_2025; @nielsen_excess_2011].
 Evidence from 2020-21 reinforces this assumption, as excess cardiovascular and mental/neurological deaths correlate with both COVID-19 and non-COVID-19 respiratory excesses during a period when mortality patterns were disrupted.
 In this context, the COVID-19 disruption served as a natural experiment, as COVID-19 waves occurred at unusual periods for a respiratory disease and flu waves were almost non-existent in winter 2020-21.
 While the exact mechanisms need to be investigated in more depth, this suggests that the contribution of respiratory pathogens on overall mortality has been underestimated.
@@ -436,7 +435,7 @@ First, most analyses rely solely on the unique underlying cause of death, which 
 Switzerland's death certificates record immediate, underlying, and concomitant causes, and future work should leverage this richer information to move beyond the underlying cause of death.
 Incorporating secondary and contributing causes would allow a more rigorous quantification of mortality displacement across time and causes, and would help disentangle misclassification from true shifts in cause-specific mortality.
 This was illustrated in our preliminary analysis focusing on cancer and more comprehensively in Duràn et al. [@duran_n_multiple_2026], and could be further extended using more formal modelling approaches.
-Frailty-survival models capture temporal displacement by accounting for unobserved heterogeneity, while competing-risk models capture cross-cause displacement by redistributing deaths among alternatives [@carollo_competing_2024; @holleyman_adjusting_2023].
+Frailty-survival models capture temporal displacement by accounting for unobserved heterogeneity, while competing-risk models capture cross-cause displacement by redistributing deaths among alternatives [@carollo_competing_2025; @holleyman_adjusting_2023].
 Misclassification, however, may persist even with richer cause-of-death information.
 Second, some model assumptions, such as the static effects across sex, region, and broad age ranges may oversimplify reality.
 It also applies to the estimation of excess mortality in the other causes category, which, by definition, comprises a highly heterogeneous set of conditions.

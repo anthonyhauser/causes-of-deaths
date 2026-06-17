@@ -154,21 +154,37 @@ fig1 = lapply(age_classes,function(age){
                   cod_group_id2=as.numeric(cod_group2)) %>% 
     filter(!is.na(cod_group),!is.na(cod_group2)) %>% 
     rowwise() %>% 
-    dplyr::mutate(est_cri = paste0(scales::percent(est, accuracy = 1),"\n",
-                                   "[",scales::percent(lwb, accuracy = 1),",",
-                                   scales::percent(upb, accuracy = 1),"]")) %>% 
+    dplyr::mutate(est_cri = paste0(round(est,2),"\n",
+                                   "[",round(lwb,  2),",",
+                                   round(upb, 2),"]")) %>% 
     filter(cod_group_id<cod_group_id2,age_class==age) %>% 
     ggplot(aes(x = cod_group, y = fct_rev(cod_group2), fill = abs(est))) +
     geom_tile() +
     geom_text(aes(label = est_cri),
               color = "black", size = 2.5) +
     scale_fill_gradient(low = "lightyellow", high = "darkred",limits=c(0,1),
-                        name="Correlation",
-                        labels=scales::label_percent(accuracy = 1)) +
+                        name="Correlation") +
     labs(x = "", y = "", fill = "Count") +
     theme_bw() +
     theme(legend.position = "bottom",
           axis.text.x = element_text(angle = 45, hjust = 1))
+  
+    # rowwise() %>% 
+    # dplyr::mutate(est_cri = paste0(scales::percent(est, accuracy = 1),"\n",
+    #                                "[",scales::percent(lwb, accuracy = 1),",",
+    #                                scales::percent(upb, accuracy = 1),"]")) %>% 
+    # filter(cod_group_id<cod_group_id2,age_class==age) %>% 
+    # ggplot(aes(x = cod_group, y = fct_rev(cod_group2), fill = abs(est))) +
+    # geom_tile() +
+    # geom_text(aes(label = est_cri),
+    #           color = "black", size = 2.5) +
+    # scale_fill_gradient(low = "lightyellow", high = "darkred",limits=c(0,1),
+    #                     name="Correlation",
+    #                     labels=scales::label_percent(accuracy = 1)) +
+    # labs(x = "", y = "", fill = "Count") +
+    # theme_bw() +
+    # theme(legend.position = "bottom",
+    #       axis.text.x = element_text(angle = 45, hjust = 1))
     # theme(axis.text.x = element_text(angle = 45, hjust = 0,size=11),
     #       axis.text.y = element_text(size=11),
     #       plot.margin = margin(t = -10, r = 5, b = 5, l = 5))+
