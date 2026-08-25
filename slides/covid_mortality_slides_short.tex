@@ -70,32 +70,33 @@
   \titlepage
 \end{frame}
 
-%%% 1. THE PUZZLE -- open here, no methods yet %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% 1. THE PROBLEM -- framing only, no results %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % ~0:50
-\begin{frame}{Start with a puzzle}
-  \vfill
+\begin{frame}{The interpretation problem}
+  A pandemic moves cause-specific mortality in four ways at once:
   \begin{itemize}\compresslist
-    \item During the Alpha wave, \punch{cancer deaths in the 80+ fell well below
-          expected.}
-    \item Mental/neurological mortality fell too: $-12\%$ over 2020--21,
-          $-24\%$ during the Alpha wave.
+    \item direct deaths from SARS-CoV-2,
+    \item deaths from other causes triggered by infection,
+    \item displacement of deaths across time \emph{and} across causes,
+    \item indirect effects of control measures and healthcare disruption.
   \end{itemize}
   \vfill
   \begin{center}
-    \large Did fewer people really die \emph{of} cancer during a pandemic?
+    So when deaths from a given cause fall below expectation,\\
+    \punch{did those deaths not happen --- or were they counted elsewhere?}
   \end{center}
   \vfill
   \begin{itemize}\compresslist
-    \item Single-cause excess mortality cannot answer this ---
-          it cannot separate a \emph{real} change in deaths from a
-          \emph{reallocation} of deaths between causes.
+    \item Single-cause excess mortality cannot tell these apart: each cause is
+          modelled as if the others did not exist.
+    \item \textbf{Aim:} estimate excess mortality for all causes jointly, and use
+          the dependence between causes to identify what drove the disruptions.
   \end{itemize}
-  \vfill
 \end{frame}
 
 %%% 2. THE HEADLINE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % ~1:40
-\begin{frame}{And a headline that needs explaining}
+\begin{frame}{Result 1: all-cause mortality net of COVID-19}
   \begin{columns}[t]
     \begin{column}{0.55\linewidth}
       \centering
@@ -145,7 +146,7 @@
 
 %%% 4. RESULT: WHAT MOVED, AND WHEN %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % ~4:00
-\begin{frame}{What moved, and when}
+\begin{frame}{Result 2: what moved, and when}
   \begin{columns}[t]
     \begin{column}{0.44\linewidth}
       \vspace{0.5em}
@@ -170,7 +171,7 @@
 
 %%% 5. RESULT: LAGS GIVE MECHANISM %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % ~5:20
-\begin{frame}{Lags turn pattern into mechanism}
+\begin{frame}{Result 3: lags turn pattern into mechanism}
   \begin{columns}[t]
     \begin{column}{0.45\linewidth}
       \vspace{0.5em}
@@ -196,9 +197,10 @@
 
 %%% 6. PUZZLE RESOLVED %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % ~6:10
-\begin{frame}{Back to the puzzle: the cancer deficit}
+\begin{frame}{Result 4: the cancer deficit, checked directly}
   \vfill
-  Resolved with \textbf{multiple-cause-of-death} data:
+  The cancer deficit is the cleanest test of the question we opened with.
+  Checked independently with \textbf{multiple-cause-of-death} data:
   \begin{itemize}\compresslist
     \item Total deaths \emph{with} cancer did \textbf{not} decline in
           January--February 2021 --- a slight increase in 65--79, larger in 80+.
