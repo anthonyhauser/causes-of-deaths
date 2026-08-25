@@ -82,8 +82,38 @@
   \end{center}
 \end{frame}
 
+%%% 0. THE HOOK: one death, one line %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% cumulative ~0:50
+\begin{frame}{One death, several causes}
+  \begin{center}
+    \begin{minipage}{0.72\linewidth}
+      \setlength{\fboxsep}{10pt}%
+      \fcolorbox{bordercol}{white}{\begin{minipage}{\linewidth}
+        \small An 85-year-old man, November 2020:\\[0.4em]
+        \begin{tabular}{@{}ll@{}}
+          Immediate cause    & respiratory failure \\
+          Underlying cause   & \textbf{COVID-19?} \quad \textbf{heart failure?} \\
+          Contributing       & dementia, hypertension \\
+        \end{tabular}
+      \end{minipage}}
+    \end{minipage}
+  \end{center}
+  \vspace{0.6em}
+  \begin{itemize}\compresslist
+    \item National mortality statistics keep \textbf{one} cause per death ---
+          the underlying one.
+    \item In a pandemic, which line is chosen shifts for reasons unrelated to
+          the patient: testing, awareness, certification practice.
+  \end{itemize}
+  \vspace{0.3em}
+  \begin{center}
+    \punch{So causes of death stop being independent ---\\
+    and so do their excesses.}
+  \end{center}
+\end{frame}
+
 %%% 1. FROM THE PREVIOUS PROJECT TO THIS ONE -- framing only %%%%%%%%%%%%%%%%%
-% cumulative ~1:20
+% cumulative ~1:40
 \begin{frame}{Where we come from}
   \textbf{Previous project}\footnote[frame]{\tiny Riou J, Hauser A, Fesser A,
     Althaus CL, Egger M, Konstantinoudis G. \emph{Direct and indirect effects of
@@ -109,7 +139,7 @@
 \end{frame}
 
 %%% 2. WHY CAUSES MUST BE MODELLED JOINTLY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% cumulative ~2:10
+% cumulative ~2:30
 \begin{frame}{Why cause-specific is not enough}
   Going cause by cause does not answer either question:
   \begin{itemize}\compresslist
@@ -137,7 +167,7 @@
 \end{frame}
 
 %%% 2. THE HEADLINE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% cumulative ~3:00
+% cumulative ~3:20
 \begin{frame}{Result 1: the previous finding, now week by week}
   \begin{columns}[t]
     \begin{column}{0.55\linewidth}
@@ -163,7 +193,7 @@
 \end{frame}
 
 %%% 3. METHOD -- one slide, correlation is the point %%%%%%%%%%%%%%%%%%%%%%%%%%%
-% cumulative ~3:50
+% cumulative ~4:10
 \begin{frame}{A multivariate model, in one slide}
   Weekly deaths by cause $i$, region $r$, sex $s$, age group; 2011--2019 as the
   baseline, 9 cause groups (ICD-10, immediate + underlying + contributing).
@@ -187,7 +217,7 @@
 \end{frame}
 
 %%% 4. RESULT: WHAT MOVED, AND WHEN %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% cumulative ~5:00
+% cumulative ~5:20
 \begin{frame}{Result 2: what moved, and when}
   \begin{columns}[t]
     \begin{column}{0.44\linewidth}
@@ -212,7 +242,7 @@
 \end{frame}
 
 %%% 5. RESULT: LAGS GIVE MECHANISM %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% cumulative ~6:10
+% cumulative ~6:30
 \begin{frame}{Result 3: lags turn pattern into mechanism}
   \begin{columns}[t]
     \begin{column}{0.45\linewidth}
@@ -244,7 +274,7 @@
 \end{frame}
 
 %%% 6. PUZZLE RESOLVED %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% cumulative ~7:00
+% cumulative ~7:20
 \begin{frame}{Result 4: the cancer deficit, checked directly}
   \vfill
   The cancer deficit is the cleanest test of the question we opened with.
@@ -264,7 +294,7 @@
 \end{frame}
 
 %%% 7. THE PAYOFF %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% cumulative ~7:50
+% cumulative ~8:00
 \begin{frame}{Four mechanisms explain the disruptions}
   \centering
   {\scriptsize
@@ -294,7 +324,7 @@
 \end{frame}
 
 %%% 8. TAKE-HOME %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% cumulative ~8:20
+% cumulative ~8:30
 \begin{frame}{Take-home}
   \begin{enumerate}\compresslist
     \item Cause-specific excess mortality is \textbf{not nine separate problems} ---
@@ -332,9 +362,10 @@
   \begin{itemize}\compresslist
     \item Deaths $y_{irs}(t)$ by cause, sex, NUTS-2 region, year and week; age
           groups 0--17, 18--39, 40--64, 65--79, 80+; 2011--2021.
-    \item Immediate, underlying and contributing causes (ICD-10), grouped into
-          9 categories: cardiovascular, mental/neurological, respiratory,
-          infectious, cancer, external, suicide, COVID-19, other.
+    \item \textbf{Underlying} cause of death (ICD-10), grouped into 9 categories:
+          cardiovascular, mental/neurological, respiratory, infectious, cancer,
+          external, suicide, COVID-19, other. Multiple causes are used only in
+          the supplementary cancer analysis.
     \item Population $N_{rst}$ by age, sex, region; weekly linear interpolation.
     \item Baseline fitted on 2011--2019; 2020--21 predicted out of sample.
   \end{itemize}
