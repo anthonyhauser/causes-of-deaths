@@ -1,0 +1,329 @@
+% --------------------------------------------------------------------------- %
+% Poster for the ECCS 2011 Conference about Elementary Dynamic Networks.      %
+% --------------------------------------------------------------------------- %
+% Created with Brian Amberg's LaTeX Poster Template. Please refer for the     %
+% attached README.md file for the details how to compile with `pdflatex`.     %
+% --------------------------------------------------------------------------- %
+% $LastChangedDate:: 2011-09-11 10:57:12 +0200 (V, 11 szept. 2011)          $ %
+% $LastChangedRevision:: 128                                                $ %
+% $LastChangedBy:: rlegendi                                                 $ %
+% $Id:: poster.tex 128 2011-09-11 08:57:12Z rlegendi                        $ %
+% --------------------------------------------------------------------------- %
+\documentclass[a0paper,portrait]{baposter}
+
+
+\usepackage[scaled]{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+
+\usepackage{relsize}		% For \smaller
+\usepackage{url}			% For \url
+\usepackage{epstopdf}	% Included EPS files automatically converted to PDF to include with pdflatex
+\usepackage{amsmath}
+\usepackage{enumitem}
+
+%%% Global Settings %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\graphicspath{{images/}}	% Root directory of the pictures 
+\tracingstats=2			% Enabled LaTeX logging with conditionals
+
+%%% Color Definitions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\definecolor{bordercol}{RGB}{105,105,105}
+\definecolor{headercol1}{RGB}{255,255,255}
+\definecolor{headercol2}{RGB}{255,255,255}
+\definecolor{headerfontcol}{RGB}{190,0,0} %title font
+\definecolor{boxcolor}{RGB}{255,255,255}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Utility functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% Save space in lists. Use this after the opening of the list %%%%%%%%%%%%%%%%
+\newcommand{\compresslist}{
+	\setlength{\itemsep}{1pt}
+	\setlength{\parskip}{0pt}
+	\setlength{\parsep}{0pt}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Document Start %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+\typeout{Poster rendering started}
+
+%%% Setting Background Image %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\background{
+	\begin{tikzpicture}[remember picture,overlay]%
+	\draw (current page.north west)+(-2em,2em) node[anchor=north west]
+	{\includegraphics[height=1.1\textheight]{images/gradient_red.pdf}};
+	\end{tikzpicture}
+}
+
+%%% General Poster Settings %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%% Eye Catcher, Title, Authors and University Images %%%%%%%%%%%%%%%%%%%%%%
+\begin{poster}{
+	grid=false,
+	% Option is left on true though the eyecatcher is not used. The reason is
+	% that we have a bit nicer looking title and author formatting in the headercol
+	% this way
+	eyecatcher=true,
+    columns=6,
+	borderColor=bordercol,
+	headerColorOne=headercol1,
+	headerColorTwo=headercol2,
+	headerFontColor=headerfontcol,
+	% Only simple background color used, no shading, so boxColorTwo isn't necessary
+	boxColorOne=boxcolor,
+	headershape=roundedright,
+	headerfont=\large\sf\bf,
+	textborder=rectangle,
+	background=user,
+	headerborder=open,
+    textfont=\fontsize{7.1}{9}\selectfont %\fontsize{8}{10}\selectfont
+}
+%%% Eye Cacther %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+{
+	\includegraphics[width=0.12\textwidth]{images/logo_confederation.png}\hspace*{0.5cm}
+}
+%%% Title %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+{\\[0.5cm]\sf\bf
+	COVID-19 disrupted patterns of cause- specific mortality in Switzerland
+}
+%%% Authors %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+{
+\vspace{0.8em}
+\begin{minipage}{0.99\textwidth}
+{\small
+\parbox[t]{\textwidth}{
+Anthony Hauser\textsuperscript{1$\ast$}, Moritz Wagner\textsuperscript{2}, Anna Fesser\textsuperscript{2†}, Karim Abawi\textsuperscript{3}, Anne Laube\textsuperscript{2}, Garyfallos Konstantinoudis\textsuperscript{4}, Julien Riou\textsuperscript{1}
+}}
+\end{minipage}
+\vspace{0.2em}
+\begin{minipage}{0.99\textwidth}
+{\tiny
+\parbox[t]{\textwidth}{
+(1) Department of Epidemiology and Health Systems, Unisanté, Center for Primary Care and Public Health and University of Lausanne, Lausanne, Switzerland; 
+(2) Federal Statistical Office, Neuchâtel, Switzerland; 
+(3) Federal Office of Public Health, Communicable Diseases Division, Bern, Switzerland; 
+(4) Grantham Institute for Climate Change and the Environment, Imperial College London, London, UK;\\
+($\ast$) Corresponding author: anthony.hauser@unisante.ch; (†) Former affiliation. 
+}}
+\end{minipage}
+}
+{
+\begin{minipage}[t]{0.12\textwidth} % right side: logo
+\includegraphics[width=\textwidth]{logo_unisante_RVB_2lignes.ai}
+\end{minipage}
+}
+
+
+\headerbox{Background}{name=background,span=3,column=0,row=0}{
+
+\begin{itemize}[leftmargin=1em]
+\compresslist
+    \item The COVID-19 pandemic reshaped mortality through:
+\begin{itemize}
+\compresslist
+    \item Direct deaths from SARS-CoV-2,
+    \item Associated deaths from other causes (e.g., cardiovascular diseases) triggered by infection,
+    \item Mortality displacement across time and causes,
+    \item Indirect effects of control measures and behavioural changes (e.g., fewer respiratory infections, healthcare disruptions).
+\end{itemize}
+\item These disruptions occur simultaneously across multiple causes, limiting the interpretability of all-cause and single-cause excess mortality.
+\item A multivariate approach is necessary to capture cross-cause dependencies and facilitate interpretation of these disruptions.
+\end{itemize}
+}
+
+\headerbox{Objectives}
+{name=objectives,column=0,span=3,below=background}{
+\begin{itemize}[leftmargin=1em]
+\compresslist
+\item Implement a Bayesian multivariate model to estimate cause-specific excess mortality over time in Switzerland.
+\item Quantify dependencies between mortality causes before and during COVID-19.
+\item Identify the mechanisms driving mortality disruptions during the pandemic.
+\end{itemize}
+}
+
+\headerbox{Data}{name=data,column=0,span=3,below=objectives}{
+\begin{itemize}[leftmargin=1em]
+\compresslist
+\item \textbf{Cause-specific deaths}: $y_{irs}(t)$
+\begin{itemize}
+\compresslist
+    \item aggregated by cause $i$, sex $s$, NUTS-2 region $r$, year and week $t$; by age group (0–17, 18–39, 40–64, 65–79, 80+); in 2011-2021,
+    \item include immediate, underlying, and contributing causes (ICD-10),
+    \item grouped into 9 categories: cardiovascular (CVD), mental/neurological, respiratory, infectious diseases, cancer, external causes, suicide, COVID-19 and others.
+\end{itemize}
+\item \textbf{Population sizes}: $N_{rst}$ by age, sex, region; weekly estimates via linear interpolation.
+\end{itemize}
+}
+
+\headerbox{Model}{name=model,span=3,column=0,below=data}{
+\begin{itemize}[leftmargin=1em]
+\compresslist
+    \item\textbf{Expected mortality}: 
+For each age group, we fit the number of deaths $y_{irs}(t)$ due to underlying cause $i$ at year and week $t$, in region $r$ and in sex $s$ between 2011 and 2019: %\\[-0.2cm]
+$$y_{irs}(t) \sim \text{Poisson}(\mu_{irs}(t))$$
+with $\log \mu_{irs}(t) = \alpha_i + \beta_{ir} + \gamma_{is} + f_{i}(t) + g_{i}(t) + \varepsilon_i(t) + \log N_{rst}$ and where 
+\begin{itemize}\compresslist
+\item $\alpha_i$, $\beta_{ir}$, $\gamma_{is}$: baseline mortality, effects of region and sex,
+\item $f_{i}(t)$, $g_{i}(t)$: long-term and seasonal trends (Gaussian processes),
+\item $\varepsilon_i(t)$: multivariate random effect, $\varepsilon(t) \sim \mathcal{N}(0,\Sigma)$.
+\end{itemize}
+    \item \textbf{Excess mortality}:%\\[-0.5cm]
+$$E_{irs}(t) := y_{irs}(t) - \tilde{y}_{irs}(t).$$
+where $\tilde{y}_{irs}(t)$ is the expected number of deaths (i.e., posterior predictive distribution after removing $\varepsilon_i(t)$).
+\end{itemize}
+}
+
+
+\headerbox{Temporal trends and cross-cause correlations}{name=res1,column=0,span=3,below=model, above=bottom}{
+\begin{itemize}[leftmargin=1em]
+\compresslist
+\item The model captures seasonal and long-term trends of cause-specific mortality in 2011-2019 (see Fig 1 for 80+).
+\item Expected mortality peaks between January and February for every cause.
+\item Shift in peak timing during COVID-19.
+\item Strong pairwise correlations in cause-specific excess mortality.
+\end{itemize}
+\vspace{-0.1cm}
+\centering
+\includegraphics[width=0.97\linewidth]{images/fig1_v4.pdf}
+ 
+\tiny\parbox[t]{\textwidth}{\textbf{Figure 1. Model fit and cross-cause patterns for 80+.} A. Weekly deaths observed (red) and model estimates/predictions (black) with 95\% CrI (gray).
+B. Timing of mortality peaks, colored points: observed, black: posterior estimate with 95\% CrI.
+C. Cross-cause correlation of excess mortality.}
+}
+
+\headerbox{Impact of COVID-19 deaths on all-cause mortality}{name=res2,span=3,column=3,row=0}{
+
+\begin{minipage}[t]{0.6\linewidth}
+ \vspace{0pt}
+    \centering
+    \includegraphics[width=\linewidth]{images/fig2_v2.pdf}
+    \tiny
+    \tiny\parbox[t]{\textwidth}{
+    \textbf{Figure 2}. A. Weekly COVID-19 deaths in 80+. 
+    B. Excess mortality with and without COVID-19 in 80+.}
+\end{minipage}
+\hspace{0.5em}
+\begin{minipage}[t]{0.36\linewidth}
+ \vspace{0pt} % ensures true top alignment
+\begin{itemize}[leftmargin=1em]
+\compresslist
+\item Sharp rise in cumulative excess mortality during major waves (see Fig 2 for 80+).
+\item Subsequent weeks show a mortality deficit.
+\item When excluding COVID-19 deaths, mortality was lower than expected in 2020–21.
+\end{itemize}
+\end{minipage}
+
+}
+
+\headerbox{Cause-specific mortality over time}{name=res3,span=3,column=3,below=res2}{
+{
+\noindent
+\begin{minipage}[t]{0.55\linewidth}
+ \vspace{0pt}
+\textbf{Cause-specific excess by phase:}\\[-0.6cm]
+\begin{itemize}[leftmargin=1em]
+\compresslist
+\item CVD mortality excess concentrates during COVID-19 wave, followed by deficits (see Fig 3 for 80+).
+\item Strong mortality decrease for mental/neurological disorders (-12\%), especially during the Alpha wave (-24\%) in 80+.
+\item Cancer mortality deficit mainly during the Alpha wave in 80+.
+\item Respiratory (non-COVID) mortality consistently below expected across all ages, with larger deficits at older ages.
+\end{itemize}
+\end{minipage}
+\hspace{1.6em}
+\begin{minipage}[t]{0.38\linewidth}
+ \vspace{0pt}
+\textbf{Cancer exploration}\\[-0.6cm]
+\begin{itemize}[leftmargin=1em]
+\compresslist
+\item Deficit in cancer deaths investigated using multiple-cause-of-death data.
+\item Total deaths with cancer did not decline in Jan–Feb 2021; slight increase in 65–79, larger in 80+.
+\item Largest increase observed for high-survival cancers, particularly in the 80+ age group.
+\end{itemize}
+\vspace*{0.3cm}
+\end{minipage}
+
+\centering\includegraphics[width=\linewidth]{images/fig3_v2.pdf}
+\tiny\parbox[t]{\textwidth}{\textbf{Figure 3: Cause-specific excess mortality by phase in 80+.}
+    Black lines (with gray 95\% CrI) show cumulative excess mortality in 2020–21. Colored points and bars indicate phase-specific relative excess mortality (95\% CrI).}
+}
+}
+
+\headerbox{Correlation between excess mortalities}{name=res4,span=3,column=3,below=res3}{
+\begin{itemize}[leftmargin=1em]
+\compresslist
+\item Strong positive partial correlations (up to ~0.5) between COVID-19 excess mortality and excess deaths from CVD and mental/neurological diseases.
+\item Similar positive correlations with other respiratory diseases.
+\item Correlations peak at lags of 1–3 weeks, indicating COVID-19 excess deaths occurred slightly after CVD and mental/neurological deaths.
+\item Cancer shows weak or negative correlations with COVID-19 mortality.
+\end{itemize}
+
+\begin{minipage}{\linewidth}
+\vspace{-0.1cm}
+\centering
+\includegraphics[width=0.8\linewidth]{images/fig4_v2.pdf}
+\tiny\parbox[t]{\textwidth}{\textbf{Figure 4:}
+Partial correlation between excess mortality due to either COVID-19 (red) or to other respiratory diseases (blue) and excess mortality due to CVD, cancers or mental/neurological diseases in 80+.}
+\end{minipage}
+}
+
+\headerbox{Mechanisms of mortality disruption}
+{name=dis,span=3,column=3,below=res4,above=bottom}{
+\begin{minipage}{\linewidth}
+\centering
+\begin{tabular}{p{2.2cm} p{3.6cm} p{4cm}}
+\textbf{Mechanism} & \textbf{Explanation} & \textbf{Examples} \\
+\hline\\[-0.22cm]
+\parbox[t]{2.2cm}{\raggedright Under-ascertainment of COVID-19 deaths}  & COVID-19 infections not identified at the time of death inflated mortality attributed to other causes. &
+\begin{minipage}[t]{4cm}
+\begin{itemize}[leftmargin=1em]
+\compresslist
+\item CVD excess during autumn 2020 aligned with COVID-19 mortality.
+\end{itemize}\end{minipage}\\
+\hline\\[-0.22cm]
+\parbox[t]{2.2cm}{\raggedright Delayed SARS-CoV-2 effects} & Post-infection complications increased risks of death weeks to months after infection. & 
+\begin{minipage}[t]{4cm}
+\begin{itemize}[leftmargin=1em]
+\compresslist
+\item Low evidence for Switzerland. %Brief CVD excess following COVID-19 waves.
+\end{itemize}\end{minipage} \\
+\hline\\[-0.22cm]
+\parbox[t]{2.2cm}{\raggedright Mortality displacement} & Early deaths among frail individuals reduced deaths expected later, creating mortality deficits. & 
+\begin{minipage}[t]{4cm}
+\begin{itemize}[leftmargin=1em]
+\compresslist
+\item Deficits in dementia and CVD deaths following autumn 2020 wave.
+\item Cancer patients dying from COVID-19 instead of cancer.
+\end{itemize}\end{minipage}\\[1cm]
+\hline\\[-0.22cm]
+\parbox[t]{2.2cm}{\raggedright Pandemic response (NPIs)} & Control measures reduced circulation of respiratory pathogens and affected related causes. &
+\begin{minipage}[t]{4cm}
+\begin{itemize}[leftmargin=1em]
+\compresslist
+\item Large decrease in non-COVID respiratory mortality.
+\item Lower winter mortality for dependent causes in older adults.
+\end{itemize}\end{minipage}\\[1cm]
+\hline
+\end{tabular}
+\\[0.1cm]
+\tiny\parbox[t]{\textwidth}{\textbf{Table 1:}
+Potential mechanisms driving mortality disruptions during the COVID-19 pandemic.}
+\end{minipage}
+
+
+% \begin{itemize}[leftmargin=1em]
+% \compresslist
+% \item Four mechanims can explain the mortality disruptions
+% \begin{itemize}
+% \compresslist
+% \item \textbf{Under-ascertainment of COVID-19 deaths:} Misclassified deaths inflated cardiovascular excess.
+% \item \textbf{Delayed SARS-CoV-2 effects:} Post-infection complications increased cardiovascular mortality.
+% \item \textbf{Mortality displacement:} Early deaths caused subsequent deficits, especially in mental/neurological disorders and cancer.
+% \item \textbf{Pandemic response:} NPIs reduced respiratory and dependent-cause mortality; little impact on cancer in Switzerland.
+% \end{itemize}
+% \end{itemize}
+}
+
+\end{poster}
+\end{document}
