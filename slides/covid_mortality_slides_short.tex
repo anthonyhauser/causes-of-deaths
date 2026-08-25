@@ -65,38 +65,61 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{document}
 
-% ~0:20
+% cumulative ~0:20
 \begin{frame}[plain]
   \titlepage
 \end{frame}
 
-%%% 1. THE PROBLEM -- framing only, no results %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% ~0:50
-\begin{frame}{The interpretation problem}
-  A pandemic moves cause-specific mortality in four ways at once:
+%%% 1. FROM THE PREVIOUS PROJECT TO THIS ONE -- framing only %%%%%%%%%%%%%%%%%
+% cumulative ~1:20
+\begin{frame}{Where we come from}
+  \textbf{Previous project}\footnote[frame]{\tiny Riou J, Hauser A, Fesser A,
+    Althaus CL, Egger M, Konstantinoudis G. \emph{Direct and indirect effects of
+    the COVID-19 pandemic on mortality in Switzerland.} Nat Commun 2023;14:90.}:
+  partition \textbf{all-cause} mortality into deaths directly attributable to
+  SARS-CoV-2 and deaths indirectly attributable to the pandemic.
   \begin{itemize}\compresslist
-    \item direct deaths from SARS-CoV-2,
-    \item deaths from other causes triggered by infection,
-    \item displacement of deaths across time \emph{and} across causes,
-    \item indirect effects of control measures and healthcare disruption.
+    \item Laboratory-confirmed deaths \textbf{underestimate} COVID-19 mortality
+          (by a factor of 0.72, 95\% CrI 0.46--0.78).
+    \item Net of COVID-19 deaths, mortality was \textbf{lower} than expected
+          ($-4\%$, 95\% CrI $-8$ to $0$) --- an indirect \emph{beneficial} effect,
+          attributed to restriction measures and to mortality displacement
+          (``harvesting'').
+  \end{itemize}
+  \vfill
+  \textbf{But this was all-cause: the mechanisms were inferred, not observed.}
+  \vfill
+  \begin{center}
+    \punch{Can we identify the deaths that should have been attributed to COVID-19?}\\[0.2em]
+    \punch{What were the indirect effects of the pandemic on the different causes of death?}
+  \end{center}
+  \vfill
+\end{frame}
+
+%%% 2. WHY CAUSES MUST BE MODELLED JOINTLY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% cumulative ~2:10
+\begin{frame}{Why cause-specific is not enough}
+  Going cause by cause does not answer either question:
+  \begin{itemize}\compresslist
+    \item a \textbf{deficit} in one cause may be a real decrease, or deaths
+          reallocated to COVID-19 --- indistinguishable within a single cause;
+    \item an \textbf{excess} in one cause may be a delayed effect of infection,
+          or an unascertained COVID-19 death.
   \end{itemize}
   \vfill
   \begin{center}
-    So when deaths from a given cause fall below expectation,\\
-    \punch{did those deaths not happen --- or were they counted elsewhere?}
+    The information that separates them lies \punch{between} causes:\\
+    which causes move together, and \punch{with what delay}.
   \end{center}
   \vfill
-  \begin{itemize}\compresslist
-    \item Single-cause excess mortality cannot tell these apart: each cause is
-          modelled as if the others did not exist.
-    \item \textbf{Aim:} estimate excess mortality for all causes jointly, and use
-          the dependence between causes to identify what drove the disruptions.
-  \end{itemize}
+  \textbf{Approach:} a Bayesian \textbf{multivariate} model of weekly
+  cause-specific mortality, estimating excess mortality for all causes jointly
+  together with their dependence structure.
 \end{frame}
 
 %%% 2. THE HEADLINE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% ~1:40
-\begin{frame}{Result 1: all-cause mortality net of COVID-19}
+% cumulative ~3:00
+\begin{frame}{Result 1: the previous finding, now week by week}
   \begin{columns}[t]
     \begin{column}{0.55\linewidth}
       \centering
@@ -109,8 +132,8 @@
       \begin{itemize}\compresslist
         \item Sharp rise in cumulative excess during major waves, then a
               \textbf{deficit} in the following weeks.
-        \item \punch{Excluding COVID-19 deaths, Switzerland had fewer deaths
-              than expected in 2020--21.}
+        \item \punch{The all-cause deficit is reproduced here, and
+              resolved in time:} excess and deficit alternate around waves.
       \end{itemize}
       \vspace{0.5em}
       \begin{center}
@@ -121,7 +144,7 @@
 \end{frame}
 
 %%% 3. METHOD -- one slide, correlation is the point %%%%%%%%%%%%%%%%%%%%%%%%%%%
-% ~2:40
+% cumulative ~3:50
 \begin{frame}{A multivariate model, in one slide}
   Weekly deaths by cause $i$, region $r$, sex $s$, age group; 2011--2019 as the
   baseline, 9 cause groups (ICD-10, immediate + underlying + contributing).
@@ -145,7 +168,7 @@
 \end{frame}
 
 %%% 4. RESULT: WHAT MOVED, AND WHEN %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% ~4:00
+% cumulative ~5:00
 \begin{frame}{Result 2: what moved, and when}
   \begin{columns}[t]
     \begin{column}{0.44\linewidth}
@@ -170,7 +193,7 @@
 \end{frame}
 
 %%% 5. RESULT: LAGS GIVE MECHANISM %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% ~5:20
+% cumulative ~6:10
 \begin{frame}{Result 3: lags turn pattern into mechanism}
   \begin{columns}[t]
     \begin{column}{0.45\linewidth}
@@ -196,7 +219,7 @@
 \end{frame}
 
 %%% 6. PUZZLE RESOLVED %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% ~6:10
+% cumulative ~7:00
 \begin{frame}{Result 4: the cancer deficit, checked directly}
   \vfill
   The cancer deficit is the cleanest test of the question we opened with.
@@ -216,7 +239,7 @@
 \end{frame}
 
 %%% 7. THE PAYOFF %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% ~7:20
+% cumulative ~7:50
 \begin{frame}{Four mechanisms explain the disruptions}
   \centering
   {\scriptsize
@@ -246,7 +269,7 @@
 \end{frame}
 
 %%% 8. TAKE-HOME %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% ~8:00
+% cumulative ~8:20
 \begin{frame}{Take-home}
   \begin{enumerate}\compresslist
     \item Cause-specific excess mortality is \textbf{not nine separate problems} ---
