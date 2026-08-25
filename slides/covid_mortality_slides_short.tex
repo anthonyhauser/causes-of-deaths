@@ -92,7 +92,7 @@
   SARS-CoV-2 and deaths indirectly attributable to the pandemic.
   \begin{itemize}\compresslist
     \item Laboratory-confirmed deaths \textbf{underestimate} COVID-19 mortality
-          (by a factor of 0.72, 95\% CrI 0.46--0.78).
+          (by a factor of 0.72, 95\% credible interval [CrI] 0.46--0.78).
     \item Net of COVID-19 deaths, mortality was \textbf{lower} than expected
           ($-4\%$, 95\% CrI $-8$ to $0$) --- an indirect \emph{beneficial} effect,
           attributed to restriction measures and to mortality displacement
@@ -127,6 +127,13 @@
   \textbf{Approach:} a Bayesian \textbf{multivariate} model of weekly
   cause-specific mortality, estimating excess mortality for all causes jointly
   together with their dependence structure.
+  \vspace{0.3em}
+
+  {\scriptsize\color{bordercol} Related Swiss work analyses causes
+  \emph{separately}: the FSO documents shifts in the distribution of causes, and
+  Dur\'an et al.\ (Ann Epidemiol 2025) compare underlying vs multiple causes
+  monthly, by broad group. Here the temporal dynamics of causes are modelled
+  \emph{jointly}.}
 \end{frame}
 
 %%% 2. THE HEADLINE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -219,6 +226,11 @@
               ones.
         \item Cancer: weak or negative correlation with COVID-19.
       \end{itemize}
+      \vspace{0.3em}
+      {\footnotesize\punch{Why the lag matters:} miscoding a certificate is
+      \emph{contemporaneous} --- it cannot produce a correlation peaking weeks
+      later. The lag is what separates a coding artefact from a real
+      epidemiological association.}
     \end{column}
     \begin{column}{0.53\linewidth}
       \centering
@@ -325,6 +337,25 @@
     \item Population $N_{rst}$ by age, sex, region; weekly linear interpolation.
     \item Baseline fitted on 2011--2019; 2020--21 predicted out of sample.
   \end{itemize}
+\end{frame}
+
+\begin{frame}{Backup: are the correlations just a coding artefact?}
+  \textbf{The objection:} when a certificate lists both COVID-19 and
+  cardiovascular involvement, only one becomes the underlying cause. Competition
+  for the same certificate correlates the two causes \emph{by definition}.
+  \vspace{0.4em}
+  \begin{itemize}\compresslist
+    \item \textbf{Timing.} Miscoding acts at lag $0$. The observed correlations
+          peak at \textbf{1--3 weeks} --- a coding rule cannot generate that.
+    \item \textbf{Sign.} Competition for one certificate would push causes in
+          \emph{opposite} directions; several correlations here are positive.
+    \item \textbf{Independent check.} The cancer result uses multiple-cause data,
+          which does not depend on the underlying-cause assignment at all.
+  \end{itemize}
+  \vspace{0.3em}
+  \textbf{Conceded:} contemporaneous misclassification is \emph{not} fully
+  separable, and we report it as one of the four mechanisms rather than
+  claiming to have removed it.
 \end{frame}
 
 \begin{frame}{Backup: is this just harvesting?}
